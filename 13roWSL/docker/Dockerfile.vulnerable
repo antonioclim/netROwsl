@@ -1,0 +1,58 @@
+# Dockerfile - Server FTP Vulnerabil (Simulare Educațională)
+# Laborator Săptămâna 13 - IoT și Securitate
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix
+#
+# AVERTISMENT: Această imagine este pentru SCOPURI EDUCAȚIONALE
+# NU o utilizați în medii de producție!
+
+FROM ubuntu:22.04
+
+LABEL maintainer="Laborator Rețele de Calculatoare - ASE"
+LABEL description="Server FTP vulnerabil pentru laborator educațional"
+LABEL warning="NU UTILIZAȚI ÎN PRODUCȚIE - INTENȚIONAT VULNERABIL"
+
+# Evită prompturile interactive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Instalează vsftpd și dependențele
+RUN apt-get update && apt-get install -y \
+    vsftpd \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Creează utilizator FTP
+RUN useradd -m -d /home/ftp -s /bin/bash ftp_user \
+    && echo "ftp_user:parola123" | chpasswd \
+    && mkdir -p /home/ftp/public \
+    && chown -R ftp_user:ftp_user /home/ftp
+
+# Configurează directorul pentru acces anonim
+RUN mkdir -p /srv/ftp/public \
+    && chmod 755 /srv/ftp \
+    && chmod 777 /srv/ftp/public
+
+# Copiază fișiere de test
+RUN echo "Bun venit la serverul FTP al laboratorului!" > /srv/ftp/README.txt \
+    && echo "Acesta este un fișier de test pentru laborator." > /srv/ftp/public/test.txt
+
+# Creează script de pornire care simulează backdoor-ul
+# NOTĂ: Acest backdoor este NEEXPLOATABIL - doar ascultă pe port pentru detectare
+RUN echo '#!/bin/bash\n\
+# Pornește listener pe portul 6200 (simulare backdoor - doar pentru detectare)\n\
+# NOTĂ: Acest "backdoor" doar acceptă conexiuni și trimite un mesaj\n\
+# NU execută comenzi - este pentru scopuri educaționale\n\
+while true; do\n\
+    echo "Aceasta este o SIMULARE educațională a backdoor-ului vsftpd 2.3.4" | nc -l -p 6200 -q 1 2>/dev/null || true\n\
+    sleep 1\n\
+done &\n\
+\n\
+# Pornește vsftpd\n\
+exec /usr/sbin/vsftpd /etc/vsftpd.conf\n\
+' > /start.sh && chmod +x /start.sh
+
+# Expune porturile
+EXPOSE 21 6200
+
+# Comandă de pornire
+CMD ["/start.sh"]

@@ -1,0 +1,14 @@
+# Cerințe Python pentru Laboratorul Săptămânii 14
+# Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
+
+# Client HTTP pentru testarea endpoint-urilor
+requests>=2.28.0
+
+# Parsare fișiere de configurare YAML
+pyyaml>=6.0
+
+# SDK Docker pentru Python - management containere
+docker>=6.0.0
+
+# Framework de testare (opțional, pentru teste avansate)
+pytest>=7.0.0

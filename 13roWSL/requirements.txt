@@ -1,0 +1,21 @@
+# Dependențe Python - Laborator Săptămâna 13
+# IoT și Securitate în Rețelele de Calculatoare
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix
+#
+# Instalare: pip install -r requirements.txt
+
+# Client Docker pentru gestionarea containerelor
+docker>=6.0.0
+
+# Bibliotecă HTTP pentru verificări web
+requests>=2.28.0
+
+# Parser YAML pentru configurații
+pyyaml>=6.0
+
+# Client MQTT pentru comunicarea cu broker-ul
+paho-mqtt>=1.6.0
+
+# Bibliotecă pentru captură și analiză pachete
+# NOTĂ: Necesită drepturi de administrator pentru captură
+scapy>=2.5.0

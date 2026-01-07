@@ -1,0 +1,102 @@
+# Docker Compose - Laborator Săptămâna 13
+# IoT și Securitate în Rețelele de Calculatoare
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix
+#
+# AVERTISMENT: Aceste servicii sunt INTENȚIONAT VULNERABILE
+# Utilizați DOAR în mediul de laborator izolat!
+
+services:
+  # Broker MQTT Mosquitto
+  # Ascultă pe portul 1883 (text clar) și 8883 (TLS)
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: week13_mosquitto
+    hostname: mosquitto
+    ports:
+      - "${MQTT_PLAIN_PORT:-1883}:1883"
+      - "${MQTT_TLS_PORT:-8883}:8883"
+    volumes:
+      - ./configs/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./configs/certs:/mosquitto/certs:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    networks:
+      week13net:
+        ipv4_address: 10.0.13.100
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1", "-i", "healthcheck", "-W", "3"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # DVWA - Damn Vulnerable Web Application
+  # Aplicație web cu vulnerabilități intenționate pentru învățare
+  dvwa:
+    image: vulnerables/web-dvwa:latest
+    container_name: week13_dvwa
+    hostname: dvwa
+    ports:
+      - "${DVWA_HOST_PORT:-8080}:80"
+    environment:
+      - RECAPTCHA_PRIV_KEY=""
+      - RECAPTCHA_PUB_KEY=""
+      - SECURITY_LEVEL=low
+      - PHPIDS_ENABLED=0
+    networks:
+      week13net:
+        ipv4_address: 10.0.13.11
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/login.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # vsftpd - Server FTP cu simulare vulnerabilitate
+  # Versiunea 2.3.4 avea un backdoor celebru (CVE-2011-2523)
+  # Această implementare SIMULEAZĂ backdoor-ul pentru scopuri educaționale
+  vsftpd:
+    build:
+      context: .
+      dockerfile: Dockerfile.vulnerable
+    container_name: week13_vsftpd
+    hostname: vsftpd
+    ports:
+      - "${VSFTPD_HOST_PORT:-2121}:21"
+      - "${VSFTPD_BACKDOOR_HOST_PORT:-6200}:6200"
+    volumes:
+      - ./configs/vsftpd.conf:/etc/vsftpd.conf:ro
+      - vsftpd_data:/home/ftp
+    networks:
+      week13net:
+        ipv4_address: 10.0.13.12
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "21"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+# Rețea Docker personalizată
+networks:
+  week13net:
+    name: week13net
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NETWORK_SUBNET:-10.0.13.0/24}
+          gateway: ${NETWORK_GATEWAY:-10.0.13.1}
+
+# Volume pentru persistența datelor
+volumes:
+  mosquitto_data:
+    name: week13_mosquitto_data
+  mosquitto_logs:
+    name: week13_mosquitto_logs
+  vsftpd_data:
+    name: week13_vsftpd_data
