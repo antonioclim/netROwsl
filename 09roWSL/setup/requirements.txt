@@ -1,0 +1,17 @@
+# Cerințe Python pentru Laboratorul Săptămânii 9
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+
+# Gestionare Docker
+docker>=6.0.0
+
+# Solicitări HTTP
+requests>=2.28.0
+
+# Parsare YAML
+pyyaml>=6.0
+
+# Server FTP (pentru teste locale)
+pyftpdlib>=1.5.7
+
+# Culori în terminal (opțional, dar recomandat)
+colorama>=0.4.6

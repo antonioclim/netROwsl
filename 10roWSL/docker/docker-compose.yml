@@ -1,0 +1,191 @@
+# Docker Compose pentru Laboratorul Săptămânii 10
+# Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
+#
+# Servicii: HTTP, DNS, SSH, FTP, Debug, Portainer
+# Rețea: week10_labnet (172.20.0.0/24)
+
+version: "3.8"
+
+services:
+  # ═══════════════════════════════════════════════════════════════════
+  # SERVER WEB HTTP
+  # Servește conținut static pe portul 8000
+  # ═══════════════════════════════════════════════════════════════════
+  web:
+    image: python:3.11-alpine
+    container_name: week10_web
+    hostname: web
+    working_dir: /app
+    command: python -m http.server 8000 --directory /www
+    volumes:
+      - ./www:/www:ro
+    ports:
+      - "8000:8000"
+    networks:
+      labnet:
+        ipv4_address: 172.20.0.10
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════
+  # SERVER DNS
+  # Server DNS personalizat folosind dnslib
+  # Rezolvă domenii *.lab.local
+  # ═══════════════════════════════════════════════════════════════════
+  dns-server:
+    build:
+      context: ./dns-server
+      dockerfile: Dockerfile
+    container_name: week10_dns
+    hostname: dns-server
+    ports:
+      - "5353:5353/udp"
+    networks:
+      labnet:
+        ipv4_address: 172.20.0.53
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.settimeout(1); s.sendto(b'test', ('127.0.0.1', 5353))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════
+  # SERVER SSH
+  # Server OpenSSH pentru demonstrații de acces remote securizat
+  # Credențiale: labuser / labpass
+  # ═══════════════════════════════════════════════════════════════════
+  ssh-server:
+    build:
+      context: ./ssh-server
+      dockerfile: Dockerfile
+    container_name: week10_ssh
+    hostname: ssh-server
+    ports:
+      - "2222:22"
+    volumes:
+      - week10_ssh_data:/home/labuser
+    networks:
+      labnet:
+        ipv4_address: 172.20.0.22
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "22"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════
+  # CLIENT SSH
+  # Container cu Paramiko pentru demonstrații de conectare SSH
+  # ═══════════════════════════════════════════════════════════════════
+  ssh-client:
+    build:
+      context: ./ssh-client
+      dockerfile: Dockerfile
+    container_name: week10_ssh_client
+    hostname: ssh-client
+    depends_on:
+      - ssh-server
+    networks:
+      labnet:
+        ipv4_address: 172.20.0.100
+    # Păstrează containerul activ
+    command: ["tail", "-f", "/dev/null"]
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════
+  # SERVER FTP
+  # Server FTP folosind pyftpdlib
+  # Credențiale: labftp / labftp
+  # Porturi pasive: 30000-30009
+  # ═══════════════════════════════════════════════════════════════════
+  ftp-server:
+    build:
+      context: ./ftp-server
+      dockerfile: Dockerfile
+    container_name: week10_ftp
+    hostname: ftp-server
+    ports:
+      - "2121:2121"
+      - "30000-30009:30000-30009"
+    volumes:
+      - week10_ftp_data:/home/labftp
+    networks:
+      labnet:
+        ipv4_address: 172.20.0.21
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2121"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════
+  # CONTAINER DEBUG
+  # Container utilitar cu instrumente de rețea (dig, curl, tcpdump, nmap)
+  # ═══════════════════════════════════════════════════════════════════
+  debug:
+    build:
+      context: ./debug
+      dockerfile: Dockerfile
+    container_name: week10_debug
+    hostname: debug
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      labnet:
+        ipv4_address: 172.20.0.200
+    # Păstrează containerul activ
+    command: ["tail", "-f", "/dev/null"]
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════
+  # PORTAINER
+  # Interfață web pentru managementul Docker
+  # Acces: https://localhost:9443
+  # ═══════════════════════════════════════════════════════════════════
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: week10_portainer
+    hostname: portainer
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - week10_portainer_data:/data
+    networks:
+      labnet:
+        ipv4_address: 172.20.0.250
+    restart: unless-stopped
+
+# ═══════════════════════════════════════════════════════════════════
+# REȚEA
+# Rețea bridge izolată pentru laborator
+# ═══════════════════════════════════════════════════════════════════
+networks:
+  labnet:
+    name: week10_labnet
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
+
+# ═══════════════════════════════════════════════════════════════════
+# VOLUME
+# Volume persistente pentru datele serviciilor
+# ═══════════════════════════════════════════════════════════════════
+volumes:
+  week10_ssh_data:
+    name: week10_ssh_data
+  week10_ftp_data:
+    name: week10_ftp_data
+  week10_portainer_data:
+    name: week10_portainer_data

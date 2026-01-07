@@ -1,0 +1,10 @@
+Salut din serverul HTTP!
+
+Acest fișier demonstrează servirea de conținut static.
+Tipul MIME: text/plain
+Codificare: UTF-8
+
+Laborator Rețele de Calculatoare - ASE
+Săptămâna 10: Nivelul Aplicație
+
+by Revolvix

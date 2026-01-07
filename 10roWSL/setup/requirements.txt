@@ -1,0 +1,31 @@
+# Cerințe Python pentru Laboratorul Săptămânii 10
+# Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
+#
+# Instalare: pip install -r requirements.txt
+
+# Client Docker pentru Python
+docker>=6.1.0
+
+# Cereri HTTP
+requests>=2.31.0
+
+# Parsare YAML pentru configurații
+pyyaml>=6.0
+
+# Framework web pentru exercițiul REST
+flask>=3.0.0
+
+# Client SSH pentru Python
+paramiko>=3.4.0
+
+# Bibliotecă DNS pentru server personalizat
+dnslib>=0.9.24
+
+# Server FTP pentru Python
+pyftpdlib>=1.5.9
+
+# Ieșire colorată în terminal (opțional)
+colorama>=0.4.6
+
+# Criptografie pentru certificate TLS
+cryptography>=41.0.0

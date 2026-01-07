@@ -1,0 +1,208 @@
+# Configurație Docker Compose pentru Săptămâna 9
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+#
+# Nivelul Sesiune (L5) și Nivelul Prezentare (L6)
+# Tematică: Server FTP personalizat, testare multi-client
+#
+# Utilizare:
+#   docker compose up -d        # Pornește serviciile
+#   docker compose down         # Oprește serviciile
+#   docker compose logs -f      # Urmărește log-urile
+
+version: "3.8"
+
+services:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SERVER FTP
+  # Implementare Python cu pyftpdlib
+  # ═══════════════════════════════════════════════════════════════════════════
+  ftp-server:
+    image: python:3.11-slim
+    container_name: s9_ftp-server
+    hostname: ftp-server
+    
+    # Comandă pentru pornirea serverului FTP
+    command: >
+      bash -c "
+        pip install pyftpdlib --quiet &&
+        echo 'Se pornește serverul FTP pe portul 21...' &&
+        python -m pyftpdlib 
+          --port=21 
+          --username=test 
+          --password=12345 
+          --directory=/srv/ftp 
+          --write
+      "
+    
+    # Porturi expuse
+    ports:
+      # Port de control FTP
+      - "2121:21"
+      # Interval porturi pentru mod pasiv
+      - "60000-60010:60000-60010"
+    
+    # Volume pentru date
+    volumes:
+      - server-files:/srv/ftp
+    
+    # Rețea
+    networks:
+      - week9_ftp_network
+    
+    # Verificare sănătate
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('localhost',21)); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    
+    # Restart automat
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CLIENT 1 - Test comandă LIST
+  # ═══════════════════════════════════════════════════════════════════════════
+  client1:
+    image: python:3.11-slim
+    container_name: s9_client1
+    hostname: client1
+    
+    # Script de test pentru comandă LIST
+    command: >
+      bash -c "
+        echo 'Client 1: Se așteaptă pornirea serverului...' &&
+        sleep 10 &&
+        echo 'Client 1: Se conectează la server FTP...' &&
+        python -c \"
+from ftplib import FTP
+import time
+
+try:
+    ftp = FTP()
+    ftp.connect('ftp-server', 21, timeout=10)
+    print('Client 1: Conectat!')
+    ftp.login('test', '12345')
+    print('Client 1: Autentificat!')
+    
+    # Listează directorul
+    print('Client 1: Conținut director:')
+    ftp.retrlines('LIST')
+    
+    ftp.quit()
+    print('Client 1: Deconectat cu succes!')
+except Exception as e:
+    print(f'Client 1: Eroare - {e}')
+        \" &&
+        echo 'Client 1: Test finalizat.' &&
+        sleep infinity
+      "
+    
+    # Depinde de server
+    depends_on:
+      ftp-server:
+        condition: service_healthy
+    
+    # Volume pentru descărcări
+    volumes:
+      - client1-files:/downloads
+    
+    # Rețea
+    networks:
+      - week9_ftp_network
+    
+    # Restart
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CLIENT 2 - Test mod pasiv
+  # ═══════════════════════════════════════════════════════════════════════════
+  client2:
+    image: python:3.11-slim
+    container_name: s9_client2
+    hostname: client2
+    
+    # Script de test pentru mod pasiv
+    command: >
+      bash -c "
+        echo 'Client 2: Se așteaptă pornirea serverului...' &&
+        sleep 15 &&
+        echo 'Client 2: Se conectează în mod pasiv...' &&
+        python -c \"
+from ftplib import FTP
+import time
+
+try:
+    ftp = FTP()
+    ftp.connect('ftp-server', 21, timeout=10)
+    print('Client 2: Conectat!')
+    ftp.login('test', '12345')
+    print('Client 2: Autentificat!')
+    
+    # Activează mod pasiv explicit
+    ftp.set_pasv(True)
+    print('Client 2: Mod pasiv activat')
+    
+    # Testează PWD
+    director = ftp.pwd()
+    print(f'Client 2: Director curent: {director}')
+    
+    # Creează un fișier de test
+    from io import BytesIO
+    continut = b'Fisier de test creat de Client 2'
+    ftp.storbinary('STOR test_client2.txt', BytesIO(continut))
+    print('Client 2: Fișier încărcat!')
+    
+    ftp.quit()
+    print('Client 2: Deconectat cu succes!')
+except Exception as e:
+    print(f'Client 2: Eroare - {e}')
+        \" &&
+        echo 'Client 2: Test finalizat.' &&
+        sleep infinity
+      "
+    
+    # Depinde de server
+    depends_on:
+      ftp-server:
+        condition: service_healthy
+    
+    # Volume pentru descărcări
+    volumes:
+      - client2-files:/downloads
+    
+    # Rețea
+    networks:
+      - week9_ftp_network
+    
+    # Restart
+    restart: unless-stopped
+
+# ═════════════════════════════════════════════════════════════════════════════
+# REȚELE
+# ═════════════════════════════════════════════════════════════════════════════
+networks:
+  week9_ftp_network:
+    name: week9_ftp_network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.29.9.0/24
+          gateway: 172.29.9.1
+
+# ═════════════════════════════════════════════════════════════════════════════
+# VOLUME
+# ═════════════════════════════════════════════════════════════════════════════
+volumes:
+  # Volume pentru fișierele serverului FTP
+  server-files:
+    name: week9_server_files
+  
+  # Volume pentru descărcările Client 1
+  client1-files:
+    name: week9_client1_files
+  
+  # Volume pentru descărcările Client 2
+  client2-files:
+    name: week9_client2_files

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laborator Săptămâna 10 - Server HTTP</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --accent: #0f3460;
+            --text-primary: #e8e8e8;
+            --text-secondary: #a0a0a0;
+            --highlight: #e94560;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--highlight), #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .info-box {
+            background: var(--accent);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .info-box h3 {
+            color: var(--highlight);
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info-box li {
+            padding: 0.3rem 0;
+            color: var(--text-secondary);
+        }
+        
+        .info-box li::before {
+            content: "→ ";
+            color: var(--highlight);
+        }
+        
+        code {
+            background: rgba(233, 69, 96, 0.2);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+        }
+        
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Server HTTP Activ</h1>
+        <p class="subtitle">Laborator Rețele de Calculatoare - Săptămâna 10</p>
+        
+        <div class="info-box">
+            <h3>Informații Server</h3>
+            <ul>
+                <li>Protocol: HTTP/1.1</li>
+                <li>Port: 8000</li>
+                <li>Server: Python http.server</li>
+                <li>Container: week10_web</li>
+                <li>Adresă rețea: 172.20.0.10</li>
+            </ul>
+        </div>
+        
+        <div class="info-box">
+            <h3>Resurse Disponibile</h3>
+            <ul>
+                <li><code>/</code> - Această pagină</li>
+                <li><code>/hello.txt</code> - Fișier text simplu</li>
+            </ul>
+        </div>
+        
+        <div class="info-box">
+            <h3>Testare cu curl</h3>
+            <ul>
+                <li><code>curl http://localhost:8000/</code></li>
+                <li><code>curl -v http://localhost:8000/hello.txt</code></li>
+                <li><code>curl -I http://localhost:8000/</code> (doar headere)</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>by Revolvix | ASE, Informatică Economică</p>
+        </div>
+    </div>
+</body>
+</html>
