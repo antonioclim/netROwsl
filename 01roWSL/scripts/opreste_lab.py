@@ -1,188 +1,142 @@
 #!/usr/bin/env python3
 """
-Oprire Laborator Săptămâna 1
+Script de Oprire a Laboratorului Săptămânii 1
 Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 
-Acest script oprește toate containerele în mod controlat, păstrând datele.
+Oprește toate containerele de laborator păstrând volumele de date.
+
+ADAPTAT PENTRU: WSL2 + Ubuntu 22.04 + Docker (în WSL) + Portainer Global
+NOTĂ: Portainer NU este oprit de acest script - rulează global pe portul 9000
 """
 
 from __future__ import annotations
 
 import subprocess
 import sys
-import time
 import argparse
 from pathlib import Path
 
-# Adaugă directorul rădăcină al proiectului la path
+# Adaugă rădăcina proiectului în path
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
-from scripts.utils.docker_utils import ManagerDocker
-from scripts.utils.logger import configureaza_logger
+from scripts.utils.docker_utils import DockerManager
+from scripts.utils.logger import setup_logger
 
-logger = configureaza_logger("opreste_lab")
-
-
-def afiseaza_banner() -> None:
-    """Afișează banner-ul de oprire."""
-    print()
-    print("╔" + "═" * 58 + "╗")
-    print("║" + "  OPRIRE LABORATOR SĂPTĂMÂNA 1".center(58) + "║")
-    print("╚" + "═" * 58 + "╝")
-    print()
+logger = setup_logger("opreste_lab")
 
 
-def oprire_gratiosa(container: str, timeout: int = 30) -> bool:
-    """Oprește un container în mod grațios.
-    
-    Args:
-        container: Numele containerului
-        timeout: Timpul de așteptare înainte de forțare
-        
-    Returns:
-        True dacă oprirea a reușit
-    """
-    logger.info(f"Se oprește {container}...")
-    
-    try:
-        # Mai întâi încearcă oprire grațioasă
-        rezultat = subprocess.run(
-            ["docker", "stop", "-t", str(timeout), container],
-            capture_output=True,
-            text=True,
-            timeout=timeout + 10
-        )
-        
-        if rezultat.returncode == 0:
-            logger.info(f"✓ {container} oprit cu succes")
-            return True
-        else:
-            logger.warning(f"Oprire grațioasă eșuată: {rezultat.stderr}")
-            return False
-            
-    except subprocess.TimeoutExpired:
-        logger.warning(f"Timeout la oprirea {container}")
-        return False
-    except Exception as e:
-        logger.error(f"Eroare la oprirea {container}: {e}")
-        return False
-
-
-def oprire_fortata(container: str) -> bool:
-    """Forțează oprirea unui container.
-    
-    Args:
-        container: Numele containerului
-        
-    Returns:
-        True dacă oprirea a reușit
-    """
-    logger.warning(f"Se forțează oprirea {container}...")
-    
+def verifica_portainer_ruleaza() -> bool:
+    """Verifică dacă Portainer global rulează."""
     try:
         rezultat = subprocess.run(
-            ["docker", "kill", container],
+            ["docker", "ps", "--filter", "name=portainer", "--format", "{{.Names}}"],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=10
         )
-        
-        if rezultat.returncode == 0:
-            logger.info(f"✓ {container} oprit forțat")
-            return True
-        else:
-            return False
-            
-    except Exception as e:
-        logger.error(f"Eroare la oprirea forțată: {e}")
+        return "portainer" in rezultat.stdout.lower()
+    except:
         return False
 
 
 def main() -> int:
-    """Funcția principală."""
     parser = argparse.ArgumentParser(
-        description="Oprește Laboratorul Săptămânii 1",
+        description="Oprește Mediul de Laborator Săptămâna 1",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemple:
-  python opreste_lab.py              # Oprire grațioasă
-  python opreste_lab.py --fortat     # Oprire forțată
-  python opreste_lab.py --timeout 60 # Timeout personalizat
+  python scripts/opreste_lab.py              # Oprește containerele de laborator
+  python scripts/opreste_lab.py --elimina    # Oprește și elimină containerele
+  python scripts/opreste_lab.py --volume     # Elimină și volumele (pierdere date!)
+
+NOTĂ: Portainer rulează global și NU este oprit de acest script.
+      Rămâne accesibil la http://localhost:9000
         """
     )
     parser.add_argument(
-        "--fortat", "-f",
+        "--elimina",
         action="store_true",
-        help="Oprire forțată (kill) în loc de oprire grațioasă"
+        help="Elimină containerele după oprire"
     )
     parser.add_argument(
-        "--timeout", "-t",
-        type=int,
-        default=30,
-        help="Timeout pentru oprire grațioasă (implicit: 30 secunde)"
+        "--volume",
+        action="store_true",
+        help="Elimină și volumele (ATENȚIE: pierdere date!)"
+    )
+    parser.add_argument(
+        "--forta", "-f",
+        action="store_true",
+        help="Forțează oprirea fără confirmare"
     )
     args = parser.parse_args()
 
-    afiseaza_banner()
-
-    docker = ManagerDocker(RADACINA_PROIECT / "docker")
+    director_docker = RADACINA_PROIECT / "docker"
+    
+    try:
+        docker = DockerManager(director_docker)
+    except FileNotFoundError as e:
+        logger.error(str(e))
+        return 1
 
     logger.info("=" * 60)
-    logger.info("Oprirea Mediului de Laborator")
+    logger.info("Oprire Mediu Laborator Săptămâna 1")
+    logger.info("Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix")
     logger.info("=" * 60)
 
     try:
-        # Obține lista containerelor week1_*
-        rezultat = subprocess.run(
-            ["docker", "ps", "-a", "--filter", "name=week1_", "--format", "{{.Names}}"],
-            capture_output=True,
-            text=True
-        )
-        
-        containere = [c.strip() for c in rezultat.stdout.strip().split("\n") if c.strip()]
-        
-        if not containere:
-            logger.info("Nu există containere de laborator active.")
-            return 0
-        
-        logger.info(f"Se opresc {len(containere)} containere...")
-        
-        succes_total = True
-        for container in containere:
-            if args.fortat:
-                succes = oprire_fortata(container)
-            else:
-                succes = oprire_gratiosa(container, args.timeout)
-                if not succes:
-                    logger.warning(f"Se încearcă oprirea forțată pentru {container}")
-                    succes = oprire_fortata(container)
-            
-            if not succes:
-                succes_total = False
+        # Confirmare eliminare volume dacă se solicită
+        if args.volume and not args.forta:
+            raspuns = input("\n⚠️  ATENȚIE: Aceasta va șterge toate datele laboratorului! Continuați? [d/N]: ")
+            if raspuns.lower() != 'd':
+                logger.info("Anulat.")
+                return 0
 
-        # Oprește și cu docker compose
-        logger.info("Se finalizează oprirea cu Docker Compose...")
-        docker.compose_down()
+        # Oprește containerele
+        logger.info("Oprire containere de laborator...")
+        
+        if args.elimina or args.volume:
+            # Folosește docker-compose down
+            cmd = ["docker-compose", "-f", str(docker.compose_file), "down"]
+            if args.volume:
+                cmd.append("-v")
+            
+            rezultat = subprocess.run(
+                cmd,
+                cwd=director_docker.parent,
+                capture_output=True,
+                text=True
+            )
+            
+            if rezultat.returncode != 0:
+                logger.error(f"Oprirea containerelor a eșuat: {rezultat.stderr}")
+                return 1
+        else:
+            # Doar oprește containerele (păstrează volumele)
+            if not docker.compose_stop():
+                logger.error("Oprirea containerelor a eșuat")
+                return 1
 
         logger.info("")
+        logger.info("\033[92mContainerele de laborator au fost oprite cu succes.\033[0m")
+        
+        # Reamintire despre Portainer
+        logger.info("")
         logger.info("=" * 60)
-        if succes_total:
-            logger.info("✓ Toate containerele au fost oprite cu succes")
-            logger.info("")
-            logger.info("Datele au fost păstrate. Pentru a șterge totul:")
-            logger.info("  python scripts/curatare.py --complet")
+        logger.info("NOTĂ: Portainer rulează în continuare (serviciu global)")
+        if verifica_portainer_ruleaza():
+            logger.info("  Status: \033[92mRULEAZĂ\033[0m la http://localhost:9000")
         else:
-            logger.warning("⚠ Unele containere nu s-au oprit corect")
+            logger.warning("  Status: \033[91mNU RULEAZĂ\033[0m")
+        logger.info("")
+        logger.info("Portainer este intenționat NEOPRIT pentru a rămâne")
+        logger.info("disponibil pentru alte sesiuni de laborator.")
         logger.info("=" * 60)
+        
+        return 0
 
-        return 0 if succes_total else 1
-
-    except KeyboardInterrupt:
-        logger.warning("\nÎntrerupt de utilizator")
-        return 130
     except Exception as e:
-        logger.error(f"Eroare neașteptată: {e}")
+        logger.error(f"Oprirea laboratorului a eșuat: {e}")
         return 1
 
 

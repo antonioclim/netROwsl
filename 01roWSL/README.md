@@ -4,11 +4,71 @@
 >
 > by Revolvix
 
+---
+
+## ⚠️ Notificare Mediu
+
+Acest kit de laborator este proiectat pentru mediul **WSL2 + Ubuntu 22.04 + Docker + Portainer**.
+
+**Repository:** https://github.com/antonioclim/netROwsl
+
+---
+
+## Verificare Mediu
+
+Înainte de a începe acest laborator, verificați că mediul este configurat corect.
+
+### Din Windows PowerShell:
+
+```powershell
+# Verificați starea WSL - Ubuntu-22.04 ar trebui să fie implicit
+wsl --status
+# Așteptat: Default Distribution: Ubuntu-22.04
+
+# Verificați accesul la Docker prin WSL
+wsl docker ps
+# Așteptat: Cel puțin containerul "portainer" rulând
+
+# Verificați accesibilitatea Portainer
+curl http://localhost:9000
+# Așteptat: Răspuns HTML (interfața Portainer)
+```
+
+### Din Terminalul Ubuntu (WSL):
+
+```bash
+# Porniți serviciul Docker dacă nu rulează
+sudo service docker start
+
+# Verificați că Portainer rulează
+docker ps --filter name=portainer
+# Așteptat: container portainer cu status "Up"
+
+# Verificați versiunea Docker
+docker --version
+# Așteptat: Docker version 28.x sau mai recent
+```
+
+### Puncte de Acces
+
+| Serviciu | URL/Port | Credențiale |
+|----------|----------|-------------|
+| **Portainer** | http://localhost:9000 | `stud` / `studstudstud` |
+| Container Lab | Shell prin Docker | N/A |
+| Server Test TCP | localhost:9090 | N/A |
+| Server Test UDP | localhost:9091 | N/A |
+
+> **Notă:** Portainer rulează ca serviciu global (nu per-laborator). Este mereu disponibil pe portul 9000.
+
+---
+
 ## Prezentare Generală
 
 Această sesiune de laborator introduce conceptele fundamentale ale rețelelor de calculatoare, concentrându-se pe instrumentele de diagnostic și tehnicile de analiză esențiale pentru înțelegerea comunicării în rețea. Studenții vor dobândi experiență practică cu utilitare de rețea la nivel de linie de comandă, captură de pachete și paradigme de programare a socket-urilor.
 
 Laboratorul acoperă stiva TCP/IP de la o perspectivă practică, demonstrând modul în care datele traversează straturile rețelei și cum pot fi observate, capturate și analizate diferitele protocoale. Această cunoaștere fundamentală formează baza pentru toate sesiunile de laborator ulterioare.
+
+---
 
 ## Obiective de Învățare
 
@@ -21,90 +81,127 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 5. **Construiți** aplicații simple client-server folosind socket-uri TCP în Python
 6. **Evaluați** modelele de trafic de rețea prin analiza fișierelor PCAP
 
+---
+
 ## Cerințe Preliminare
 
 ### Cunoștințe Necesare
+
 - Operarea de bază în linia de comandă Linux
 - Cunoștințe elementare de programare Python
 - Înțelegerea numerotării binare și hexazecimale
 - Familiaritate cu modelul stratificat TCP/IP
 
-### Cerințe Software
-- Windows 10/11 cu WSL2 activat
-- Docker Desktop (backend WSL2)
-- Wireshark (nativ Windows)
-- Python 3.11 sau mai recent
-- Git
+### Cerințe Software (Pre-instalate)
 
-### Cerințe Hardware
-- Minim 8GB RAM (16GB recomandat)
-- 10GB spațiu liber pe disc
-- Conectivitate de rețea
+Mediul dvs. ar trebui să aibă deja:
+
+- ✅ Windows 10/11 cu WSL2 activat
+- ✅ Ubuntu 22.04 LTS (distribuția WSL implicită)
+- ✅ Docker Engine în WSL (NU Docker Desktop)
+- ✅ Portainer CE rulând pe portul 9000
+- ✅ Wireshark (aplicație Windows nativă)
+- ✅ Python 3.11+ cu pachetele: docker, scapy, dpkt
+
+Dacă lipsește ceva, consultați [Documentația Cerințelor Preliminare](../PREREQUISITES_RO.md).
+
+### Credențiale Standard
+
+| Serviciu | Utilizator | Parolă |
+|----------|------------|--------|
+| Ubuntu WSL | `stud` | `stud` |
+| Portainer | `stud` | `studstudstud` |
+
+---
 
 ## Pornire Rapidă
 
-### Configurare Inițială (Rulați o Singură Dată)
+### Pasul 1: Deschideți Terminalul Ubuntu
 
-```powershell
-# Deschideți PowerShell ca Administrator
-cd WEEK1_WSLkit_RO
+Din Windows, fie:
+- Click pe "Ubuntu" în meniul Start, sau
+- În PowerShell, tastați: `wsl`
 
-# Verificați cerințele preliminare
+### Pasul 2: Navigați la Directorul Laboratorului
+
+```bash
+# Dacă ați clonat în D:/RETELE/
+cd /mnt/d/RETELE/SAPT1
+```
+
+### Pasul 3: Verificați Cerințele Preliminare
+
+```bash
 python setup/verifica_mediu.py
-
-# Dacă apar probleme, rulați asistentul de instalare
-python setup/instaleaza_prerequisite.py
 ```
 
-### Pornirea Laboratorului
+Toate verificările ar trebui să treacă. Dacă vreuna eșuează, rezolvați înainte de a continua.
 
-```powershell
-# Porniți toate serviciile
+### Pasul 4: Porniți Laboratorul
+
+```bash
+# Asigurați-vă că Docker rulează
+sudo service docker start
+
+# Porniți containerele de laborator
 python scripts/porneste_lab.py
-
-# Verificați că totul rulează
-python scripts/porneste_lab.py --status
 ```
 
-### Accesarea Serviciilor
+### Pasul 5: Verificați că Totul Rulează
 
-| Serviciu | URL/Port | Credențiale |
-|----------|----------|-------------|
-| Portainer | https://localhost:9443 | Se setează la prima accesare |
-| Container Lab | localhost:9090 (TCP) | N/A |
-| Container Lab | localhost:9091 (UDP) | N/A |
+```bash
+# Verificați containerele de laborator
+docker ps
+
+# Output așteptat - ar trebui să vedeți:
+# - week1_lab (containerul de laborator)
+# - portainer (interfața de management global)
+```
+
+---
 
 ## Arhitectura Laboratorului
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Windows 10/11                            │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────────┐  │
-│  │   Wireshark  │  │  PowerShell  │  │    Docker Desktop     │  │
-│  │  (Analiză)   │  │  (Scripturi) │  │    (Backend WSL2)     │  │
-│  └──────────────┘  └──────────────┘  └───────────────────────┘  │
-│         │                 │                      │              │
-│         └─────────────────┼──────────────────────┘              │
-│                           │                                     │
-├───────────────────────────┼─────────────────────────────────────┤
-│                         WSL2                                    │
-│  ┌────────────────────────┴────────────────────────────────┐    │
-│  │                    Docker Engine                         │    │
-│  │  ┌─────────────────────────────────────────────────┐    │    │
-│  │  │              week1_network (172.20.1.0/24)      │    │    │
-│  │  │  ┌─────────────────────┐  ┌──────────────────┐  │    │    │
-│  │  │  │    week1_lab        │  │    portainer     │  │    │    │
-│  │  │  │  ├─ Python 3.12     │  │  (opțional)      │  │    │    │
-│  │  │  │  ├─ tcpdump/tshark  │  │  :9443           │  │    │    │
-│  │  │  │  ├─ netcat          │  └──────────────────┘  │    │    │
-│  │  │  │  └─ iproute2        │                        │    │    │
-│  │  │  │  :9090 (TCP)        │                        │    │    │
-│  │  │  │  :9091 (UDP)        │                        │    │    │
-│  │  │  └─────────────────────┘                        │    │    │
-│  │  └─────────────────────────────────────────────────┘    │    │
-│  └─────────────────────────────────────────────────────────┘    │
+│                         WINDOWS 11                               │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │   Wireshark     │  │    Browser      │  │   PowerShell    │  │
+│  │   (Captură)     │  │  (Portainer)    │  │   (Comenzi)     │  │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘  │
+│           │                    │                    │           │
+│           │              localhost:9000             │           │
+│           ▼                    ▼                    ▼           │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │              vEthernet (WSL) - Rețea Virtuală               ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                              │                                   │
+│  ┌───────────────────────────┴───────────────────────────────┐  │
+│  │                        WSL2                                │  │
+│  │  ┌─────────────────────────────────────────────────────┐  │  │
+│  │  │                  Ubuntu 22.04 LTS                    │  │  │
+│  │  │  ┌─────────────────────────────────────────────┐    │  │  │
+│  │  │  │              Docker Engine                   │    │  │  │
+│  │  │  │                                              │    │  │  │
+│  │  │  │  ┌──────────────┐    ┌──────────────┐      │    │  │  │
+│  │  │  │  │  week1_lab   │    │  portainer   │      │    │  │  │
+│  │  │  │  │  Container   │    │  (global)    │      │    │  │  │
+│  │  │  │  │              │    │  :9000       │      │    │  │  │
+│  │  │  │  │ Porturi:     │    └──────────────┘      │    │  │  │
+│  │  │  │  │ 9090 (TCP)   │                          │    │  │  │
+│  │  │  │  │ 9091 (UDP)   │                          │    │  │  │
+│  │  │  │  │ 9092 (alt)   │                          │    │  │  │
+│  │  │  │  └──────────────┘                          │    │  │  │
+│  │  │  │                                              │    │  │  │
+│  │  │  │         Rețele Docker                       │    │  │  │
+│  │  │  │   week1_network (172.20.1.0/24)            │    │  │  │
+│  │  │  └─────────────────────────────────────────────┘    │  │  │
+│  │  └─────────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+---
 
 ## Exerciții de Laborator
 
@@ -272,10 +369,9 @@ python tests/test_exercitii.py --exercitiu 3
 
 5. Opțional - Deschideți fișierul PCAP în Wireshark pe Windows.
 
-**Ce să observați:**
-- Structura pachetelor TCP
-- Secvența handshake-ului
-- Numerele de secvență și acknowledgement
+**Analiză Wireshark (Windows):**
+
+Deschideți Wireshark, porniți captura pe interfața `vEthernet (WSL)`, apoi generați trafic ca mai sus. Folosiți filtrul: `tcp.port == 9090`
 
 **Verificare:**
 ```bash
@@ -320,15 +416,12 @@ python tests/test_exercitii.py --exercitiu 4
    - Durata conversației
    - Distribuția pe porturi
 
-**Ce să observați:**
-- Structura datelor exportate
-- Modele de trafic
-- Corelația între dimensiunea pachetelor și protocol
-
 **Verificare:**
 ```bash
 python tests/test_exercitii.py --exercitiu 5
 ```
+
+---
 
 ## Demonstrații
 
@@ -336,7 +429,7 @@ python tests/test_exercitii.py --exercitiu 5
 
 Demonstrație automatizată a comenzilor de diagnostic:
 
-```powershell
+```bash
 python scripts/ruleaza_demo.py --demo 1
 ```
 
@@ -349,7 +442,7 @@ python scripts/ruleaza_demo.py --demo 1
 
 Demonstrație paralelă a protocoalelor TCP și UDP:
 
-```powershell
+```bash
 python scripts/ruleaza_demo.py --demo 2
 ```
 
@@ -358,30 +451,27 @@ python scripts/ruleaza_demo.py --demo 2
 - Diferențele în numărul de pachete
 - Comportamentul la pierdere de pachete
 
-### Demo 3: Socket-uri Python
-
-Execuție live a exercițiilor cu socket-uri:
-
-```powershell
-python scripts/ruleaza_demo.py --demo 3
-```
-
-**Ce să observați:**
-- Procesul de bind/listen/accept (server)
-- Procesul de connect/send/recv (client)
-- Tratarea erorilor și timeout-urile
+---
 
 ## Captura și Analiza Pachetelor
 
-### Capturarea Traficului
+### Captură în Container
 
-```powershell
+```bash
 # Pornirea capturii
 python scripts/captura_trafic.py --interfata lo --output pcap/captura_saptamana1.pcap
 
-# Sau folosiți Wireshark direct
-# Deschideți Wireshark > Selectați interfața corespunzătoare
+# Sau folosiți tcpdump direct
+docker exec week1_lab tcpdump -i any -w /work/pcap/capture.pcap
 ```
+
+### Captură cu Wireshark (Windows)
+
+1. Deschideți Wireshark din meniul Start
+2. Selectați interfața: **vEthernet (WSL)** sau **vEthernet (WSL) (Hyper-V firewall)**
+3. Porniți captura
+4. Generați trafic în containerul de laborator
+5. Opriți captura și analizați
 
 ### Filtre Wireshark Sugerate
 
@@ -405,62 +495,135 @@ icmp
 ip.addr == 172.20.1.2
 ```
 
-## Oprire și Curățare
+---
 
-### Sfârșit de Sesiune
+## Curățare
 
-```powershell
-# Opriți toate containerele (păstrează datele)
-python scripts/opreste_lab.py
+După finalizarea laboratorului, curățați resursele:
 
-# Verificați oprirea
-docker ps
+```bash
+# Opriți containerele de laborator (Portainer rămâne activ!)
+docker-compose -f docker/docker-compose.yml down
+
+# Eliminați rețelele de laborator (dacă au fost create)
+docker network prune -f
+
+# Eliminați imaginile de laborator (opțional, economisește spațiu)
+docker image prune -f
+```
+
+**⚠️ Important:** Păstrați mereu Portainer rulând pentru alte laboratoare!
+
+```bash
+# NU faceți NICIODATĂ asta (decât dacă vreți să opriți Portainer):
+# docker stop portainer
+
+# Verificați că Portainer încă rulează:
+docker ps --filter name=portainer
 ```
 
 ### Curățare Completă (Înainte de Săptămâna Următoare)
 
-```powershell
-# Eliminați toate containerele, rețelele și volumele pentru această săptămână
+```bash
+# Eliminați toate containerele, rețelele pentru această săptămână
 python scripts/curatare.py --complet
 
 # Verificați curățarea
 docker system df
 ```
 
+---
+
 ## Teme pentru Acasă
 
 Consultați directorul `homework/` pentru exercițiile de făcut acasă.
 
 ### Tema 1: Raport de Configurare a Rețelei
+
 Documentați configurația completă a rețelei pe calculatorul personal.
 
 ### Tema 2: Analiza Protocoalelor TCP/UDP
+
 Capturați și comparați traficul TCP și UDP, identificând diferențele.
+
+---
 
 ## Depanare
 
 ### Probleme Frecvente
 
-#### Problemă: Docker nu pornește
-**Soluție:** Verificați că Docker Desktop rulează și are backend-ul WSL2 activat. Reporniți Docker Desktop dacă este necesar.
+#### Problemă: Serviciul Docker nu rulează în WSL
+**Soluție:**
+```bash
+sudo service docker start
+docker ps  # Verificați că funcționează
+```
 
-#### Problemă: Permisiuni insuficiente pentru captură
-**Soluție:** Rulați comanda cu sudo în container sau verificați capabilitățile NET_ADMIN.
+#### Problemă: "Cannot connect to Docker daemon"
+**Soluție:** Serviciul Docker nu rulează. Porniți-l:
+```bash
+sudo service docker start
+```
+
+#### Problemă: Permisiuni refuzate la rularea docker
+**Soluție:** Utilizatorul nu este în grupul docker:
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+#### Problemă: Portainer nu este accesibil la localhost:9000
+**Soluție:** Containerul Portainer ar putea fi oprit:
+```bash
+docker start portainer
+# Sau reinstalați dacă nu există:
+docker run -d -p 9000:9000 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
+```
+
+#### Problemă: Containerul de laborator nu pornește
+**Soluție:** Verificați conflicte de porturi:
+```bash
+docker ps -a
+netstat -tlnp | grep -E "9090|9091|9092"
+```
 
 #### Problemă: Portul este deja utilizat
 **Soluție:** Identificați procesul cu `ss -tlnp | grep PORT` și opriți-l sau folosiți alt port.
 
+#### Problemă: Nu se capturează pachete în Wireshark
+**Soluție:**
+- Asigurați-vă că capturați pe interfața `vEthernet (WSL)`
+- Generați trafic în timp ce capturați
+- Verificați că filtrul de afișare nu e prea restrictiv
+
 Consultați `docs/depanare.md` pentru mai multe soluții.
+
+---
 
 ## Fundament Teoretic
 
-Această săptămână acoperă fundamentele rețelelor, inclusiv:
+### Modelul TCP/IP
 
-- **Modelul TCP/IP**: Arhitectura pe patru straturi și funcțiile fiecărui strat
-- **Adresarea IP**: Structura adreselor IPv4, notația CIDR și subrețele
-- **Protocoale de transport**: TCP (orientat pe conexiune) vs UDP (fără conexiune)
-- **Socket-uri**: Endpoints pentru comunicarea în rețea
-- **Instrumente de diagnostic**: ip, ss, ping, netcat, tcpdump, tshark
+Rețelele moderne operează conform unei arhitecturi pe straturi, unde fiecare strat oferă servicii stratului de deasupra. Acest laborator se concentrează pe Stratul de Transport (TCP/UDP) și Stratul de Rețea (IP).
+
+### Handshake-ul în Trei Pași
+
+Stabilirea conexiunii TCP urmează o secvență precisă:
+1. **SYN** - Clientul inițiază cererea de conexiune
+2. **SYN-ACK** - Serverul confirmă și răspunde
+3. **ACK** - Clientul confirmă, conexiunea este stabilită
+
+### Stările Socket-urilor
+
+Socket-urile de rețea tranziționează prin stări definite:
+- **LISTEN** - Serverul așteaptă conexiuni
+- **ESTABLISHED** - Comunicare bidirecțională activă
+- **TIME_WAIT** - Conexiune închisă, așteaptă timeout
+- **CLOSE_WAIT** - Partea remote a inițiat închiderea
+
+---
 
 ## Referințe
 
@@ -472,3 +635,5 @@ Această săptămână acoperă fundamentele rețelelor, inclusiv:
 ---
 
 *Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix*
+
+*Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer*

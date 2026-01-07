@@ -1,11 +1,14 @@
 # Configurație Docker Compose pentru Laboratorul Săptămânii 1
 # Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 #
+# ADAPTAT PENTRU: WSL2 + Ubuntu 22.04 + Docker (în WSL) + Portainer Global
+# NOTĂ: Portainer NU este inclus aici - rulează global pe portul 9000
+#       Accesați-l la http://localhost:9000 (credențiale: stud/studstudstud)
+#
 # Utilizare:
-#   docker compose up -d              # Pornire servicii
-#   docker compose down               # Oprire servicii
-#   docker compose logs               # Vizualizare jurnale
-#   docker compose --profile management up -d  # Cu Portainer
+#   docker-compose up -d              # Pornire servicii
+#   docker-compose down               # Oprire servicii
+#   docker-compose logs               # Vizualizare jurnale
 
 services:
   # Container principal de laborator
@@ -19,8 +22,9 @@ services:
       week1_network:
         ipv4_address: 172.20.1.2
     ports:
-      - "9090:9090"   # Port TCP pentru exerciții
-      - "9091:9091/udp"  # Port UDP pentru exerciții
+      - "9090:9090"       # Port TCP pentru exerciții
+      - "9091:9091/udp"   # Port UDP pentru exerciții
+      - "9092:9092"       # Port alternativ
     volumes:
       - ../src:/work/src:ro
       - ../pcap:/work/pcap
@@ -32,21 +36,13 @@ services:
     tty: true
     restart: unless-stopped
 
-  # Portainer pentru management vizual (opțional)
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: week1_portainer
-    profiles:
-      - management
-    networks:
-      week1_network:
-        ipv4_address: 172.20.1.100
-    ports:
-      - "9443:9443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    restart: unless-stopped
+# NOTĂ: Portainer NU este definit aici!
+# Rulează ca serviciu global pe portul 9000
+# Pornit separat cu: docker start portainer
+# Sau instalat fresh cu:
+#   docker run -d -p 9000:9000 --name portainer --restart=always \
+#     -v /var/run/docker.sock:/var/run/docker.sock \
+#     -v portainer_data:/data portainer/portainer-ce:latest
 
 # Definiție rețea
 networks:
@@ -58,8 +54,3 @@ networks:
       config:
         - subnet: 172.20.1.0/24
           gateway: 172.20.1.1
-
-# Volume persistente
-volumes:
-  portainer_data:
-    name: week1_portainer_data

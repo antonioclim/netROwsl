@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Pornire Laborator Săptămâna 1
+Script de Pornire a Laboratorului Săptămânii 1
 Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 
-Acest script pornește toate containerele Docker și verifică mediul de laborator.
+Pornește toate containerele Docker și verifică mediul de laborator.
+
+ADAPTAT PENTRU: WSL2 + Ubuntu 22.04 + Docker (în WSL) + Portainer Global
+NOTĂ: Portainer NU este pornit de acest script - rulează global pe portul 9000
 """
 
 from __future__ import annotations
@@ -14,41 +17,39 @@ import time
 import argparse
 from pathlib import Path
 
-# Adaugă directorul rădăcină al proiectului la path
+# Adaugă rădăcina proiectului în path
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
-from scripts.utils.docker_utils import ManagerDocker
-from scripts.utils.network_utils import TesterRetea
-from scripts.utils.logger import configureaza_logger
+from scripts.utils.docker_utils import DockerManager
+from scripts.utils.logger import setup_logger
 
-logger = configureaza_logger("porneste_lab")
+logger = setup_logger("porneste_lab")
 
-# Configurația serviciilor
+# Definiții servicii pentru Săptămâna 1
+# NOTĂ: Portainer NU este inclus - rulează ca serviciu global
 SERVICII = {
     "lab": {
         "container": "week1_lab",
         "port": 9090,
-        "descriere": "Container principal de laborator",
-        "timp_pornire": 5
+        "health_check": None,
+        "startup_time": 5
+    },
+}
+
+# Serviciu Portainer global (doar pentru verificări de status, NU este pornit de acest script)
+PORTAINER_GLOBAL = {
+    "portainer": {
+        "container": "portainer",
+        "port": 9000,
+        "health_check": "http://localhost:9000",
+        "startup_time": 0  # Deja rulează
     }
 }
 
 
-def afiseaza_banner() -> None:
-    """Afișează banner-ul de pornire."""
-    print()
-    print("╔" + "═" * 58 + "╗")
-    print("║" + " " * 58 + "║")
-    print("║" + "  LABORATOR SĂPTĂMÂNA 1 - FUNDAMENTELE REȚELELOR".center(58) + "║")
-    print("║" + "  Curs REȚELE DE CALCULATOARE - ASE, Informatică".center(58) + "║")
-    print("║" + " " * 58 + "║")
-    print("╚" + "═" * 58 + "╝")
-    print()
-
-
-def verifica_docker_activ() -> bool:
-    """Verifică dacă Docker este activ și funcțional."""
+def verifica_docker_ruleaza() -> bool:
+    """Verifică dacă daemon-ul Docker este disponibil."""
     try:
         rezultat = subprocess.run(
             ["docker", "info"],
@@ -56,131 +57,180 @@ def verifica_docker_activ() -> bool:
             timeout=10
         )
         return rezultat.returncode == 0
-    except Exception:
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+
+def porneste_serviciu_docker() -> bool:
+    """Încearcă să pornească serviciul Docker (mediu WSL)."""
+    try:
+        rezultat = subprocess.run(
+            ["sudo", "service", "docker", "start"],
+            capture_output=True,
+            timeout=30
+        )
+        time.sleep(2)  # Așteaptă pornirea serviciului
+        return verifica_docker_ruleaza()
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+
+def verifica_portainer_ruleaza() -> bool:
+    """Verifică dacă Portainer global rulează."""
+    try:
+        rezultat = subprocess.run(
+            ["docker", "ps", "--filter", "name=portainer", "--format", "{{.Names}}"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        return "portainer" in rezultat.stdout.lower()
+    except:
         return False
 
 
 def main() -> int:
-    """Funcția principală."""
     parser = argparse.ArgumentParser(
-        description="Pornește Laboratorul Săptămânii 1",
+        description="Pornește Mediul de Laborator Săptămâna 1",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemple:
-  python porneste_lab.py              # Pornire normală
-  python porneste_lab.py --status     # Verifică doar starea
-  python porneste_lab.py --rebuild    # Reconstruiește imaginile
-  python porneste_lab.py --shell      # Pornește și deschide shell-ul
-  python porneste_lab.py --portainer  # Include Portainer
+  python scripts/porneste_lab.py              # Pornește containerele de laborator
+  python scripts/porneste_lab.py --status     # Verifică doar statusul
+  python scripts/porneste_lab.py --rebuild    # Forțează reconstruirea imaginilor
+  python scripts/porneste_lab.py --shell      # Deschide shell după pornire
+
+NOTĂ: Portainer rulează global pe portul 9000 și NU este gestionat de acest script.
+      Accesați Portainer la: http://localhost:9000 (stud/studstudstud)
         """
     )
     parser.add_argument(
         "--status",
         action="store_true",
-        help="Verifică doar starea serviciilor"
+        help="Verifică statusul serviciilor fără a porni"
     )
     parser.add_argument(
         "--rebuild",
         action="store_true",
-        help="Reconstruiește imaginile Docker"
+        help="Forțează reconstruirea imaginilor container"
+    )
+    parser.add_argument(
+        "--detach", "-d",
+        action="store_true",
+        default=True,
+        help="Rulează în mod detașat (implicit: True)"
     )
     parser.add_argument(
         "--shell",
         action="store_true",
-        help="Deschide un shell în container după pornire"
-    )
-    parser.add_argument(
-        "--portainer",
-        action="store_true",
-        help="Include Portainer pentru management vizual"
-    )
-    parser.add_argument(
-        "-d", "--detasat",
-        action="store_true",
-        default=True,
-        help="Rulează în background (implicit)"
+        help="Deschide shell interactiv în container după pornire"
     )
     args = parser.parse_args()
 
-    afiseaza_banner()
+    # Verifică dacă Docker rulează
+    if not verifica_docker_ruleaza():
+        logger.warning("Docker nu rulează. Se încearcă pornirea...")
+        if porneste_serviciu_docker():
+            logger.info("Serviciul Docker pornit cu succes.")
+        else:
+            logger.error("Nu s-a putut porni Docker. Rulați: sudo service docker start")
+            return 1
 
-    # Verifică Docker
-    if not verifica_docker_activ():
-        logger.error("Docker nu este activ!")
-        logger.error("Asigurați-vă că Docker Desktop rulează.")
+    director_docker = RADACINA_PROIECT / "docker"
+    
+    try:
+        docker = DockerManager(director_docker)
+    except FileNotFoundError as e:
+        logger.error(str(e))
         return 1
 
-    docker = ManagerDocker(RADACINA_PROIECT / "docker")
-
-    # Doar verificare stare
+    # Doar verificare status
     if args.status:
-        docker.afiseaza_stare(SERVICII)
+        logger.info("Verificare status servicii...")
+        docker.show_status(SERVICII)
+        
+        # Afișează și statusul Portainer
+        logger.info("")
+        logger.info("Status Portainer global:")
+        if verifica_portainer_ruleaza():
+            logger.info("  [\033[92mRULEAZĂ\033[0m] Portainer la http://localhost:9000")
+        else:
+            logger.warning("  [\033[91mOPRIT\033[0m] Portainer - porniți cu: docker start portainer")
         return 0
 
     logger.info("=" * 60)
-    logger.info("Pornirea Mediului de Laborator - Săptămâna 1")
+    logger.info("Pornire Mediu Laborator Săptămâna 1")
+    logger.info("Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix")
     logger.info("=" * 60)
+    logger.info("")
+    logger.info("Mediu: WSL2 + Ubuntu 22.04 + Docker + Portainer Global")
+    logger.info("")
+
+    # Verifică Portainer global
+    if not verifica_portainer_ruleaza():
+        logger.warning("Portainer global nu rulează!")
+        logger.warning("Porniți-l cu: docker start portainer")
+        logger.warning("Sau instalați fresh cu:")
+        logger.warning("  docker run -d -p 9000:9000 --name portainer --restart=always \\")
+        logger.warning("    -v /var/run/docker.sock:/var/run/docker.sock \\")
+        logger.warning("    -v portainer_data:/data portainer/portainer-ce:latest")
+        logger.info("")
 
     try:
-        # Reconstruiește dacă este cerut
+        # Creează directoarele necesare
+        (RADACINA_PROIECT / "artifacts").mkdir(exist_ok=True)
+        (RADACINA_PROIECT / "pcap").mkdir(exist_ok=True)
+
+        # Construiește imaginile dacă se solicită
         if args.rebuild:
-            logger.info("Se reconstruiesc imaginile Docker...")
-            if not docker.compose_build(fara_cache=True):
-                logger.error("Eroare la construirea imaginilor")
+            logger.info("Construire imagini container...")
+            if not docker.compose_build(no_cache=True):
+                logger.error("Construirea imaginilor a eșuat")
                 return 1
 
-        # Pornește containerele
-        profiluri = ["management"] if args.portainer else None
-        if not docker.compose_up(detasat=args.detasat, profiluri=profiluri):
-            logger.error("Eroare la pornirea containerelor")
+        # Pornește containerele de laborator (NU Portainer)
+        logger.info("Pornire containere de laborator...")
+        if not docker.compose_up(detach=args.detach, services=["lab"]):
+            logger.error("Pornirea containerelor a eșuat")
             return 1
 
-        # Așteaptă să fie gata
-        logger.info("Se așteaptă inițializarea serviciilor...")
+        # Așteaptă inițializarea serviciilor
+        logger.info("Așteptare inițializare servicii...")
         time.sleep(3)
 
         # Verifică serviciile
-        toate_ok = True
-        for nume, config in SERVICII.items():
-            if docker.asteapta_container(config["container"], timeout=30):
-                logger.info(f"✓ {config['descriere']} este gata")
-            else:
-                logger.error(f"✗ {config['descriere']} nu a pornit")
-                toate_ok = False
+        logger.info("Verificare status servicii...")
+        toate_ok = docker.verify_services(SERVICII)
 
         if toate_ok:
             logger.info("")
             logger.info("=" * 60)
-            logger.info("✓ Mediul de laborator este pregătit!")
+            logger.info("\033[92mMediul de laborator este pregătit!\033[0m")
             logger.info("")
             logger.info("Puncte de acces:")
-            logger.info(f"  • Container Lab: docker exec -it week1_lab bash")
-            logger.info(f"  • Port TCP:      localhost:9090")
-            logger.info(f"  • Port UDP:      localhost:9091")
-            if args.portainer:
-                logger.info(f"  • Portainer:     https://localhost:9443")
+            logger.info(f"  Container Lab: docker exec -it week1_lab bash")
+            logger.info(f"  Port TCP Test: localhost:9090")
+            logger.info(f"  Port UDP Test: localhost:9091")
+            logger.info(f"  Portainer:     http://localhost:9000 (stud/studstudstud)")
             logger.info("")
-            logger.info("Pentru a opri laboratorul:")
-            logger.info("  python scripts/opreste_lab.py")
+            logger.info("Pornire rapidă:")
+            logger.info("  docker exec -it week1_lab bash")
             logger.info("=" * 60)
-
-            # Deschide shell dacă este cerut
+            
+            # Deschide shell dacă se solicită
             if args.shell:
-                logger.info("")
-                logger.info("Se deschide shell-ul în container...")
+                logger.info("\nDeschidere shell interactiv...")
                 subprocess.run(["docker", "exec", "-it", "week1_lab", "bash"])
-
+            
             return 0
         else:
-            logger.error("Unele servicii nu au pornit. Verificați log-urile.")
-            logger.error("  docker compose logs")
+            logger.error("Unele servicii nu au pornit. Verificați jurnalele de mai sus.")
+            logger.info("\nDepanare:")
+            logger.info("  docker-compose -f docker/docker-compose.yml logs")
             return 1
 
-    except KeyboardInterrupt:
-        logger.warning("\nÎntrerupt de utilizator")
-        return 130
     except Exception as e:
-        logger.error(f"Eroare neașteptată: {e}")
+        logger.error(f"Pornirea laboratorului a eșuat: {e}")
         return 1
 
 
