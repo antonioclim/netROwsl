@@ -1,0 +1,99 @@
+# Docker Compose pentru Laboratorul Săptămânii 12
+# Rețele de Calculatoare - ASE, Informatică Economică | de Revolvix
+#
+# Utilizare:
+#   docker compose up -d        # Pornire în fundal
+#   docker compose down         # Oprire
+#   docker compose logs -f      # Vizualizare jurnale
+#
+# Servicii:
+#   - Server SMTP educațional (port 1025)
+#   - Server JSON-RPC 2.0 (port 6200)
+#   - Server XML-RPC (port 6201)
+#   - Server gRPC (port 6251)
+#   - Portainer CE (port 9443)
+
+services:
+  # Container principal de laborator
+  # Rulează toate cele 4 servere simultan
+  lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: week12_lab
+    hostname: week12-lab
+    networks:
+      week12_net:
+        ipv4_address: 172.28.12.10
+    ports:
+      # Server SMTP educațional
+      - "1025:1025"
+      # Server JSON-RPC
+      - "6200:6200"
+      # Server XML-RPC
+      - "6201:6201"
+      # Server gRPC
+      - "6251:6251"
+    volumes:
+      # Cod sursă aplicații
+      - ../src/apps:/app/src
+      # Director pentru mesaje email
+      - ./volumes/spool:/app/spool
+      # Director pentru capturi
+      - ../pcap:/app/pcap
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - SMTP_PORT=1025
+      - JSONRPC_PORT=6200
+      - XMLRPC_PORT=6201
+      - GRPC_PORT=6251
+    # Pornește toate serverele în fundal
+    command: >
+      bash -c "
+        echo '=== Pornire servere Săptămâna 12 ===' &&
+        cd /app/src &&
+        python email/smtp_server.py &
+        python rpc/jsonrpc/jsonrpc_server.py &
+        python rpc/xmlrpc/xmlrpc_server.py &
+        python rpc/grpc/grpc_server.py &
+        echo '=== Toate serverele pornite ===' &&
+        tail -f /dev/null
+      "
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "1025"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Portainer CE - Interfață web pentru gestionarea Docker
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: week12_portainer
+    networks:
+      week12_net:
+        ipv4_address: 172.28.12.100
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: unless-stopped
+
+# Rețea dedicată pentru laboratorul Săptămânii 12
+networks:
+  week12_net:
+    name: week12_net
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.12.0/24
+          gateway: 172.28.12.1
+
+# Volume persistente
+volumes:
+  portainer_data:
+    name: week12_portainer_data

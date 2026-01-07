@@ -1,0 +1,17 @@
+# Dependențe Python pentru Săptămâna 11
+# Laborator Rețele de Calculatoare — ASE, Informatică Economică
+# de Revolvix
+
+# Dependențe principale
+requests>=2.31.0        # Client HTTP pentru testare
+pyyaml>=6.0             # Parsare fișiere YAML
+
+# Dependențe pentru protocoale
+dnspython>=2.4.0        # Client DNS și manipulare zone
+paramiko>=3.3.0         # Client și server SSH
+pyftpdlib>=1.5.0        # Server FTP în Python
+
+# Dependențe opționale pentru dezvoltare
+# pytest>=7.4.0         # Framework de testare
+# black>=23.0.0         # Formatare cod
+# mypy>=1.5.0           # Verificare tipuri
