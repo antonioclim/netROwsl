@@ -1,0 +1,108 @@
+# Docker Compose - Laborator Săptămâna 5
+# Rețele de Calculatoare – ASE, Informatică Economică
+# realizat de Revolvix
+#
+# Arhitectura:
+#   - week5_python:     Container principal pentru exerciții Python (10.5.0.10)
+#   - week5_udp-server: Server UDP Echo pentru demonstrații (10.5.0.20)
+#   - week5_udp-client: Client UDP pentru testare (10.5.0.30)
+#
+# Utilizare:
+#   Pornire:  docker compose up -d
+#   Oprire:   docker compose down
+#   Jurnale:  docker compose logs -f
+
+services:
+  # Container principal Python pentru exerciții de adresare IP
+  python:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: week5_python
+    hostname: python-lab
+    networks:
+      labnet:
+        ipv4_address: 10.5.0.10
+    volumes:
+      - ../src:/app/src:ro
+      - ../pcap:/app/pcap
+      - ../artifacts:/app/artifacts
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - LANG=ro_RO.UTF-8
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    stdin_open: true
+    tty: true
+    command: ["sleep", "infinity"]
+    labels:
+      - "ro.ase.retele.laborator=week5"
+      - "ro.ase.retele.descriere=Container principal Python"
+
+  # Server UDP Echo pentru demonstrații de comunicare
+  udp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: week5_udp-server
+    hostname: udp-server
+    networks:
+      labnet:
+        ipv4_address: 10.5.0.20
+    ports:
+      - "9999:9999/udp"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    command: >
+      python3 -c "
+      import socket
+      sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+      sock.bind(('0.0.0.0', 9999))
+      print('Server UDP Echo pornit pe portul 9999...')
+      while True:
+          data, addr = sock.recvfrom(1024)
+          print(f'Primit de la {addr}: {data.decode()}')
+          sock.sendto(data, addr)
+      "
+    labels:
+      - "ro.ase.retele.laborator=week5"
+      - "ro.ase.retele.descriere=Server UDP Echo"
+
+  # Client UDP pentru testare
+  udp-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: week5_udp-client
+    hostname: udp-client
+    networks:
+      labnet:
+        ipv4_address: 10.5.0.30
+    depends_on:
+      - udp-server
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    stdin_open: true
+    tty: true
+    command: ["sleep", "infinity"]
+    labels:
+      - "ro.ase.retele.laborator=week5"
+      - "ro.ase.retele.descriere=Client UDP pentru testare"
+
+networks:
+  labnet:
+    name: week5_labnet
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.5.0.0/24
+          gateway: 10.5.0.1
+    labels:
+      - "ro.ase.retele.laborator=week5"
+      - "ro.ase.retele.descriere=Retea de laborator pentru adresare IP"
