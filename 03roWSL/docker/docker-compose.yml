@@ -1,0 +1,176 @@
+# Docker Compose pentru Laboratorul Săptămânii 3
+# Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
+#
+# Topologie:
+#   - server (172.20.0.10:8080)   - Server Echo TCP
+#   - router (172.20.0.254:9090)  - Tunel TCP către server
+#   - client (172.20.0.100)       - Container pentru testare interactivă
+#   - receiver (172.20.0.101)     - Receptor broadcast/multicast (profil opțional)
+#   - portainer (172.20.0.2)      - Interfață web management (profil opțional)
+#
+# Utilizare:
+#   Pornire de bază:    docker compose up -d
+#   Cu receiver:        docker compose --profile broadcast up -d
+#   Cu Portainer:       docker compose --profile management up -d
+#   Toate serviciile:   docker compose --profile broadcast --profile management up -d
+
+services:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SERVER - Serviciu Echo TCP
+  # ═══════════════════════════════════════════════════════════════════════════
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: week3_server
+    hostname: server
+    networks:
+      week3_network:
+        ipv4_address: 172.20.0.10
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../src:/app/src:ro
+      - ../scripts:/app/scripts:ro
+    working_dir: /app
+    command: python3 /app/src/apps/server_echo.py
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ROUTER - Tunel TCP (relay către server)
+  # ═══════════════════════════════════════════════════════════════════════════
+  router:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: week3_router
+    hostname: router
+    networks:
+      week3_network:
+        ipv4_address: 172.20.0.254
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../src:/app/src:ro
+      - ../scripts:/app/scripts:ro
+    working_dir: /app
+    command: python3 /app/src/apps/tunel_tcp.py --port-ascultare 9090 --host-tinta 172.20.0.10 --port-tinta 8080
+    depends_on:
+      server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9090"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CLIENT - Container interactiv pentru testare
+  # ═══════════════════════════════════════════════════════════════════════════
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: week3_client
+    hostname: client
+    networks:
+      week3_network:
+        ipv4_address: 172.20.0.100
+    volumes:
+      - ../src:/app/src:ro
+      - ../scripts:/app/scripts:ro
+      - ../tests:/app/tests:ro
+      - ../homework:/app/homework:ro
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    command: sleep infinity
+    depends_on:
+      - server
+      - router
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # RECEIVER - Receptor Broadcast/Multicast (profil opțional: broadcast)
+  # ═══════════════════════════════════════════════════════════════════════════
+  receiver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: week3_receiver
+    hostname: receiver
+    profiles:
+      - broadcast
+    networks:
+      week3_network:
+        ipv4_address: 172.20.0.101
+    ports:
+      - "5007:5007/udp"
+      - "5008:5008/udp"
+    volumes:
+      - ../src:/app/src:ro
+      - ../scripts:/app/scripts:ro
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    command: sleep infinity
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PORTAINER - Interfață Web pentru Management Containere (profil: management)
+  # ═══════════════════════════════════════════════════════════════════════════
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: week3_portainer
+    hostname: portainer
+    profiles:
+      - management
+    networks:
+      week3_network:
+        ipv4_address: 172.20.0.2
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: unless-stopped
+
+# ═══════════════════════════════════════════════════════════════════════════
+# REȚELE
+# ═══════════════════════════════════════════════════════════════════════════
+networks:
+  week3_network:
+    name: week3_network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
+
+# ═══════════════════════════════════════════════════════════════════════════
+# VOLUME PERSISTENTE
+# ═══════════════════════════════════════════════════════════════════════════
+volumes:
+  portainer_data:
+    name: week3_portainer_data

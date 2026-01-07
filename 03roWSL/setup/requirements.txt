@@ -1,0 +1,5 @@
+# Dependențe Python pentru scripturile de configurare
+# Laborator Rețele de Calculatoare - ASE | by Revolvix
+
+pyyaml>=6.0
+requests>=2.28.0

@@ -1,0 +1,109 @@
+# ==============================================================================
+# Docker Compose - Kit Laborator Săptămâna 4
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | realizat de Revolvix
+#
+# Servicii:
+# - text-server: Server protocol TEXT (TCP:5400)
+# - binary-server: Server protocol BINAR (TCP:5401)
+# - udp-sensor: Server senzor UDP (UDP:5402)
+# - portainer: Interfață web pentru gestionare Docker (opțional)
+#
+# Utilizare:
+#   docker compose up -d          # Pornire toate serviciile
+#   docker compose up text-server # Pornire doar serverul TEXT
+#   docker compose down           # Oprire toate serviciile
+# ==============================================================================
+
+version: "3.8"
+
+services:
+  # ===========================================================================
+  # Server Protocol TEXT
+  # Port: 5400/tcp
+  # Format mesaj: <LUNGIME> <CONȚINUT>
+  # ===========================================================================
+  text-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: saptamana4-text
+    ports:
+      - "5400:5400"
+    command: ["python3", "-u", "src/apps/text_proto_server.py"]
+    networks:
+      - retea_saptamana4
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s=socket.socket(); s.settimeout(2); s.connect(('localhost',5400)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================================================
+  # Server Protocol BINAR
+  # Port: 5401/tcp
+  # Format: Antet fix 14 octeți + payload variabil
+  # ===========================================================================
+  binary-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: saptamana4-binar
+    ports:
+      - "5401:5401"
+    command: ["python3", "-u", "src/apps/binary_proto_server.py"]
+    networks:
+      - retea_saptamana4
+    restart: unless-stopped
+    depends_on:
+      - text-server
+
+  # ===========================================================================
+  # Server Senzor UDP
+  # Port: 5402/udp
+  # Format: Datagramă fixă de 23 octeți
+  # ===========================================================================
+  udp-sensor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: saptamana4-senzor
+    ports:
+      - "5402:5402/udp"
+    command: ["python3", "-u", "src/apps/udp_sensor_server.py"]
+    networks:
+      - retea_saptamana4
+    restart: unless-stopped
+    depends_on:
+      - text-server
+
+  # ===========================================================================
+  # Portainer - Interfață Web pentru Gestionare Docker (Opțional)
+  # Acces: https://localhost:9443
+  # ===========================================================================
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: saptamana4-portainer
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - volume_portainer:/data
+    restart: unless-stopped
+    profiles:
+      - management
+
+# ==============================================================================
+# Rețea
+# ==============================================================================
+networks:
+  retea_saptamana4:
+    driver: bridge
+    name: retea_saptamana4
+
+# ==============================================================================
+# Volume
+# ==============================================================================
+volumes:
+  volume_portainer:
+    name: volume_portainer_saptamana4

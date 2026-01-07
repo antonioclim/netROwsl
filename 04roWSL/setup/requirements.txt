@@ -1,0 +1,14 @@
+# Dependențe pentru scripturile de configurare
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | realizat de Revolvix
+#
+# Notă: Majoritatea funcționalităților Săptămânii 4 folosesc doar biblioteca standard Python.
+# Acestea sunt pachete opționale care îmbunătățesc experiența.
+
+# SDK Docker pentru Python (opțional - pentru control programatic Docker)
+docker>=6.0.0
+
+# Bibliotecă pentru cereri HTTP (opțional - pentru verificări de stare)
+requests>=2.28.0
+
+# Parser YAML (opțional - pentru fișiere de configurare)
+pyyaml>=6.0
