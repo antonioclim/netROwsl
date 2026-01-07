@@ -1,0 +1,1 @@
+"""Teste pentru exerciții."""

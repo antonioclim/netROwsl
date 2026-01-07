@@ -1,0 +1,72 @@
+# Imagine Docker pentru Laboratorul Săptămânii 1
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
+#
+# Conține instrumente de rețea pentru exerciții și demonstrații
+
+FROM python:3.12-slim
+
+# Informații despre imagine
+LABEL maintainer="Revolvix"
+LABEL description="Container laborator rețele - Săptămâna 1"
+LABEL course="Curs REȚELE DE CALCULATOARE - ASE, Informatică"
+
+# Variabile de mediu
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+# Instalare instrumente de sistem
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Instrumente de rețea de bază
+    iproute2 \
+    iputils-ping \
+    netcat-openbsd \
+    dnsutils \
+    traceroute \
+    net-tools \
+    # Instrumente de captură și analiză
+    tcpdump \
+    tshark \
+    # Utilități
+    curl \
+    wget \
+    vim-tiny \
+    less \
+    procps \
+    # Instrumente de testare performanță
+    iperf3 \
+    # Curățare pentru reducerea dimensiunii imaginii
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalare pachete Python
+RUN pip install --no-cache-dir \
+    scapy \
+    dpkt \
+    requests
+
+# Creare directoare de lucru
+WORKDIR /work
+RUN mkdir -p /work/src /work/pcap /work/artifacts
+
+# Creare fișier de bun venit
+RUN echo '#!/bin/bash' > /etc/profile.d/welcome.sh && \
+    echo 'echo ""' >> /etc/profile.d/welcome.sh && \
+    echo 'echo "╔════════════════════════════════════════════════════════════════╗"' >> /etc/profile.d/welcome.sh && \
+    echo 'echo "║  LABORATOR REȚELE DE CALCULATOARE - SĂPTĂMÂNA 1                ║"' >> /etc/profile.d/welcome.sh && \
+    echo 'echo "║  Curs ASE, Informatică | by Revolvix                           ║"' >> /etc/profile.d/welcome.sh && \
+    echo 'echo "╚════════════════════════════════════════════════════════════════╝"' >> /etc/profile.d/welcome.sh && \
+    echo 'echo ""' >> /etc/profile.d/welcome.sh && \
+    echo 'echo "Instrumente disponibile:"' >> /etc/profile.d/welcome.sh && \
+    echo 'echo "  ip, ss, ping, netcat (nc), tcpdump, tshark, iperf3"' >> /etc/profile.d/welcome.sh && \
+    echo 'echo ""' >> /etc/profile.d/welcome.sh && \
+    echo 'echo "Directoare:"' >> /etc/profile.d/welcome.sh && \
+    echo 'echo "  /work/src      - Cod sursă exerciții"' >> /etc/profile.d/welcome.sh && \
+    echo 'echo "  /work/pcap     - Capturi de trafic"' >> /etc/profile.d/welcome.sh && \
+    echo 'echo "  /work/artifacts - Artefacte generate"' >> /etc/profile.d/welcome.sh && \
+    echo 'echo ""' >> /etc/profile.d/welcome.sh && \
+    chmod +x /etc/profile.d/welcome.sh
+
+# Comandă implicită
+CMD ["/bin/bash", "-l"]

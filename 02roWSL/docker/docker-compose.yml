@@ -1,0 +1,89 @@
+# Docker Compose pentru Laboratorul Săptămânii 2
+# Laborator Rețele de Calculatoare - ASE, Informatică Economică
+# by Revolvix
+#
+# Arhitectură:
+#   - week2_lab: Container principal pentru exerciții (TCP/UDP)
+#   - portainer: Interfață web pentru managementul Docker
+#
+# Utilizare:
+#   docker compose up -d        # Pornire în fundal
+#   docker compose down         # Oprire
+#   docker compose logs -f      # Vizualizare loguri
+
+services:
+  # Container principal pentru laborator
+  week2_lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: week2_lab
+    hostname: week2-lab
+    
+    # Porturi expuse
+    ports:
+      - "9090:9090"    # Server TCP
+      - "9091:9091/udp" # Server UDP
+    
+    # Capabilități pentru operațiuni de rețea avansate
+    cap_add:
+      - NET_ADMIN      # Administrare interfețe rețea
+      - NET_RAW        # Socket-uri raw (pentru tcpdump)
+    
+    # Volume pentru persistența datelor
+    volumes:
+      - ../src/exercises:/app/exercises:ro  # Exerciții (doar citire)
+      - ../pcap:/app/pcap                   # Capturi de pachete
+      - ../artifacts:/app/artifacts         # Artefacte generate
+    
+    # Variabile de mediu
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - TZ=Europe/Bucharest
+    
+    # Menține containerul activ
+    stdin_open: true
+    tty: true
+    
+    # Repornire automată
+    restart: unless-stopped
+    
+    # Conectare la rețea
+    networks:
+      week2_network:
+        ipv4_address: 10.0.2.10
+
+  # Portainer - Interfață web pentru Docker
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: week2_portainer
+    
+    ports:
+      - "9443:9443"    # HTTPS
+    
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    
+    restart: unless-stopped
+    
+    networks:
+      week2_network:
+        ipv4_address: 10.0.2.100
+
+# Rețea dedicată pentru acest laborator
+networks:
+  week2_network:
+    name: week2_network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.2.0/24
+          gateway: 10.0.2.1
+
+# Volume pentru date persistente
+volumes:
+  portainer_data:
+    name: week2_portainer_data

@@ -1,0 +1,15 @@
+# Dependențe Python pentru kit-ul Săptămânii 2
+# Laborator Rețele de Calculatoare - ASE, Informatică Economică
+# by Revolvix
+
+# Management Docker
+docker>=6.0.0
+
+# Cereri HTTP
+requests>=2.28.0
+
+# Parsare YAML pentru configurații
+pyyaml>=6.0
+
+# Opțional: Formatare output colorat
+colorama>=0.4.6

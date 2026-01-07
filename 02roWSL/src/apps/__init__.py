@@ -1,0 +1,1 @@
+"""Aplicații demonstrative."""

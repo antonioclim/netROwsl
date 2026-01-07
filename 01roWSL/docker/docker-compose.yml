@@ -1,0 +1,65 @@
+# Configurație Docker Compose pentru Laboratorul Săptămânii 1
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
+#
+# Utilizare:
+#   docker compose up -d              # Pornire servicii
+#   docker compose down               # Oprire servicii
+#   docker compose logs               # Vizualizare jurnale
+#   docker compose --profile management up -d  # Cu Portainer
+
+services:
+  # Container principal de laborator
+  lab:
+    build:
+      context: .
+      dockerfile: Dockerfile.lab
+    container_name: week1_lab
+    hostname: lab
+    networks:
+      week1_network:
+        ipv4_address: 172.20.1.2
+    ports:
+      - "9090:9090"   # Port TCP pentru exerciții
+      - "9091:9091/udp"  # Port UDP pentru exerciții
+    volumes:
+      - ../src:/work/src:ro
+      - ../pcap:/work/pcap
+      - ../artifacts:/work/artifacts
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+  # Portainer pentru management vizual (opțional)
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: week1_portainer
+    profiles:
+      - management
+    networks:
+      week1_network:
+        ipv4_address: 172.20.1.100
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: unless-stopped
+
+# Definiție rețea
+networks:
+  week1_network:
+    name: week1_network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.1.0/24
+          gateway: 172.20.1.1
+
+# Volume persistente
+volumes:
+  portainer_data:
+    name: week1_portainer_data
