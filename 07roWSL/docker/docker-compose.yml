@@ -1,0 +1,108 @@
+# Configurare Docker Compose pentru Săptămâna 7
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
+#
+# Acest fișier definește serviciile pentru laboratorul de interceptare
+# și filtrare a pachetelor.
+#
+# Utilizare:
+#   docker compose up -d          # Pornește toate serviciile
+#   docker compose --profile demo up -d  # Include serviciile demo
+#   docker compose down           # Oprește serviciile
+
+services:
+  # Server TCP Echo - ascultă pe portul 9090
+  # Primește mesaje și le returnează (echo)
+  server_tcp:
+    image: python:3.11-slim
+    container_name: week7_server_tcp
+    hostname: server-tcp
+    working_dir: /app
+    command: python -u apps/server_tcp.py --host 0.0.0.0 --port 9090
+    volumes:
+      - ../src:/app:ro
+    networks:
+      week7net:
+        ipv4_address: 10.0.7.100
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('localhost',9090)); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # Receptor UDP - ascultă pe portul 9091
+  # Primește datagrame UDP și le logează
+  receptor_udp:
+    image: python:3.11-slim
+    container_name: week7_receptor_udp
+    hostname: receptor-udp
+    working_dir: /app
+    command: python -u apps/receptor_udp.py --host 0.0.0.0 --port 9091
+    volumes:
+      - ../src:/app:ro
+    networks:
+      week7net:
+        ipv4_address: 10.0.7.200
+    ports:
+      - "9091:9091/udp"
+    depends_on:
+      server_tcp:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Filtru de pachete la nivel aplicație
+  # Proxy care poate bloca anumite cuvinte cheie
+  filtru_pachete:
+    image: python:3.11-slim
+    container_name: week7_filtru_pachete
+    hostname: filtru-pachete
+    working_dir: /app
+    command: python -u apps/filtru_pachete.py --host 0.0.0.0 --port 8888
+    volumes:
+      - ../src:/app:ro
+      - ./configs:/app/configs:ro
+    networks:
+      week7net:
+        ipv4_address: 10.0.7.50
+    ports:
+      - "8888:8888"
+    profiles:
+      - proxy
+      - demo
+    restart: unless-stopped
+
+  # Container pentru demonstrații și teste
+  # Include toate instrumentele necesare
+  demo:
+    image: python:3.11-slim
+    container_name: week7_demo
+    hostname: demo
+    working_dir: /app
+    command: sleep infinity
+    volumes:
+      - ../src:/app:ro
+      - ../scripts:/scripts:ro
+      - ./configs:/app/configs:ro
+    networks:
+      week7net:
+        ipv4_address: 10.0.7.10
+    profiles:
+      - demo
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    restart: unless-stopped
+
+# Rețea dedicată pentru laborator
+# Subnet: 10.0.7.0/24
+networks:
+  week7net:
+    name: week7net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.7.0/24
+          gateway: 10.0.7.1

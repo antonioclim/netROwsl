@@ -1,0 +1,17 @@
+# Cerințe Python pentru Laboratorul Săptămânii 8
+# Cursul de REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+
+# SDK Docker pentru Python
+docker>=6.0.0
+
+# Cereri HTTP
+requests>=2.28.0
+
+# Parser YAML
+pyyaml>=6.0
+
+# Framework de testare
+pytest>=7.0.0
+
+# Opțional: pentru tipuri îmbunătățite
+typing-extensions>=4.0.0

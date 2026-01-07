@@ -1,0 +1,7 @@
+# Dependențe Python pentru Săptămâna 7
+# Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
+
+PyYAML>=6.0
+docker>=6.0.0
+requests>=2.28.0
+colorama>=0.4.6

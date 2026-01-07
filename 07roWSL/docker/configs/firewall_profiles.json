@@ -1,0 +1,80 @@
+{
+  "_comentariu": "Profile de firewall pentru Săptămâna 7 - Curs REȚELE DE CALCULATOARE",
+  "_descriere": "Fiecare profil definește un set de reguli iptables pentru demonstrarea diferitelor comportamente de filtrare",
+  "profiles": [
+    {
+      "name": "referinta",
+      "description": "Profil de bază - nicio filtrare activă, tot traficul este permis",
+      "rules": []
+    },
+    {
+      "name": "blocare_tcp_9090",
+      "description": "Blochează conexiunile TCP pe portul 9090 folosind REJECT (trimite RST)",
+      "rules": [
+        {
+          "protocol": "tcp",
+          "port": 9090,
+          "action": "REJECT",
+          "reject_with": "tcp-reset",
+          "comment": "Respinge TCP 9090 cu RST - clientul primește eroare imediată"
+        }
+      ]
+    },
+    {
+      "name": "blocare_udp_9091",
+      "description": "Blochează datagramele UDP pe portul 9091 folosind DROP (elimină silențios)",
+      "rules": [
+        {
+          "protocol": "udp",
+          "port": 9091,
+          "action": "DROP",
+          "comment": "Elimină silențios UDP 9091 - niciun răspuns trimis"
+        }
+      ]
+    },
+    {
+      "name": "filtrare_mixta",
+      "description": "Combinație de reguli REJECT și DROP pentru demonstrarea diferențelor",
+      "rules": [
+        {
+          "protocol": "tcp",
+          "port": 9090,
+          "action": "REJECT",
+          "reject_with": "icmp-port-unreachable",
+          "comment": "REJECT TCP cu ICMP port unreachable"
+        },
+        {
+          "protocol": "udp",
+          "port": 9091,
+          "action": "DROP",
+          "comment": "DROP silențios pentru UDP"
+        }
+      ]
+    },
+    {
+      "name": "blocare_tcp_drop",
+      "description": "Blochează TCP folosind DROP în loc de REJECT pentru comparație",
+      "rules": [
+        {
+          "protocol": "tcp",
+          "port": 9090,
+          "action": "DROP",
+          "comment": "DROP TCP - conexiunea va expira (timeout)"
+        }
+      ]
+    }
+  ],
+  "cuvinte_cheie_blocate": [
+    "malware",
+    "attack",
+    "exploit",
+    "hack",
+    "virus"
+  ],
+  "cuvinte_cheie_permise": [
+    "test",
+    "hello",
+    "ping",
+    "normal"
+  ]
+}
