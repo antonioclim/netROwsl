@@ -4,6 +4,328 @@
 >
 > de Revolvix
 
+---
+
+## ⚠️ Notificare Mediu
+
+Acest kit de laborator este proiectat pentru mediul **WSL2 + Ubuntu 22.04 + Docker + Portainer**.
+
+**Repository:** https://github.com/antonioclim/netROwsl
+**Folderul Acestei Săptămâni:** `12roWSL`
+
+**Arhitectura Mediului:**
+```
+Windows 11 → WSL2 → Ubuntu 22.04 (implicit) → Docker Engine → Portainer CE
+```
+
+**Credențiale Standard:**
+| Serviciu | Utilizator | Parolă |
+|----------|------------|--------|
+| Ubuntu WSL | `stud` | `stud` |
+| Portainer | `stud` | `studstudstud` |
+
+---
+
+## 📥 Clonarea Laboratorului Acestei Săptămâni
+
+### Pasul 1: Deschide PowerShell (Windows)
+
+Apasă `Win + X` → Selectează "Windows Terminal" sau "PowerShell"
+
+### Pasul 2: Navighează și Clonează
+
+```powershell
+# Creează folderul de rețele dacă nu există
+mkdir D:\RETELE -ErrorAction SilentlyContinue
+cd D:\RETELE
+
+# Clonează Săptămâna 12
+git clone https://github.com/antonioclim/netROwsl.git SAPT12
+cd SAPT12
+```
+
+### Pasul 3: Verifică Clonarea
+
+```powershell
+dir
+# Ar trebui să vezi: 12roWSL/
+cd 12roWSL
+dir
+# Ar trebui să vezi: docker/, scripts/, src/, README.md, etc.
+```
+
+### Structura Completă a Directoarelor
+
+După clonare, structura va fi:
+```
+D:\RETELE\
+└── SAPT12\
+    └── 12roWSL\
+        ├── artifacts/       # Rezultate generate (capturi, loguri)
+        ├── docker/          # Configurație Docker
+        │   └── volumes/     # Volume pentru email spool
+        ├── docs/            # Documentație suplimentară
+        │   ├── depanare.md
+        │   ├── fisa_comenzi.md
+        │   ├── lecturi_suplimentare.md
+        │   └── rezumat_teorie.md
+        ├── homework/        # Teme pentru acasă
+        │   └── exercises/
+        ├── pcap/            # Fișiere de captură .pcap
+        ├── scripts/         # Scripturi de automatizare
+        │   └── utils/       # Utilitare Docker și rețea
+        ├── setup/           # Configurare mediu
+        ├── src/             # Cod sursă
+        │   ├── apps/        # Aplicații demonstrative
+        │   │   ├── email/   # smtp_client.py, smtp_server.py
+        │   │   └── rpc/     # jsonrpc/, xmlrpc/, grpc/
+        │   ├── exercises/   # ex_01_smtp, ex_02_rpc
+        │   └── utils/       # Utilitare rețea
+        ├── tests/           # Teste automatizate
+        └── README.md        # Acest fișier
+```
+
+---
+
+## 🔧 Configurarea Inițială a Mediului (Doar Prima Dată)
+
+### Pasul 1: Deschide Terminalul Ubuntu
+
+Din Windows, ai mai multe opțiuni:
+- Click pe "Ubuntu" în meniul Start, SAU
+- În PowerShell tastează: `wsl`, SAU
+- În Windows Terminal selectează tab-ul "Ubuntu"
+
+Vei vedea promptul Ubuntu:
+```
+stud@CALCULATOR:~$
+```
+
+### Pasul 2: Pornește Serviciul Docker
+
+```bash
+# Pornește Docker (necesar după fiecare restart Windows)
+sudo service docker start
+# Parolă: stud
+
+# Verifică că Docker rulează
+docker ps
+```
+
+**Output așteptat:**
+```
+CONTAINER ID   IMAGE                    STATUS          NAMES
+abc123...      portainer/portainer-ce   Up 2 hours      portainer
+```
+
+Dacă vezi containerul `portainer` în listă, mediul este pregătit.
+
+### Pasul 3: Verifică Accesul la Portainer
+
+1. Deschide browser-ul web (Chrome, Firefox, Edge)
+2. Navighează la: **http://localhost:9000**
+
+**Credențiale de autentificare:**
+- Utilizator: `stud`
+- Parolă: `studstudstud`
+
+**Ce să faci dacă Portainer nu răspunde:**
+```bash
+# Verifică dacă containerul Portainer există
+docker ps -a | grep portainer
+
+# Dacă e oprit, pornește-l
+docker start portainer
+
+# Dacă nu există, creează-l
+docker run -d -p 9000:9000 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
+```
+
+### Pasul 4: Navighează la Folderul Laboratorului în WSL
+
+```bash
+# Navighează la folderul laboratorului
+cd /mnt/d/RETELE/SAPT12/12roWSL
+
+# Verifică conținutul
+ls -la
+```
+
+---
+
+## 🖥️ Înțelegerea Interfeței Portainer
+
+### Prezentare Generală Dashboard
+
+După autentificare la http://localhost:9000, vei vedea:
+1. **Home** - Lista mediilor Docker disponibile
+2. **local** - Click pentru a gestiona Docker-ul local
+
+### Vizualizarea Containerelor pentru Săptămâna 12
+
+Navighează: **Home → local → Containers**
+
+Vei vedea containerul specific laboratorului:
+- **week12_lab** - Container principal (172.28.12.10) cu toate serverele:
+  - SMTP pe portul 1025
+  - JSON-RPC pe portul 6200
+  - XML-RPC pe portul 6201
+  - gRPC pe portul 6251
+
+### Acțiuni asupra Containerelor în Portainer
+
+Pentru orice container, poți efectua următoarele operații:
+
+| Acțiune | Descriere | Cum să o faci |
+|---------|-----------|---------------|
+| **Start** | Pornește containerul oprit | Butonul verde ▶ |
+| **Stop** | Oprește containerul | Butonul roșu ■ |
+| **Restart** | Repornește containerul | Butonul ↻ |
+| **Logs** | Vezi jurnalele containerului | Click pe nume → tab "Logs" |
+| **Console** | Accesează shell-ul containerului | Click pe nume → tab "Console" → "Connect" |
+| **Inspect** | Vezi configurația JSON detaliată | Click pe nume → tab "Inspect" |
+| **Stats** | Monitorizare CPU/Memorie/Rețea în timp real | Click pe nume → tab "Stats" |
+
+### Vizualizarea Rețelei week12_net
+
+1. Navighează: **Networks**
+2. Click pe **week12_net**
+3. Vezi configurația IPAM: 172.28.12.0/24, gateway 172.28.12.1
+4. Vezi containerul week12_lab conectat cu IP-ul său
+
+**⚠️ NU folosi NICIODATĂ portul 9000** - acesta este rezervat exclusiv pentru Portainer!
+
+---
+
+## 🦈 Configurarea și Utilizarea Wireshark
+
+### Când să Deschizi Wireshark
+
+Deschide Wireshark în următoarele situații:
+- **ÎNAINTE** de a genera traficul de rețea pe care vrei să-l capturezi
+- Când exercițiile menționează "captură", "analizează pachete", sau "observă trafic"
+- Pentru a compara dimensiunile payload-urilor între JSON-RPC, XML-RPC și gRPC
+- Pentru a observa dialogul SMTP în clar
+
+### Pasul 1: Lansează Wireshark
+
+Din Meniul Start Windows: Caută "Wireshark" → Click pentru a deschide
+
+Alternativ, din PowerShell:
+```powershell
+& "C:\Program Files\Wireshark\Wireshark.exe"
+```
+
+### Pasul 2: Selectează Interfața de Captură
+
+**CRITIC:** Selectează interfața corectă pentru traficul WSL:
+
+| Numele Interfeței | Când să Folosești |
+|-------------------|-------------------|
+| **vEthernet (WSL)** | ✅ Cel mai frecvent - capturează traficul Docker WSL |
+| **vEthernet (WSL) (Hyper-V firewall)** | Alternativă dacă prima nu funcționează |
+| **Loopback Adapter** | Doar pentru trafic localhost (127.0.0.1) |
+| **Ethernet/Wi-Fi** | Trafic rețea fizică (nu Docker) |
+
+**Cum selectezi:** Dublu-click pe numele interfeței SAU selecteaz-o și click pe icoana aripioarei albastre de rechin.
+
+### Pasul 3: Generează Trafic
+
+Cu Wireshark capturând (vei vedea pachete apărând în timp real), rulează exercițiile:
+
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT12/12roWSL
+
+# Pornește mediul de laborator
+python3 scripts/porneste_lab.py
+
+# Testează SMTP
+nc localhost 1025
+```
+
+### Pasul 4: Oprește Captura
+
+Click pe butonul pătrat roșu (Stop) când ai terminat de generat trafic.
+
+### Filtre Wireshark Esențiale pentru Săptămâna 12
+
+Tastează în bara de filtrare (devine verde când filtrul este valid) și apasă Enter:
+
+**Filtre pentru Trafic SMTP:**
+
+| Filtru | Scop | Când să îl folosești |
+|--------|------|----------------------|
+| `tcp.port == 1025` | Tot traficul SMTP | Analiză generală SMTP |
+| `smtp` | Protocol SMTP | Vezi comenzi și răspunsuri |
+| `smtp.req.command` | Comenzi SMTP | Vezi HELO, MAIL FROM, etc. |
+| `smtp.req.command == "MAIL"` | Comanda MAIL FROM | Inițiere tranzacție |
+| `smtp.req.command == "DATA"` | Comanda DATA | Conținut mesaj |
+| `smtp.response.code` | Coduri răspuns | Toate răspunsurile |
+| `smtp.response.code >= 400` | Erori SMTP | Probleme (4xx, 5xx) |
+| `smtp.response.code == 250` | Succes SMTP | Comenzi reușite |
+
+**Filtre pentru Trafic RPC:**
+
+| Filtru | Scop | Când să îl folosești |
+|--------|------|----------------------|
+| `tcp.port == 6200` | JSON-RPC | Trafic JSON-RPC |
+| `tcp.port == 6201` | XML-RPC | Trafic XML-RPC |
+| `tcp.port == 6251` | gRPC | Trafic gRPC (HTTP/2) |
+| `http` | Tot HTTP | JSON-RPC și XML-RPC |
+| `http.request.method == "POST"` | Cereri RPC | Apeluri către servere |
+| `http contains "jsonrpc"` | Conținut JSON-RPC | Filtrează JSON-RPC |
+| `http contains "methodCall"` | Conținut XML-RPC | Filtrează XML-RPC |
+| `http2` | HTTP/2 | gRPC (protocol binar) |
+| `http2.header.name == ":path"` | Căi gRPC | Metodele apelate |
+
+**Filtre pentru Rețeaua Laboratorului:**
+
+| Filtru | Scop | Container |
+|--------|------|-----------|
+| `ip.addr == 172.28.12.10` | Container lab | week12_lab |
+| `ip.addr == 172.28.12.0/24` | Toată rețeaua | Toate containerele |
+
+**Combinarea filtrelor:**
+- ȘI: `tcp.port == 6200 && http`
+- SAU: `tcp.port == 1025 || tcp.port == 6200`
+- NU: `!arp && !icmp`
+
+### Analiza Comparativă a Protocoalelor RPC
+
+1. Capturează trafic pentru JSON-RPC, XML-RPC și gRPC
+2. Compară dimensiunile pachetelor:
+   - JSON-RPC: compact, text lizibil
+   - XML-RPC: mai mare, text verbose
+   - gRPC: foarte compact, binar (Protocol Buffers)
+3. Observă overhead-ul HTTP vs HTTP/2
+
+### Codificarea Culorilor în Wireshark
+
+| Culoare | Semnificație |
+|---------|--------------|
+| Violet deschis | Trafic TCP normal |
+| Albastru deschis | Trafic UDP |
+| Verde deschis | Trafic HTTP |
+| Fundal gri | TCP SYN/FIN (evenimente conexiune) |
+| Text negru, fundal roșu | Erori TCP |
+| Text negru, fundal galben | Avertismente, retransmisii |
+
+### Salvarea Capturilor
+
+1. **File → Save As** (sau Ctrl+Shift+S)
+2. Navighează la: `D:\RETELE\SAPT12\12roWSL\pcap\`
+3. Nume fișier conform exercițiului:
+   - `captura_s12_smtp.pcap` - Dialog SMTP
+   - `captura_s12_jsonrpc.pcap` - Trafic JSON-RPC
+   - `captura_s12_xmlrpc.pcap` - Trafic XML-RPC
+   - `captura_s12_grpc.pcap` - Trafic gRPC
+4. Format: Wireshark/pcap sau pcapng (implicit)
+
+---
+
 ## Prezentare Generală
 
 Această sesiune de laborator explorează două paradigme fundamentale ale comunicației la nivelul aplicației: protocoalele de poștă electronică și mecanismele de apel de procedură la distanță (RPC). Protocolul SMTP (Simple Mail Transfer Protocol) stă la baza infrastructurii globale de email, permițând transferul fiabil de mesaje între servere de poștă electronică prin intermediul unor dialoguri bazate pe text, ușor de înțeles de către om.
@@ -32,11 +354,16 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 - Fundamentele analizei de pachete cu Wireshark (Săptămâna 1)
 
 ### Cerințe Software
-- Windows 10/11 cu WSL2 activat
-- Docker Desktop (backend WSL2)
-- Wireshark (aplicație nativă Windows)
-- Python 3.11 sau ulterior
-- Git (opțional, pentru controlul versiunilor)
+
+| Software | Versiune | Scop |
+|----------|---------|------|
+| Windows 10/11 | 21H2+ | Sistem de operare gazdă |
+| WSL2 | Ubuntu 22.04+ | Mediu de execuție Linux |
+| Docker Engine | 24.0+ | Rulare containere (în WSL) |
+| Portainer CE | 2.19+ | Management vizual Docker (port 9000) |
+| Python | 3.11+ | Execuție scripturi |
+| Wireshark | 4.0+ | Analiză pachete |
+| Git | 2.40+ | Control versiuni (opțional) |
 
 ### Cerințe Hardware
 - Minim 8GB RAM (16GB recomandat)
@@ -47,36 +374,41 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 
 ### Configurare Inițială (Se Execută O Singură Dată)
 
-```powershell
-# Deschideți PowerShell ca Administrator
-cd WEEK12_WSLkit_RO
+```bash
+# Deschide terminalul Ubuntu (wsl în PowerShell)
+cd /mnt/d/RETELE/SAPT12/12roWSL
 
-# Verificați cerințele preliminare
-python setup/verifica_mediu.py
+# Verifică cerințele preliminare
+python3 setup/verifica_mediu.py
 
-# Dacă există probleme, rulați asistentul de instalare
-python setup/instaleaza_cerinte.py
+# Dacă apar probleme, rulează asistentul de instalare
+python3 setup/instaleaza_cerinte.py
 ```
 
 ### Pornirea Laboratorului
 
-```powershell
-# Porniți toate serviciile
-python scripts/porneste_lab.py
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT12/12roWSL
 
-# Verificați că totul rulează
-python scripts/porneste_lab.py --status
+# Pornește toate serviciile
+python3 scripts/porneste_lab.py
+
+# Verifică starea
+python3 scripts/porneste_lab.py --status
 ```
 
 ### Accesarea Serviciilor
 
-| Serviciu | URL/Port | Credențiale |
-|----------|----------|-------------|
-| Portainer | https://localhost:9443 | Se setează la prima accesare |
-| Server SMTP | localhost:1025 | Fără autentificare |
-| Server JSON-RPC | localhost:6200 | Fără autentificare |
-| Server XML-RPC | localhost:6201 | Fără autentificare |
-| Server gRPC | localhost:6251 | Fără autentificare |
+| Serviciu | URL/Port | Descriere |
+|----------|----------|-----------|
+| Portainer | http://localhost:9000 | Management Docker |
+| Server SMTP | localhost:1025 | Server SMTP educațional |
+| Server JSON-RPC | http://localhost:6200 | JSON-RPC 2.0 |
+| Server XML-RPC | http://localhost:6201 | XML-RPC cu introspecție |
+| Server gRPC | localhost:6251 | gRPC (HTTP/2 + Protocol Buffers) |
+
+**Notă:** Portainer rulează global și nu trebuie pornit/oprit cu laboratorul.
 
 ## Exerciții de Laborator
 
@@ -98,7 +430,7 @@ SMTP utilizează un model cerere-răspuns bazat pe text, unde clientul trimite c
 
 1. Deschideți un terminal și conectați-vă la serverul SMTP:
    ```bash
-   # Din Windows PowerShell sau WSL
+   # Din terminalul Ubuntu WSL
    nc localhost 1025
    ```
 
@@ -140,9 +472,9 @@ SMTP utilizează un model cerere-răspuns bazat pe text, unde clientul trimite c
 
 **Captură de Trafic:**
 
-```powershell
+```bash
 # Într-un terminal separat, înainte de a începe dialogul
-python scripts/captura_trafic.py --port 1025 --output pcap/smtp_dialog.pcap --durata 120
+python3 scripts/captura_trafic.py --port 1025 --output pcap/smtp_dialog.pcap --durata 120
 ```
 
 **Filtre Wireshark Sugerate:**
@@ -155,7 +487,7 @@ smtp.response.code >= 500
 
 **Verificare:**
 ```bash
-python tests/test_exercitii.py --exercitiu 1
+python3 tests/test_exercitii.py --exercitiu 1
 ```
 
 ---
@@ -216,12 +548,12 @@ JSON-RPC 2.0 definește un protocol ușor pentru apeluri de procedură la distan
 
 5. Utilizați clientul Python pentru teste suplimentare:
    ```bash
-   python src/apps/rpc/jsonrpc/jsonrpc_client.py
+   python3 src/apps/rpc/jsonrpc/jsonrpc_client.py
    ```
 
 **Verificare:**
 ```bash
-python tests/test_exercitii.py --exercitiu 2
+python3 tests/test_exercitii.py --exercitiu 2
 ```
 
 ---
@@ -265,37 +597,39 @@ XML-RPC folosește XML pentru codificarea apelurilor și HTTP ca transport. Ofer
      -H "Content-Type: text/xml" \
      -d '<?xml version="1.0"?>
      <methodCall>
-       <methodName>multiply</methodName>
+       <methodName>add</methodName>
        <params>
-         <param><value><int>7</int></value></param>
-         <param><value><int>8</int></value></param>
+         <param><value><int>15</int></value></param>
+         <param><value><int>27</int></value></param>
        </params>
      </methodCall>'
    ```
 
-4. Utilizați clientul Python:
+4. Utilizați clientul Python pentru teste suplimentare:
    ```bash
-   python src/apps/rpc/xmlrpc/xmlrpc_client.py
+   python3 src/apps/rpc/xmlrpc/xmlrpc_client.py
    ```
-
-**Comparați dimensiunile cererilor/răspunsurilor între JSON-RPC și XML-RPC pentru operații echivalente.**
 
 **Verificare:**
 ```bash
-python tests/test_exercitii.py --exercitiu 3
+python3 tests/test_exercitii.py --exercitiu 3
 ```
 
 ---
 
 ### Exercițiul 4: Apeluri gRPC cu Protocol Buffers
 
-**Obiectiv:** Efectuarea de apeluri gRPC și examinarea serializării binare
+**Obiectiv:** Utilizarea gRPC și înțelegerea serializării binare cu Protocol Buffers
 
 **Durată:** 25-30 minute
 
 **Fundament Teoretic:**
 
-gRPC utilizează Protocol Buffers (protobuf) pentru definirea serviciilor și serializarea mesajelor. Oferă performanță superioară prin serializare binară compactă, siguranța tipurilor la compilare și suport pentru streaming bidirecțional prin HTTP/2.
+gRPC utilizează Protocol Buffers (protobuf) pentru serializarea datelor, oferind:
+- Serializare binară compactă
+- Definirea strictă a schemei (.proto)
+- Generare automată de cod client/server
+- Transport eficient peste HTTP/2
 
 **Pași:**
 
@@ -306,7 +640,7 @@ gRPC utilizează Protocol Buffers (protobuf) pentru definirea serviciilor și se
 
 2. Rulați clientul gRPC:
    ```bash
-   python src/apps/rpc/grpc/grpc_client.py
+   python3 src/apps/rpc/grpc/grpc_client.py
    ```
 
 3. Observați în Wireshark diferența de dimensiune a payload-ului comparativ cu JSON/XML:
@@ -326,7 +660,7 @@ gRPC utilizează Protocol Buffers (protobuf) pentru definirea serviciilor și se
 
 **Verificare:**
 ```bash
-python tests/test_exercitii.py --exercitiu 4
+python3 tests/test_exercitii.py --exercitiu 4
 ```
 
 ---
@@ -341,7 +675,7 @@ python tests/test_exercitii.py --exercitiu 4
 
 1. Rulați scriptul de benchmark:
    ```bash
-   python src/apps/rpc/benchmark_rpc.py
+   python3 src/apps/rpc/benchmark_rpc.py
    ```
 
 2. Analizați rezultatele:
@@ -369,8 +703,8 @@ python tests/test_exercitii.py --exercitiu 4
 
 ### Demo 1: Dialog SMTP Complet
 
-```powershell
-python scripts/ruleaza_demo.py --demo smtp
+```bash
+python3 scripts/ruleaza_demo.py --demo smtp
 ```
 
 **Ce să observați:**
@@ -380,8 +714,8 @@ python scripts/ruleaza_demo.py --demo smtp
 
 ### Demo 2: Comparație RPC
 
-```powershell
-python scripts/ruleaza_demo.py --demo rpc-compara
+```bash
+python3 scripts/ruleaza_demo.py --demo rpc-compara
 ```
 
 **Ce să observați:**
@@ -391,8 +725,8 @@ python scripts/ruleaza_demo.py --demo rpc-compara
 
 ### Demo 3: Benchmark Complet
 
-```powershell
-python scripts/ruleaza_demo.py --demo benchmark
+```bash
+python3 scripts/ruleaza_demo.py --demo benchmark
 ```
 
 **Ce să observați:**
@@ -406,13 +740,13 @@ python scripts/ruleaza_demo.py --demo benchmark
 
 ### Capturarea Traficului
 
-```powershell
+```bash
 # Capturați tot traficul Week 12 pentru 60 de secunde
-python scripts/captura_trafic.py --durata 60 --output pcap/week12_sesiune.pcap
+python3 scripts/captura_trafic.py --durata 60 --output pcap/week12_sesiune.pcap
 
 # Sau pentru un protocol specific
-python scripts/captura_trafic.py --port 1025 --output pcap/smtp.pcap
-python scripts/captura_trafic.py --port 6200 --output pcap/jsonrpc.pcap
+python3 scripts/captura_trafic.py --port 1025 --output pcap/smtp.pcap
+python3 scripts/captura_trafic.py --port 6200 --output pcap/jsonrpc.pcap
 ```
 
 ### Filtre Wireshark Sugerate
@@ -439,23 +773,26 @@ http2.header.name == ":path"
 
 ## Oprire și Curățare
 
-### Sfârșitul Sesiunii
+### La Sfârșitul Sesiunii
 
-```powershell
-# Opriți toate containerele (păstrează datele)
-python scripts/opreste_lab.py
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT12/12roWSL
 
-# Verificați oprirea
+# Oprește containerele de laborator (Portainer rămâne activ!)
+python3 scripts/opreste_lab.py
+
+# Verifică oprire - ar trebui să vezi doar portainer
 docker ps
 ```
 
 ### Curățare Completă (Înainte de Săptămâna Următoare)
 
-```powershell
-# Eliminați toate containerele, rețelele și volumele pentru această săptămână
-python scripts/curata.py --complet
+```bash
+# Elimină toate containerele, rețelele și volumele pentru această săptămână
+python3 scripts/curata.py --complet
 
-# Verificați curățarea
+# Verifică curățarea
 docker system df
 ```
 
@@ -476,30 +813,6 @@ Realizați o analiză comparativă detaliată a celor patru protocoale folosind 
 
 ---
 
-## Depanare
-
-### Probleme Frecvente
-
-#### Problema: Portul 1025/6200/6201/6251 este deja ocupat
-**Soluție:** Verificați ce proces folosește portul și opriți-l:
-```powershell
-netstat -ano | findstr :1025
-taskkill /PID <pid> /F
-```
-
-#### Problema: Docker nu răspunde
-**Soluție:** Reporniți Docker Desktop și așteptați inițializarea completă.
-
-#### Problema: Erori de import gRPC
-**Soluție:** Regenerați fișierele stub:
-```bash
-python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. calculator.proto
-```
-
-Consultați `docs/depanare.md` pentru mai multe soluții.
-
----
-
 ## Fundament Teoretic
 
 ### Protocolul SMTP
@@ -512,7 +825,7 @@ SMTP (Simple Mail Transfer Protocol, RFC 5321) este protocolul standard pentru t
 
 ### Remote Procedure Call (RPC)
 
-RPC este o paradigmă de comunicare în sistemele distribuite care permite unui program să execute o procedură pe un alt sistem ca și cum ar fi locală. Abstractizează complexitatea comunicării în rețea, oferind programatorilor un model de programare familiar.
+RPC este o paradigmă de comunicare în sistemele distribuite care permite unui program să execute o procedură pe un alt sistem ca și cum ar fi locală. Abstractizează complexitatea comunicației în rețea, oferind programatorilor un model de programare familiar.
 
 ### Comparație JSON-RPC vs XML-RPC vs gRPC
 
@@ -560,8 +873,241 @@ RPC este o paradigmă de comunicare în sistemele distribuite care permite unui 
     │ telnet  │        │ Python  │      │ Python  │    │  Python  │
     └─────────┘        └─────────┘      └─────────┘    └──────────┘
       Client             Client           Client          Client
+
+    Portainer (global): http://localhost:9000
+```
+
+---
+
+## 🔧 Depanare Extinsă
+
+### Probleme Docker
+
+**Problemă:** "Cannot connect to Docker daemon"
+```bash
+# Pornește serviciul Docker în WSL
+sudo service docker start
+# Parolă: stud
+
+# Verifică statusul
+sudo service docker status
+
+# Verifică că funcționează
+docker ps
+```
+
+**Problemă:** Permisiune refuzată la rularea docker
+```bash
+# Adaugă utilizatorul la grupul docker
+sudo usermod -aG docker $USER
+
+# Aplică modificările
+newgrp docker
+
+# Sau deconectează-te și reconectează-te din WSL
+exit
+wsl
+```
+
+**Problemă:** Serviciul Docker nu pornește
+```bash
+# Verifică statusul detaliat
+sudo service docker status
+
+# Rulează daemon-ul manual pentru a vedea erorile
+sudo dockerd
+
+# Verifică log-urile
+sudo cat /var/log/docker.log
+```
+
+### Probleme Portainer
+
+**Problemă:** Nu pot accesa http://localhost:9000
+```bash
+# Verifică dacă containerul Portainer există și rulează
+docker ps -a | grep portainer
+
+# Dacă e oprit, pornește-l
+docker start portainer
+
+# Dacă nu există, creează-l
+docker run -d -p 9000:9000 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
+
+# Verifică log-urile
+docker logs portainer
+```
+
+**Problemă:** Am uitat parola Portainer
+```bash
+# ATENȚIE: Aceasta resetează Portainer (pierde setările dar NU containerele)
+docker stop portainer
+docker rm portainer
+docker volume rm portainer_data
+
+# Recreează cu comanda de mai sus
+# La prima accesare, setează parola nouă: studstudstud
+```
+
+### Probleme Wireshark
+
+**Problemă:** Nu se capturează pachete
+- ✅ Verifică interfața corectă selectată (vEthernet WSL)
+- ✅ Asigură-te că traficul este generat ÎN TIMPUL capturii
+- ✅ Verifică că filtrul de afișare nu ascunde pachetele (șterge filtrul)
+- ✅ Încearcă "Capture → Options" și activează modul promiscuous
+
+**Problemă:** "No interfaces found" sau eroare de permisiune
+- Rulează Wireshark ca Administrator (click dreapta → Run as administrator)
+- Reinstalează Npcap cu opțiunea "WinPcap API-compatible Mode" bifată
+
+**Problemă:** Nu văd traficul containerelor Docker
+- Selectează interfața `vEthernet (WSL)`, nu `Ethernet` sau `Wi-Fi`
+- Asigură-te că containerele sunt pe rețea bridge, nu host
+
+### Probleme Specifice Săptămânii 12
+
+**Problemă:** Portul 1025/6200/6201/6251 este deja ocupat
+```bash
+# Găsește ce folosește portul (în WSL)
+sudo ss -tlnp | grep 1025
+
+# Sau verifică toate porturile laboratorului
+for port in 1025 6200 6201 6251; do
+  echo "Port $port:"
+  sudo ss -tlnp | grep $port
+done
+
+# Oprește procesul sau folosește alt port în configurație
+```
+
+**Problemă:** Erori de import gRPC
+```bash
+# Instalează pachetele necesare
+pip install grpcio grpcio-tools --break-system-packages
+
+# Regenerează fișierele stub
+cd src/apps/rpc/grpc
+python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. calculator.proto
+```
+
+**Problemă:** Serverele nu pornesc în container
+```bash
+# Verifică log-urile containerului
+docker logs week12_lab
+
+# Accesează consola containerului
+docker exec -it week12_lab bash
+
+# Verifică procesele
+ps aux | grep python
+```
+
+**Problemă:** Dialog SMTP nu funcționează
+```bash
+# Verifică că serverul SMTP răspunde
+nc -zv localhost 1025
+
+# Testează manual
+nc localhost 1025
+# Apoi tastează: HELO test
+```
+
+### Probleme de Rețea
+
+**Problemă:** Containerul nu poate accesa internetul
+```bash
+# Verifică rețeaua Docker
+docker network ls
+docker network inspect week12_net
+
+# Verifică DNS în container
+docker exec week12_lab cat /etc/resolv.conf
+```
+
+**Problemă:** Erori de conectivitate între servicii
+```bash
+# Verifică că toate serviciile răspund
+curl http://localhost:6200  # JSON-RPC
+curl http://localhost:6201  # XML-RPC
+nc -zv localhost 6251       # gRPC
+nc -zv localhost 1025       # SMTP
+```
+
+---
+
+## 🧹 Procedura Completă de Curățare
+
+### Sfârșit de Sesiune (Rapidă)
+
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT12/12roWSL
+
+# Oprește containerele de laborator (Portainer rămâne activ!)
+python3 scripts/opreste_lab.py
+
+# Verifică - ar trebui să vezi doar portainer
+docker ps
+```
+
+### Sfârșit de Săptămână (Completă)
+
+```bash
+# Curățare completă laborator
+python3 scripts/curata.py --complet
+
+# Elimină imaginile nefolosite
+docker image prune -f
+
+# Elimină rețelele nefolosite
+docker network prune -f
+
+# Verifică utilizarea discului
+docker system df
+```
+
+### Resetare Totală (Înainte de Semestru Nou)
+
+```bash
+# ATENȚIE: Aceasta elimină TOTUL în afară de Portainer
+
+# Oprește toate containerele EXCEPTÂND Portainer
+docker stop $(docker ps -q --filter "name=week12_")
+
+# Elimină containerele oprite (nu Portainer)
+docker container prune -f
+
+# Elimină imaginile nefolosite
+docker image prune -a -f
+
+# Elimină rețelele nefolosite
+docker network prune -f
+
+# Verifică că Portainer încă rulează
+docker ps
+```
+
+**⚠️ NU rula NICIODATĂ `docker system prune -a` fără să excluzi Portainer!**
+
+### Verificare Post-Curățare
+
+```bash
+# Verifică ce a rămas
+docker ps -a          # Containere
+docker images         # Imagini
+docker network ls     # Rețele
+docker volume ls      # Volume
+
+# Ar trebui să vezi doar:
+# - Container: portainer
+# - Volum: portainer_data
+# - Rețele: bridge, host, none (implicite)
 ```
 
 ---
 
 *Laborator de Rețele de Calculatoare - ASE, Informatică Economică | de Revolvix*
+*Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer*

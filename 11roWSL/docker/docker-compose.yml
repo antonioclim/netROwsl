@@ -3,7 +3,19 @@
 # =============================================================================
 # NETWORKING class - ASE, Informatics | by Revolvix
 #
+# Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer
+#
+# NOTĂ IMPORTANTĂ:
+# ================
+# Portainer rulează GLOBAL pe portul 9000 și NU este definit aici.
+# Accesați Portainer la: http://localhost:9000
+# Credențiale: stud / studstudstud
+#
+# NU folosiți portul 9000 pentru serviciile de laborator!
+# Portainer este gestionat separat și rămâne activ între laboratoare.
+#
 # Stack: 1 Nginx Load Balancer + 3 Backend Servers
+# Rețea: s11_network (172.28.0.0/16)
 #
 # Usage:
 #   docker compose up -d           # Start all services

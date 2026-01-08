@@ -1,17 +1,32 @@
+# =============================================================================
 # Docker Compose pentru Laboratorul Săptămânii 12
+# =============================================================================
 # Rețele de Calculatoare - ASE, Informatică Economică | de Revolvix
+#
+# Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer
+#
+# NOTĂ IMPORTANTĂ:
+# ================
+# Portainer rulează GLOBAL pe portul 9000 și NU este definit aici.
+# Accesați Portainer la: http://localhost:9000
+# Credențiale: stud / studstudstud
+#
+# NU folosiți portul 9000 pentru serviciile de laborator!
+# Portainer este gestionat separat și rămâne activ între laboratoare.
 #
 # Utilizare:
 #   docker compose up -d        # Pornire în fundal
 #   docker compose down         # Oprire
 #   docker compose logs -f      # Vizualizare jurnale
 #
-# Servicii:
+# Servicii (toate rulează în containerul week12_lab):
 #   - Server SMTP educațional (port 1025)
 #   - Server JSON-RPC 2.0 (port 6200)
 #   - Server XML-RPC (port 6201)
 #   - Server gRPC (port 6251)
-#   - Portainer CE (port 9443)
+#
+# Rețea: week12_net (172.28.12.0/24)
+# =============================================================================
 
 services:
   # Container principal de laborator
@@ -68,19 +83,11 @@ services:
       start_period: 10s
     restart: unless-stopped
 
-  # Portainer CE - Interfață web pentru gestionarea Docker
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: week12_portainer
-    networks:
-      week12_net:
-        ipv4_address: 172.28.12.100
-    ports:
-      - "9443:9443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    restart: unless-stopped
+# =============================================================================
+# NOTĂ: Portainer NU este definit aici!
+# Portainer rulează global pe portul 9000 și este gestionat separat.
+# Pentru a accesa Portainer: http://localhost:9000
+# =============================================================================
 
 # Rețea dedicată pentru laboratorul Săptămânii 12
 networks:
@@ -93,7 +100,7 @@ networks:
         - subnet: 172.28.12.0/24
           gateway: 172.28.12.1
 
-# Volume persistente
+# Volume persistente pentru laborator (fără Portainer)
 volumes:
-  portainer_data:
-    name: week12_portainer_data
+  week12_spool:
+    name: week12_spool_data

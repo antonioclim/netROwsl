@@ -4,6 +4,336 @@
 > 
 > de Revolvix
 
+---
+
+## ⚠️ Notificare Mediu
+
+Acest kit de laborator este proiectat pentru mediul **WSL2 + Ubuntu 22.04 + Docker + Portainer**.
+
+**Repository:** https://github.com/antonioclim/netROwsl
+**Folderul Acestei Săptămâni:** `11roWSL`
+
+**Arhitectura Mediului:**
+```
+Windows 11 → WSL2 → Ubuntu 22.04 (implicit) → Docker Engine → Portainer CE
+```
+
+**Credențiale Standard:**
+| Serviciu | Utilizator | Parolă |
+|----------|------------|--------|
+| Ubuntu WSL | `stud` | `stud` |
+| Portainer | `stud` | `studstudstud` |
+
+---
+
+## 📥 Clonarea Laboratorului Acestei Săptămâni
+
+### Pasul 1: Deschide PowerShell (Windows)
+
+Apasă `Win + X` → Selectează "Windows Terminal" sau "PowerShell"
+
+### Pasul 2: Navighează și Clonează
+
+```powershell
+# Creează folderul de rețele dacă nu există
+mkdir D:\RETELE -ErrorAction SilentlyContinue
+cd D:\RETELE
+
+# Clonează Săptămâna 11
+git clone https://github.com/antonioclim/netROwsl.git SAPT11
+cd SAPT11
+```
+
+### Pasul 3: Verifică Clonarea
+
+```powershell
+dir
+# Ar trebui să vezi: 11roWSL/
+cd 11roWSL
+dir
+# Ar trebui să vezi: docker/, scripts/, src/, README.md, etc.
+```
+
+### Structura Completă a Directoarelor
+
+După clonare, structura va fi:
+```
+D:\RETELE\
+└── SAPT11\
+    └── 11roWSL\
+        ├── artifacts/       # Rezultate generate (capturi, loguri)
+        ├── docker/          # Configurație Docker
+        │   ├── configs/     # Configurare Nginx
+        │   ├── web1/        # Conținut backend 1
+        │   ├── web2/        # Conținut backend 2
+        │   ├── web3/        # Conținut backend 3
+        │   └── volumes/     # Volume persistente
+        ├── docs/            # Documentație suplimentară
+        │   ├── commands_cheatsheet.md
+        │   ├── further_reading.md
+        │   ├── theory_summary.md
+        │   └── troubleshooting.md
+        ├── homework/        # Teme pentru acasă
+        │   └── exercises/   # hw_11_01, hw_11_02
+        ├── pcap/            # Fișiere de captură .pcap
+        ├── scripts/         # Scripturi de automatizare
+        │   └── utils/       # Utilitare Docker și rețea
+        ├── setup/           # Configurare mediu
+        ├── src/             # Cod sursă
+        │   ├── apps/        # Aplicații demonstrative
+        │   ├── exercises/   # Exerciții Python
+        │   └── utils/       # Utilitare rețea
+        ├── tests/           # Teste automatizate
+        └── README.md        # Acest fișier
+```
+
+---
+
+## 🔧 Configurarea Inițială a Mediului (Doar Prima Dată)
+
+### Pasul 1: Deschide Terminalul Ubuntu
+
+Din Windows, ai mai multe opțiuni:
+- Click pe "Ubuntu" în meniul Start, SAU
+- În PowerShell tastează: `wsl`, SAU
+- În Windows Terminal selectează tab-ul "Ubuntu"
+
+Vei vedea promptul Ubuntu:
+```
+stud@CALCULATOR:~$
+```
+
+### Pasul 2: Pornește Serviciul Docker
+
+```bash
+# Pornește Docker (necesar după fiecare restart Windows)
+sudo service docker start
+# Parolă: stud
+
+# Verifică că Docker rulează
+docker ps
+```
+
+**Output așteptat:**
+```
+CONTAINER ID   IMAGE                    STATUS          NAMES
+abc123...      portainer/portainer-ce   Up 2 hours      portainer
+```
+
+Dacă vezi containerul `portainer` în listă, mediul este pregătit.
+
+### Pasul 3: Verifică Accesul la Portainer
+
+1. Deschide browser-ul web (Chrome, Firefox, Edge)
+2. Navighează la: **http://localhost:9000**
+
+**Credențiale de autentificare:**
+- Utilizator: `stud`
+- Parolă: `studstudstud`
+
+**Ce să faci dacă Portainer nu răspunde:**
+```bash
+# Verifică dacă containerul Portainer există
+docker ps -a | grep portainer
+
+# Dacă e oprit, pornește-l
+docker start portainer
+
+# Dacă nu există, creează-l
+docker run -d -p 9000:9000 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
+```
+
+### Pasul 4: Navighează la Folderul Laboratorului în WSL
+
+```bash
+# Navighează la folderul laboratorului
+cd /mnt/d/RETELE/SAPT11/11roWSL
+
+# Verifică conținutul
+ls -la
+```
+
+---
+
+## 🖥️ Înțelegerea Interfeței Portainer
+
+### Prezentare Generală Dashboard
+
+După autentificare la http://localhost:9000, vei vedea:
+1. **Home** - Lista mediilor Docker disponibile
+2. **local** - Click pentru a gestiona Docker-ul local
+
+### Vizualizarea Containerelor pentru Săptămâna 11
+
+Navighează: **Home → local → Containers**
+
+Vei vedea containerele specifice laboratorului:
+- **s11_nginx_lb** - Echilibror de sarcină Nginx (172.28.0.x:8080)
+- **s11_backend_1** - Server web backend 1 (172.28.0.x:80)
+- **s11_backend_2** - Server web backend 2 (172.28.0.x:80)
+- **s11_backend_3** - Server web backend 3 (172.28.0.x:80)
+
+### Acțiuni asupra Containerelor în Portainer
+
+Pentru orice container, poți efectua următoarele operații:
+
+| Acțiune | Descriere | Cum să o faci |
+|---------|-----------|---------------|
+| **Start** | Pornește containerul oprit | Butonul verde ▶ |
+| **Stop** | Oprește containerul | Butonul roșu ■ |
+| **Restart** | Repornește containerul | Butonul ↻ |
+| **Logs** | Vezi jurnalele containerului | Click pe nume → tab "Logs" |
+| **Console** | Accesează shell-ul containerului | Click pe nume → tab "Console" → "Connect" |
+| **Inspect** | Vezi configurația JSON detaliată | Click pe nume → tab "Inspect" |
+| **Stats** | Monitorizare CPU/Memorie/Rețea în timp real | Click pe nume → tab "Stats" |
+
+### Vizualizarea Rețelei s11_network
+
+1. Navighează: **Networks**
+2. Click pe **s11_network**
+3. Vezi configurația IPAM: 172.28.0.0/16
+4. Vezi toate containerele conectate și IP-urile lor
+
+### Modificarea Configurației Nginx prin Portainer
+
+1. **Console** pe s11_nginx_lb
+2. Editează /etc/nginx/nginx.conf (sau folosește configurația montată)
+3. Sau editează local `docker/configs/nginx.conf` și rulează:
+   ```bash
+   docker compose restart nginx
+   ```
+
+**⚠️ NU folosi NICIODATĂ portul 9000** - acesta este rezervat exclusiv pentru Portainer!
+
+---
+
+## 🦈 Configurarea și Utilizarea Wireshark
+
+### Când să Deschizi Wireshark
+
+Deschide Wireshark în următoarele situații:
+- **ÎNAINTE** de a genera traficul de rețea pe care vrei să-l capturezi
+- Când exercițiile menționează "captură", "analizează pachete", sau "observă trafic"
+- Pentru a observa distribuția traficului prin echilibror
+- Pentru analiza protocolului DNS
+
+### Pasul 1: Lansează Wireshark
+
+Din Meniul Start Windows: Caută "Wireshark" → Click pentru a deschide
+
+Alternativ, din PowerShell:
+```powershell
+& "C:\Program Files\Wireshark\Wireshark.exe"
+```
+
+### Pasul 2: Selectează Interfața de Captură
+
+**CRITIC:** Selectează interfața corectă pentru traficul WSL:
+
+| Numele Interfeței | Când să Folosești |
+|-------------------|-------------------|
+| **vEthernet (WSL)** | ✅ Cel mai frecvent - capturează traficul Docker WSL |
+| **vEthernet (WSL) (Hyper-V firewall)** | Alternativă dacă prima nu funcționează |
+| **Loopback Adapter** | Doar pentru trafic localhost (127.0.0.1) |
+| **Ethernet/Wi-Fi** | Trafic rețea fizică (nu Docker) |
+
+**Cum selectezi:** Dublu-click pe numele interfeței SAU selecteaz-o și click pe icoana aripioarei albastre de rechin.
+
+### Pasul 3: Generează Trafic
+
+Cu Wireshark capturând (vei vedea pachete apărând în timp real), rulează exercițiile:
+
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT11/11roWSL
+
+# Pornește mediul de laborator
+python3 scripts/start_lab.py
+
+# Testează echilibrorul
+for i in {1..6}; do curl -s http://localhost:8080/; done
+```
+
+### Pasul 4: Oprește Captura
+
+Click pe butonul pătrat roșu (Stop) când ai terminat de generat trafic.
+
+### Filtre Wireshark Esențiale pentru Săptămâna 11
+
+Tastează în bara de filtrare (devine verde când filtrul este valid) și apasă Enter:
+
+**Filtre pentru Trafic HTTP prin Echilibror:**
+
+| Filtru | Scop | Când să îl folosești |
+|--------|------|----------------------|
+| `tcp.port == 8080` | Trafic echilibror | Cereri către load balancer |
+| `http` | Tot traficul HTTP | Analiză generală HTTP |
+| `http.request` | Doar cereri HTTP | Vezi ce trimite clientul |
+| `http.response` | Doar răspunsuri HTTP | Vezi ce returnează backend-urile |
+| `http.request.uri == "/"` | Cereri către rădăcină | Identifică cereri principale |
+| `http.request.uri contains "health"` | Verificări de stare | Trafic health check |
+| `http.response.code == 200` | Răspunsuri OK | Succes |
+| `http.response.code >= 500` | Erori server | Probleme backend |
+
+**Filtre pentru Trafic DNS:**
+
+| Filtru | Scop | Când să îl folosești |
+|--------|------|----------------------|
+| `dns` | Tot traficul DNS | Analiză generală DNS |
+| `dns.qry.name contains "google"` | Interogări specifice | Filtrare domenii |
+| `dns.flags.response == 0` | Doar interogări | Cereri DNS |
+| `dns.flags.response == 1` | Doar răspunsuri | Răspunsuri DNS |
+| `dns.qry.type == 1` | Înregistrări A | Adrese IPv4 |
+| `dns.qry.type == 15` | Înregistrări MX | Servere email |
+| `dns.qry.type == 2` | Înregistrări NS | Nameservere |
+
+**Filtre pentru Rețeaua Laboratorului:**
+
+| Filtru | Scop | Container |
+|--------|------|-----------|
+| `ip.addr == 172.28.0.0/16` | Toată rețeaua | Toate containerele |
+| `tcp.port == 80` | Trafic backend | Backend-uri Nginx |
+
+**Combinarea filtrelor:**
+- ȘI: `http && tcp.port == 8080`
+- SAU: `tcp.port == 8080 || tcp.port == 80`
+- NU: `!arp && !icmp`
+
+### Analiza Distribuției Sarcinii în Wireshark
+
+1. Capturează trafic în timp ce rulezi:
+   ```bash
+   for i in {1..10}; do curl -s http://localhost:8080/; done
+   ```
+2. Folosește filtrul: `http.response`
+3. Observă răspunsurile de la diferite backend-uri
+4. Analizează header-urile pentru identificarea backend-ului
+
+### Codificarea Culorilor în Wireshark
+
+| Culoare | Semnificație |
+|---------|--------------|
+| Violet deschis | Trafic TCP normal |
+| Albastru deschis | Trafic UDP (DNS) |
+| Verde deschis | Trafic HTTP |
+| Fundal gri | TCP SYN/FIN (evenimente conexiune) |
+| Text negru, fundal roșu | Erori TCP |
+| Text negru, fundal galben | Avertismente, retransmisii |
+
+### Salvarea Capturilor
+
+1. **File → Save As** (sau Ctrl+Shift+S)
+2. Navighează la: `D:\RETELE\SAPT11\11roWSL\pcap\`
+3. Nume fișier conform exercițiului:
+   - `captura_s11_loadbalancer.pcap` - Trafic echilibror
+   - `captura_s11_dns.pcap` - Rezoluție DNS
+   - `captura_s11_failover.pcap` - Test failover
+4. Format: Wireshark/pcap sau pcapng (implicit)
+
+---
+
 ## Prezentare Generală
 
 Această sesiune de laborator explorează protocoalele stratului de aplicație și tehnicile de echilibrare a sarcinii. Veți investiga mecanismele fundamentale care permit transferul de fișiere, rezoluția numelor de domeniu și accesul securizat de la distanță, toate esențiale pentru infrastructura modernă a internetului.
@@ -43,7 +373,8 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 |----------|---------|------|
 | Windows 10/11 | 21H2+ | Sistem de operare gazdă |
 | WSL2 | Ubuntu 22.04+ | Mediu de execuție Linux |
-| Docker Desktop | 4.20+ | Rulare containere |
+| Docker Engine | 24.0+ | Rulare containere (în WSL) |
+| Portainer CE | 2.19+ | Management vizual Docker (port 9000) |
 | Python | 3.11+ | Execuție scripturi |
 | Wireshark | 4.0+ | Analiză pachete |
 | Git | 2.40+ | Control versiuni (opțional) |
@@ -58,38 +389,43 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 
 ### Prima Configurare (Rulează o singură dată)
 
-```powershell
-# Deschide PowerShell ca Administrator
-cd WEEK11_WSLkit_RO
+```bash
+# Deschide terminalul Ubuntu (wsl în PowerShell)
+cd /mnt/d/RETELE/SAPT11/11roWSL
 
 # Verifică cerințele preliminare
-python setup/verify_environment.py
+python3 setup/verify_environment.py
 
 # Dacă apar probleme, rulează scriptul de instalare
-python setup/install_prerequisites.py
+python3 setup/install_prerequisites.py
 ```
 
 ### Pornirea Laboratorului
 
-```powershell
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT11/11roWSL
+
 # Pornește toate serviciile
-python scripts/start_lab.py
+python3 scripts/start_lab.py
 
 # Verifică starea
-python scripts/start_lab.py --status
+python3 scripts/start_lab.py --status
 ```
 
 ### Accesarea Serviciilor
 
 | Serviciu | URL/Port | Descriere |
 |----------|----------|-----------|
+| Portainer | http://localhost:9000 | Management Docker |
 | Nginx Load Balancer | http://localhost:8080 | Punct de intrare echilibror |
 | Backend 1 | http://localhost:8081 | Server web direct |
 | Backend 2 | http://localhost:8082 | Server web direct |
 | Backend 3 | http://localhost:8083 | Server web direct |
 | Stare LB | http://localhost:8080/health | Verificare stare |
 | Status Nginx | http://localhost:8080/nginx_status | Statistici Nginx |
-| Portainer | https://localhost:9443 | Management Docker |
+
+**Notă:** Portainer rulează global și nu trebuie pornit/oprit cu laboratorul.
 
 ## Exerciții de Laborator
 
@@ -104,22 +440,22 @@ python scripts/start_lab.py --status
 1. Deschide trei terminale separate (PowerShell sau WSL)
 
 2. În primul terminal, pornește Backend 1:
-   ```powershell
-   python src/exercises/ex_11_01_backend.py --id 1 --port 8081 -v
+   ```bash
+   python3 src/exercises/ex_11_01_backend.py --id 1 --port 8081 -v
    ```
 
 3. În al doilea terminal, pornește Backend 2:
-   ```powershell
-   python src/exercises/ex_11_01_backend.py --id 2 --port 8082 -v
+   ```bash
+   python3 src/exercises/ex_11_01_backend.py --id 2 --port 8082 -v
    ```
 
 4. În al treilea terminal, pornește Backend 3:
-   ```powershell
-   python src/exercises/ex_11_03_backend.py --id 3 --port 8083 -v
+   ```bash
+   python3 src/exercises/ex_11_01_backend.py --id 3 --port 8083 -v
    ```
 
 5. Testează fiecare backend individual:
-   ```powershell
+   ```bash
    curl http://localhost:8081/
    curl http://localhost:8082/
    curl http://localhost:8083/
@@ -133,8 +469,8 @@ Backend 3 | Host: NUMELE-PC | Timp: 2025-01-06T14:30:02 | Cerere #1
 ```
 
 **Verificare:**
-```powershell
-python tests/test_exercises.py --exercise 1
+```bash
+python3 tests/test_exercises.py --exercise 1
 ```
 
 ---
@@ -148,13 +484,13 @@ python tests/test_exercises.py --exercise 1
 **Pași:**
 
 1. Cu backend-urile pornite din Exercițiul 1, lansează echiliborul:
-   ```powershell
-   python src/exercises/ex_11_02_loadbalancer.py --backends localhost:8081,localhost:8082,localhost:8083 --listen 0.0.0.0:8080 --algo rr
+   ```bash
+   python3 src/exercises/ex_11_02_loadbalancer.py --backends localhost:8081,localhost:8082,localhost:8083 --listen 0.0.0.0:8080 --algo rr
    ```
 
 2. Trimite cereri multiple prin echilibror:
-   ```powershell
-   for /L %i in (1,1,6) do @curl -s http://localhost:8080/
+   ```bash
+   for i in {1..6}; do curl -s http://localhost:8080/; done
    ```
 
 3. Observă cum cererile sunt distribuite ciclic (1→2→3→1→2→3)
@@ -165,8 +501,8 @@ python tests/test_exercises.py --exercise 1
 - Latența este minimă (echilibrul adaugă puțin overhead)
 
 **Verificare:**
-```powershell
-python tests/test_exercises.py --exercise 2
+```bash
+python3 tests/test_exercises.py --exercise 2
 ```
 
 ---
@@ -182,13 +518,13 @@ python tests/test_exercises.py --exercise 2
 1. Oprește echiliborul anterior (Ctrl+C)
 
 2. Repornește cu algoritm IP hash:
-   ```powershell
-   python src/exercises/ex_11_02_loadbalancer.py --backends localhost:8081,localhost:8082,localhost:8083 --listen 0.0.0.0:8080 --algo ip_hash
+   ```bash
+   python3 src/exercises/ex_11_02_loadbalancer.py --backends localhost:8081,localhost:8082,localhost:8083 --listen 0.0.0.0:8080 --algo ip_hash
    ```
 
 3. Trimite cereri multiple:
-   ```powershell
-   for /L %i in (1,1,5) do @curl -s http://localhost:8080/
+   ```bash
+   for i in {1..5}; do curl -s http://localhost:8080/; done
    ```
 
 4. Observă că toate cererile merg la același backend
@@ -199,8 +535,8 @@ python tests/test_exercises.py --exercise 2
 - Conexiuni WebSocket
 
 **Verificare:**
-```powershell
-python tests/test_exercises.py --exercise 3
+```bash
+python3 tests/test_exercises.py --exercise 3
 ```
 
 ---
@@ -214,23 +550,23 @@ python tests/test_exercises.py --exercise 3
 **Pași:**
 
 1. Cu echiliborul în mod round-robin, oprește Backend 2:
-   ```powershell
+   ```bash
    # În terminalul Backend 2, apasă Ctrl+C
    ```
 
 2. Trimite cereri și observă redistribuirea:
-   ```powershell
-   for /L %i in (1,1,4) do @curl -s http://localhost:8080/
+   ```bash
+   for i in {1..4}; do curl -s http://localhost:8080/; done
    ```
 
 3. Repornește Backend 2:
-   ```powershell
-   python src/exercises/ex_11_01_backend.py --id 2 --port 8082 -v
+   ```bash
+   python3 src/exercises/ex_11_01_backend.py --id 2 --port 8082 -v
    ```
 
 4. Verifică reintegrarea în pool:
-   ```powershell
-   for /L %i in (1,1,6) do @curl -s http://localhost:8080/
+   ```bash
+   for i in {1..6}; do curl -s http://localhost:8080/; done
    ```
 
 **Ce trebuie observat:**
@@ -239,8 +575,8 @@ python tests/test_exercises.py --exercise 3
 - Recuperarea este automată când backend-ul revine
 
 **Verificare:**
-```powershell
-python tests/test_exercises.py --exercise 4
+```bash
+python3 tests/test_exercises.py --exercise 4
 ```
 
 ---
@@ -256,29 +592,29 @@ python tests/test_exercises.py --exercise 4
 1. Oprește orice backend-uri Python sau echilibroare care rulează
 
 2. Pornește stiva Docker:
-   ```powershell
-   cd docker
+   ```bash
+   cd /mnt/d/RETELE/SAPT11/11roWSL/docker
    docker compose up -d
    cd ..
    ```
 
 3. Verifică că toate containerele rulează:
-   ```powershell
+   ```bash
    docker ps
    ```
 
 4. Testează distribuția sarcinii:
-   ```powershell
-   for /L %i in (1,1,6) do @curl -s http://localhost:8080/
+   ```bash
+   for i in {1..6}; do curl -s http://localhost:8080/; done
    ```
 
 5. Verifică endpoint-ul de stare:
-   ```powershell
+   ```bash
    curl http://localhost:8080/health
    ```
 
 6. Vizualizează statisticile Nginx:
-   ```powershell
+   ```bash
    curl http://localhost:8080/nginx_status
    ```
 
@@ -288,8 +624,8 @@ python tests/test_exercises.py --exercise 4
 - Aplică cu: `docker compose restart nginx`
 
 **Verificare:**
-```powershell
-python tests/test_exercises.py --exercise 5
+```bash
+python3 tests/test_exercises.py --exercise 5
 ```
 
 ---
@@ -303,18 +639,18 @@ python tests/test_exercises.py --exercise 5
 **Pași:**
 
 1. Interoghează înregistrări A (adrese IPv4):
-   ```powershell
-   python src/exercises/ex_11_03_dns_client.py google.com A --verbose
+   ```bash
+   python3 src/exercises/ex_11_03_dns_client.py google.com A --verbose
    ```
 
 2. Interoghează înregistrări MX (servere de email):
-   ```powershell
-   python src/exercises/ex_11_03_dns_client.py google.com MX --verbose
+   ```bash
+   python3 src/exercises/ex_11_03_dns_client.py google.com MX --verbose
    ```
 
 3. Interoghează înregistrări NS (nameservere):
-   ```powershell
-   python src/exercises/ex_11_03_dns_client.py google.com NS --verbose
+   ```bash
+   python3 src/exercises/ex_11_03_dns_client.py google.com NS --verbose
    ```
 
 4. Examinează hexdump-ul pachetului și corelează-l cu RFC 1035
@@ -326,8 +662,8 @@ python tests/test_exercises.py --exercise 5
 - Format nume de domeniu (etichete cu prefix de lungime)
 
 **Verificare:**
-```powershell
-python tests/test_exercises.py --exercise 6
+```bash
+python3 tests/test_exercises.py --exercise 6
 ```
 
 ---
@@ -341,8 +677,8 @@ python tests/test_exercises.py --exercise 6
 **Pași:**
 
 1. Benchmark echilibror Python:
-   ```powershell
-   python src/exercises/ex_11_02_loadbalancer.py loadgen --url http://localhost:8080/ --n 500 --c 10
+   ```bash
+   python3 src/exercises/ex_11_02_loadbalancer.py loadgen --url http://localhost:8080/ --n 500 --c 10
    ```
 
 2. Notează metricile:
@@ -353,8 +689,8 @@ python tests/test_exercises.py --exercise 6
 3. Comută la echiliborul Nginx (pornește stiva Docker dacă nu rulează)
 
 4. Benchmark Nginx:
-   ```powershell
-   python src/exercises/ex_11_02_loadbalancer.py loadgen --url http://localhost:8080/ --n 500 --c 10
+   ```bash
+   python3 src/exercises/ex_11_02_loadbalancer.py loadgen --url http://localhost:8080/ --n 500 --c 10
    ```
 
 5. Compară rezultatele
@@ -367,8 +703,8 @@ python tests/test_exercises.py --exercise 6
 | Latență p99 | 50-100ms | 10-20ms |
 
 **Verificare:**
-```powershell
-python tests/test_exercises.py --exercise 7
+```bash
+python3 tests/test_exercises.py --exercise 7
 ```
 
 ---
@@ -379,8 +715,8 @@ python tests/test_exercises.py --exercise 7
 
 Rulează demonstrația automată care prezintă toate conceptele:
 
-```powershell
-python scripts/run_demo.py --all
+```bash
+python3 scripts/run_demo.py --all
 ```
 
 **Ce se demonstrează:**
@@ -391,8 +727,8 @@ python scripts/run_demo.py --all
 
 ### Demo 2: Demonstrație Failover
 
-```powershell
-python scripts/run_demo.py --demo failover
+```bash
+python3 scripts/run_demo.py --demo failover
 ```
 
 Arată comportamentul echilibrării când un backend cade și revine.
@@ -401,12 +737,12 @@ Arată comportamentul echilibrării când un backend cade și revine.
 
 ### Capturarea Traficului
 
-```powershell
+```bash
 # Pornește captura
-python scripts/capture_traffic.py --interface eth0 --output pcap/week11_capture.pcap
+python3 scripts/capture_traffic.py --interface eth0 --output pcap/week11_capture.pcap
 
-# Sau folosește Wireshark direct
-# Deschide Wireshark > Selectează interfața potrivită
+# Sau folosește Wireshark direct pe Windows
+# Selectează interfața vEthernet (WSL)
 ```
 
 ### Filtre Wireshark Recomandate
@@ -426,25 +762,31 @@ dns
 
 # Interogări DNS
 dns.flags.response == 0
+
+# Rețeaua laboratorului
+ip.addr == 172.28.0.0/16
 ```
 
 ## Oprire și Curățare
 
-### Sfârșitul Sesiunii
+### La Sfârșitul Sesiunii
 
-```powershell
-# Oprește toate containerele (păstrează datele)
-python scripts/stop_lab.py
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT11/11roWSL
 
-# Verifică oprirea
+# Oprește containerele de laborator (Portainer rămâne activ!)
+python3 scripts/stop_lab.py
+
+# Verifică oprire - ar trebui să vezi doar portainer
 docker ps
 ```
 
 ### Curățare Completă (Înainte de Săptămâna Următoare)
 
-```powershell
+```bash
 # Elimină toate containerele, rețelele și volumele pentru această săptămână
-python scripts/cleanup.py --full
+python3 scripts/cleanup.py --full
 
 # Verifică curățarea
 docker system df
@@ -460,20 +802,7 @@ Implementează verificări periodice HTTP și weighted round-robin.
 ### Tema 2: Resolver DNS cu Cache
 Construiește un resolver local DNS care memorează răspunsurile.
 
-## Depanare
-
-### Probleme Frecvente
-
-#### Problema: Containerele nu pornesc
-**Soluție:** Verifică că Docker Desktop rulează și are resurse suficiente alocate.
-
-#### Problema: Portul 8080 este ocupat
-**Soluție:** Identifică procesul: `netstat -ano | findstr :8080` și oprește-l sau schimbă portul în configurație.
-
-#### Problema: Distribuție neuniformă
-**Soluție:** Verifică setarea algoritmului în nginx.conf și repornește: `docker compose restart nginx`
-
-Pentru mai multe soluții, vezi `docs/troubleshooting.md`.
+---
 
 ## Context Teoretic
 
@@ -554,8 +883,235 @@ SSH multiplexează multiple canale peste o conexiune:
                                     │         Rețea: s11_network          │
                                     │         (172.28.0.0/16)             │
                                     └─────────────────────────────────────┘
+
+    Portainer (global): http://localhost:9000
+```
+
+---
+
+## 🔧 Depanare Extinsă
+
+### Probleme Docker
+
+**Problemă:** "Cannot connect to Docker daemon"
+```bash
+# Pornește serviciul Docker în WSL
+sudo service docker start
+# Parolă: stud
+
+# Verifică statusul
+sudo service docker status
+
+# Verifică că funcționează
+docker ps
+```
+
+**Problemă:** Permisiune refuzată la rularea docker
+```bash
+# Adaugă utilizatorul la grupul docker
+sudo usermod -aG docker $USER
+
+# Aplică modificările
+newgrp docker
+
+# Sau deconectează-te și reconectează-te din WSL
+exit
+wsl
+```
+
+**Problemă:** Serviciul Docker nu pornește
+```bash
+# Verifică statusul detaliat
+sudo service docker status
+
+# Rulează daemon-ul manual pentru a vedea erorile
+sudo dockerd
+
+# Verifică log-urile
+sudo cat /var/log/docker.log
+```
+
+### Probleme Portainer
+
+**Problemă:** Nu pot accesa http://localhost:9000
+```bash
+# Verifică dacă containerul Portainer există și rulează
+docker ps -a | grep portainer
+
+# Dacă e oprit, pornește-l
+docker start portainer
+
+# Dacă nu există, creează-l
+docker run -d -p 9000:9000 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
+
+# Verifică log-urile
+docker logs portainer
+```
+
+**Problemă:** Am uitat parola Portainer
+```bash
+# ATENȚIE: Aceasta resetează Portainer (pierde setările dar NU containerele)
+docker stop portainer
+docker rm portainer
+docker volume rm portainer_data
+
+# Recreează cu comanda de mai sus
+# La prima accesare, setează parola nouă: studstudstud
+```
+
+### Probleme Wireshark
+
+**Problemă:** Nu se capturează pachete
+- ✅ Verifică interfața corectă selectată (vEthernet WSL)
+- ✅ Asigură-te că traficul este generat ÎN TIMPUL capturii
+- ✅ Verifică că filtrul de afișare nu ascunde pachetele (șterge filtrul)
+- ✅ Încearcă "Capture → Options" și activează modul promiscuous
+
+**Problemă:** "No interfaces found" sau eroare de permisiune
+- Rulează Wireshark ca Administrator (click dreapta → Run as administrator)
+- Reinstalează Npcap cu opțiunea "WinPcap API-compatible Mode" bifată
+
+**Problemă:** Nu văd traficul containerelor Docker
+- Selectează interfața `vEthernet (WSL)`, nu `Ethernet` sau `Wi-Fi`
+- Asigură-te că containerele sunt pe rețea bridge, nu host
+
+### Probleme Specifice Săptămânii 11
+
+**Problemă:** Portul 8080 este ocupat
+```bash
+# Găsește ce folosește portul (în WSL)
+sudo ss -tlnp | grep 8080
+
+# Oprește procesul care ocupă portul
+# Sau schimbă portul în docker-compose.yml
+```
+
+**Problemă:** Containerele nu pornesc
+```bash
+# Verifică imaginile Docker
+docker images | grep nginx
+
+# Descarcă imaginea manual dacă lipsește
+docker pull nginx:alpine
+
+# Verifică log-urile
+docker compose logs
+```
+
+**Problemă:** Distribuție neuniformă
+```bash
+# Verifică algoritmul în nginx.conf
+cat docker/configs/nginx.conf | grep -A5 upstream
+
+# Modifică și repornește
+# Decomentează least_conn; sau ip_hash; după caz
+docker compose restart nginx
+```
+
+**Problemă:** Backend-urile nu răspund
+```bash
+# Verifică starea containerelor
+docker ps | grep s11_backend
+
+# Verifică log-urile unui backend specific
+docker logs s11_backend_1
+
+# Testează conectivitatea internă
+docker exec s11_nginx_lb curl http://web1/
+```
+
+### Probleme de Rețea
+
+**Problemă:** Containerul nu poate accesa internetul
+```bash
+# Verifică rețeaua Docker
+docker network ls
+docker network inspect s11_network
+
+# Verifică DNS în container
+docker exec s11_nginx_lb cat /etc/resolv.conf
+```
+
+**Problemă:** Erori la conectarea între containere
+```bash
+# Verifică că toate containerele sunt în aceeași rețea
+docker network inspect s11_network | grep -A2 Containers
+```
+
+---
+
+## 🧹 Procedura Completă de Curățare
+
+### Sfârșit de Sesiune (Rapidă)
+
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT11/11roWSL
+
+# Oprește containerele de laborator (Portainer rămâne activ!)
+python3 scripts/stop_lab.py
+
+# Verifică - ar trebui să vezi doar portainer
+docker ps
+```
+
+### Sfârșit de Săptămână (Completă)
+
+```bash
+# Curățare completă laborator
+python3 scripts/cleanup.py --full
+
+# Elimină imaginile nefolosite
+docker image prune -f
+
+# Elimină rețelele nefolosite
+docker network prune -f
+
+# Verifică utilizarea discului
+docker system df
+```
+
+### Resetare Totală (Înainte de Semestru Nou)
+
+```bash
+# ATENȚIE: Aceasta elimină TOTUL în afară de Portainer
+
+# Oprește toate containerele EXCEPTÂND Portainer
+docker stop $(docker ps -q --filter "name=s11_")
+
+# Elimină containerele oprite (nu Portainer)
+docker container prune -f
+
+# Elimină imaginile nefolosite
+docker image prune -a -f
+
+# Elimină rețelele nefolosite
+docker network prune -f
+
+# Verifică că Portainer încă rulează
+docker ps
+```
+
+**⚠️ NU rula NICIODATĂ `docker system prune -a` fără să excluzi Portainer!**
+
+### Verificare Post-Curățare
+
+```bash
+# Verifică ce a rămas
+docker ps -a          # Containere
+docker images         # Imagini
+docker network ls     # Rețele
+docker volume ls      # Volume
+
+# Ar trebui să vezi doar:
+# - Container: portainer
+# - Volum: portainer_data
+# - Rețele: bridge, host, none (implicite)
 ```
 
 ---
 
 *Laborator Rețele de Calculatoare — ASE, Informatică Economică | de Revolvix*
+*Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer*
