@@ -1,18 +1,27 @@
 # Docker Compose pentru Laboratorul Săptămânii 3
 # Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
 #
+# Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer
+#
+# NOTĂ IMPORTANTĂ:
+# ================
+# Portainer rulează GLOBAL pe portul 9000 și NU este definit aici.
+# Accesați Portainer la: http://localhost:9000
+# Credențiale: stud / studstudstud
+#
+# NU folosiți portul 9000 pentru serviciile de laborator!
+# Portainer este gestionat separat și rămâne activ între laboratoare.
+#
 # Topologie:
 #   - server (172.20.0.10:8080)   - Server Echo TCP
 #   - router (172.20.0.254:9090)  - Tunel TCP către server
 #   - client (172.20.0.100)       - Container pentru testare interactivă
 #   - receiver (172.20.0.101)     - Receptor broadcast/multicast (profil opțional)
-#   - portainer (172.20.0.2)      - Interfață web management (profil opțional)
 #
 # Utilizare:
 #   Pornire de bază:    docker compose up -d
 #   Cu receiver:        docker compose --profile broadcast up -d
-#   Cu Portainer:       docker compose --profile management up -d
-#   Toate serviciile:   docker compose --profile broadcast --profile management up -d
+#   Oprire:             docker compose down
 
 services:
   # ═══════════════════════════════════════════════════════════════════════════
@@ -136,28 +145,11 @@ services:
       - NET_ADMIN
       - NET_RAW
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # PORTAINER - Interfață Web pentru Management Containere (profil: management)
-  # ═══════════════════════════════════════════════════════════════════════════
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: week3_portainer
-    hostname: portainer
-    profiles:
-      - management
-    networks:
-      week3_network:
-        ipv4_address: 172.20.0.2
-    ports:
-      - "9443:9443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    restart: unless-stopped
-
 # ═══════════════════════════════════════════════════════════════════════════
 # REȚELE
 # ═══════════════════════════════════════════════════════════════════════════
+# Rețeaua week3_network este izolată pentru acest laborator.
+# Subrețeaua 172.20.0.0/24 este specifică Săptămânii 3.
 networks:
   week3_network:
     name: week3_network
@@ -171,6 +163,6 @@ networks:
 # ═══════════════════════════════════════════════════════════════════════════
 # VOLUME PERSISTENTE
 # ═══════════════════════════════════════════════════════════════════════════
-volumes:
-  portainer_data:
-    name: week3_portainer_data
+# Notă: Nu este definit niciun volum Portainer aici.
+# Volumul portainer_data este gestionat global.
+volumes: {}
