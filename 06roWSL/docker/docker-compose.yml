@@ -1,6 +1,17 @@
 # docker-compose.yml - Container orchestration for Week 6 Laboratory
 # NETWORKING class - ASE, Informatics | by Revolvix
 #
+# Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer
+#
+# NOTĂ IMPORTANTĂ:
+# ================
+# Portainer rulează GLOBAL pe portul 9000 și NU este definit aici.
+# Accesați Portainer la: http://localhost:9000
+# Credențiale: stud / studstudstud
+#
+# NU folosiți portul 9000 pentru serviciile de laborator!
+# Portainer este gestionat separat și rămâne activ între laboratoare.
+#
 # This compose file provides an isolated environment for NAT/PAT and SDN exercises.
 # Supports both interactive and automated demonstration modes.
 
@@ -76,23 +87,12 @@ services:
     profiles:
       - controller  # Activate with: docker compose --profile controller up
 
-  # Portainer for container management (optional)
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: week6_portainer
-    restart: unless-stopped
-    ports:
-      - "9443:9443"
-      - "8000:8000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    profiles:
-      - management  # Activate with: docker compose --profile management up
-
-volumes:
-  portainer_data:
-    name: week6_portainer_data
+  # NOTĂ: Portainer a fost eliminat din acest fișier.
+  # Portainer rulează GLOBAL pe portul 9000 și este gestionat separat.
+  # Pentru a porni Portainer (dacă nu rulează):
+  #   docker run -d -p 9000:9000 --name portainer --restart=always \
+  #     -v /var/run/docker.sock:/var/run/docker.sock \
+  #     -v portainer_data:/data portainer/portainer-ce:latest
 
 networks:
   default:

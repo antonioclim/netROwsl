@@ -4,6 +4,343 @@
 > 
 > de Revolvix
 
+---
+
+## ⚠️ Notificare Mediu
+
+Acest kit de laborator este proiectat pentru mediul **WSL2 + Ubuntu 22.04 + Docker + Portainer**.
+
+**Repository:** https://github.com/antonioclim/netROwsl
+**Folderul Acestei Săptămâni:** `06roWSL`
+
+**Arhitectura Mediului:**
+```
+Windows 11 → WSL2 → Ubuntu 22.04 (implicit) → Docker Engine → Portainer CE
+```
+
+**Credențiale Standard:**
+| Serviciu | Utilizator | Parolă |
+|----------|------------|--------|
+| Ubuntu WSL | `stud` | `stud` |
+| Portainer | `stud` | `studstudstud` |
+
+---
+
+## 📥 Clonarea Laboratorului Acestei Săptămâni
+
+### Pasul 1: Deschide PowerShell (Windows)
+
+Apasă `Win + X` → Selectează "Windows Terminal" sau "PowerShell"
+
+### Pasul 2: Navighează și Clonează
+
+```powershell
+# Creează folderul de rețele dacă nu există
+mkdir D:\RETELE -ErrorAction SilentlyContinue
+cd D:\RETELE
+
+# Clonează Săptămâna 6
+git clone https://github.com/antonioclim/netROwsl.git SAPT6
+cd SAPT6
+```
+
+### Pasul 3: Verifică Clonarea
+
+```powershell
+dir
+# Ar trebui să vezi: 06roWSL/
+cd 06roWSL
+dir
+# Ar trebui să vezi: docker/, scripts/, src/, README.md, etc.
+```
+
+### Structura Completă a Directoarelor
+
+După clonare, structura va fi:
+```
+D:\RETELE\
+└── SAPT6\
+    └── 06roWSL\
+        ├── artifacts/       # Rezultate generate (capturi, loguri)
+        ├── docker/          # Configurație Docker și Dockerfile
+        │   ├── configs/     # Configurații suplimentare
+        │   └── volumes/     # Volume persistente
+        ├── docs/            # Documentație suplimentară
+        │   ├── commands_cheatsheet.md  # Fișă comenzi
+        │   ├── further_reading.md      # Lectură suplimentară
+        │   ├── theory_summary.md       # Rezumat teorie
+        │   └── troubleshooting.md      # Depanare
+        ├── homework/        # Teme pentru acasă
+        ├── pcap/            # Fișiere de captură
+        ├── scripts/         # Scripturi de automatizare
+        ├── setup/           # Configurare mediu
+        ├── src/             # Cod sursă exerciții
+        │   ├── apps/        # Aplicații (NAT observer, SDN controller, echo)
+        │   ├── exercises/   # Topologii (NAT, SDN)
+        │   └── utils/       # Utilitare de rețea
+        ├── tests/           # Teste automatizate
+        └── README.md        # Acest fișier
+```
+
+---
+
+## 🔧 Configurarea Inițială a Mediului (Doar Prima Dată)
+
+### Pasul 1: Deschide Terminalul Ubuntu
+
+Din Windows, ai mai multe opțiuni:
+- Click pe "Ubuntu" în meniul Start, SAU
+- În PowerShell tastează: `wsl`, SAU
+- În Windows Terminal selectează tab-ul "Ubuntu"
+
+Vei vedea promptul Ubuntu:
+```
+stud@CALCULATOR:~$
+```
+
+### Pasul 2: Pornește Serviciul Docker
+
+```bash
+# Pornește Docker (necesar după fiecare restart Windows)
+sudo service docker start
+# Parolă: stud
+
+# Verifică că Docker rulează
+docker ps
+```
+
+**Output așteptat:**
+```
+CONTAINER ID   IMAGE                    STATUS          NAMES
+abc123...      portainer/portainer-ce   Up 2 hours      portainer
+```
+
+Dacă vezi containerul `portainer` în listă, mediul este pregătit.
+
+### Pasul 3: Verifică Accesul la Portainer
+
+1. Deschide browser-ul web (Chrome, Firefox, Edge)
+2. Navighează la: **http://localhost:9000**
+
+**Credențiale de autentificare:**
+- Utilizator: `stud`
+- Parolă: `studstudstud`
+
+**Ce să faci dacă Portainer nu răspunde:**
+```bash
+# Verifică dacă containerul Portainer există
+docker ps -a | grep portainer
+
+# Dacă e oprit, pornește-l
+docker start portainer
+
+# Dacă nu există, creează-l
+docker run -d -p 9000:9000 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
+```
+
+### Pasul 4: Navighează la Folderul Laboratorului în WSL
+
+```bash
+# Navighează la folderul laboratorului
+cd /mnt/d/RETELE/SAPT6/06roWSL
+
+# Verifică conținutul
+ls -la
+```
+
+---
+
+## 🖥️ Înțelegerea Interfeței Portainer
+
+### Prezentare Generală Dashboard
+
+După autentificare la http://localhost:9000, vei vedea:
+1. **Home** - Lista mediilor Docker disponibile
+2. **local** - Click pentru a gestiona Docker-ul local
+
+### Vizualizarea Containerelor
+
+Navighează: **Home → local → Containers**
+
+Vei vedea un tabel cu toate containerele care include:
+- **Nume** - Identificatorul containerului (week6_lab, week6_controller)
+- **Stare** - Running/Stopped/Paused
+- **Imagine** - Imaginea Docker folosită
+- **Porturi** - Mapările de porturi host:container
+
+### Acțiuni asupra Containerelor în Portainer
+
+Pentru orice container, poți efectua următoarele operații:
+
+| Acțiune | Descriere | Cum să o faci |
+|---------|-----------|---------------|
+| **Start** | Pornește containerul oprit | Butonul verde ▶ |
+| **Stop** | Oprește containerul | Butonul roșu ■ |
+| **Restart** | Repornește containerul | Butonul ↻ |
+| **Logs** | Vezi jurnalele containerului | Click pe nume → tab "Logs" |
+| **Console** | Accesează shell-ul containerului | Click pe nume → tab "Console" → "Connect" |
+| **Inspect** | Vezi configurația JSON detaliată | Click pe nume → tab "Inspect" |
+| **Stats** | Monitorizare CPU/Memorie/Rețea în timp real | Click pe nume → tab "Stats" |
+
+### Vizualizarea Rețelelor
+
+1. Navighează: **Networks**
+2. Observă rețelele disponibile:
+   - **week6_network** - Rețea bridge pentru laborator
+   - **bridge**, **host**, **none** - Rețele Docker implicite
+
+### Modificarea Configurației (pentru NAT/SDN)
+
+Pentru laboratorul Săptămânii 6, configurațiile de rețea sunt gestionate prin:
+- **Mininet** - Pentru topologii NAT și SDN (în interiorul containerului)
+- **Docker networks** - Pentru izolarea containerelor
+
+**⚠️ NU folosi NICIODATĂ portul 9000** - acesta este rezervat exclusiv pentru Portainer!
+
+---
+
+## 🦈 Configurarea și Utilizarea Wireshark
+
+### Când să Deschizi Wireshark
+
+Deschide Wireshark în următoarele situații:
+- **ÎNAINTE** de a genera traficul de rețea pe care vrei să-l capturezi
+- Când exercițiile menționează "captură", "analizează pachete", sau "observă trafic"
+- Pentru a examina traducerea NAT și fluxurile SDN
+- Pentru a observa instalarea regulilor OpenFlow
+
+### Pasul 1: Lansează Wireshark
+
+Din Meniul Start Windows: Caută "Wireshark" → Click pentru a deschide
+
+Alternativ, din PowerShell:
+```powershell
+& "C:\Program Files\Wireshark\Wireshark.exe"
+```
+
+### Pasul 2: Selectează Interfața de Captură
+
+**CRITIC:** Selectează interfața corectă pentru traficul WSL:
+
+| Numele Interfeței | Când să Folosești |
+|-------------------|-------------------|
+| **vEthernet (WSL)** | ✅ Cel mai frecvent - capturează traficul Docker WSL |
+| **vEthernet (WSL) (Hyper-V firewall)** | Alternativă dacă prima nu funcționează |
+| **Loopback Adapter** | Doar pentru trafic localhost (127.0.0.1) |
+| **Ethernet/Wi-Fi** | Trafic rețea fizică (nu Docker) |
+
+**Cum selectezi:** Dublu-click pe numele interfeței SAU selecteaz-o și click pe icoana aripioarei albastre de rechin.
+
+### Pasul 3: Generează Trafic
+
+Cu Wireshark capturând (vei vedea pachete apărând în timp real), rulează exercițiile:
+
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT6/06roWSL
+
+# Rulează demonstrația NAT
+python3 scripts/run_demo.py --demo nat
+
+# Sau demonstrația SDN
+python3 scripts/run_demo.py --demo sdn
+```
+
+### Pasul 4: Oprește Captura
+
+Click pe butonul pătrat roșu (Stop) când ai terminat de generat trafic.
+
+### Filtre Wireshark Esențiale pentru Săptămâna 6
+
+Tastează în bara de filtrare (devine verde când filtrul este valid) și apasă Enter:
+
+**Filtre pentru NAT/PAT:**
+
+| Filtru | Scop | Exemplu Utilizare |
+|--------|------|-------------------|
+| `ip.addr == 192.168.1.0/24` | Rețea privată NAT | Trafic hosturi interne |
+| `ip.addr == 203.0.113.0/24` | Rețea publică TEST-NET-3 | Trafic tradus |
+| `tcp.port == 5000` | Observer NAT | Aplicație demonstrație |
+| `tcp.flags.syn == 1` | Conexiuni noi | Observă NAT la inițiere |
+| `ip.src == 192.168.1.10 && ip.dst == 203.0.113.2` | Trafic h1→h3 | Înainte de traducere |
+| `ip.src == 203.0.113.1` | Trafic tradus | După MASQUERADE |
+
+**Filtre pentru SDN/OpenFlow:**
+
+| Filtru | Scop | Exemplu Utilizare |
+|--------|------|-------------------|
+| `ip.addr == 10.0.6.0/24` | Rețea SDN | Tot traficul topologiei |
+| `ip.addr == 10.0.6.11` | Host h1 | Trafic h1 (acces complet) |
+| `ip.addr == 10.0.6.12` | Host h2 | Trafic h2 (server) |
+| `ip.addr == 10.0.6.13` | Host h3 | Trafic h3 (restricționat) |
+| `tcp.port == 6633` | OpenFlow legacy | Comunicare controller-switch |
+| `tcp.port == 6653` | OpenFlow standard | Comunicare controller-switch |
+| `tcp.port == 9090` | TCP Echo | Testare conectivitate |
+| `udp.port == 9091` | UDP Echo | Testare politici protocol |
+| `openflow_v4` | Mesaje OpenFlow 1.3 | Instalare fluxuri |
+| `icmp` | Ping | Teste conectivitate SDN |
+
+**Combinarea filtrelor:**
+- ȘI: `ip.addr == 10.0.6.11 && tcp.port == 9090`
+- SAU: `tcp.port == 6633 || tcp.port == 6653`
+- NU: `!arp && !dns`
+
+### Analiza Traducerii NAT în Wireshark
+
+1. Capturează trafic cu filtrul pentru ambele rețele
+2. Observă pachetul original de la 192.168.1.x
+3. Găsește pachetul tradus cu IP sursă 203.0.113.1
+4. Compară:
+   - **Înainte NAT:** Source: 192.168.1.10:port_efemer → Dest: 203.0.113.2:5000
+   - **După NAT:** Source: 203.0.113.1:port_tradus → Dest: 203.0.113.2:5000
+
+### Analiza Fluxurilor SDN în Wireshark
+
+1. Activează filtrul `openflow_v4` pentru a vedea mesaje OpenFlow
+2. Observă mesajele:
+   - **PACKET_IN** - Switch trimite pachet la controller
+   - **FLOW_MOD** - Controller instalează regulă de flux
+   - **PACKET_OUT** - Controller trimite pachet înapoi
+3. Corelează cu regulile din `ovs-ofctl dump-flows s1`
+
+### Codificarea Culorilor în Wireshark
+
+| Culoare | Semnificație |
+|---------|--------------|
+| Violet deschis | Trafic TCP |
+| Albastru deschis | Trafic UDP |
+| Verde deschis | Trafic HTTP |
+| Text negru, fundal roșu | Erori, checksum-uri greșite |
+| Text negru, fundal galben | Avertismente, retransmisii |
+| Fundal gri | TCP SYN/FIN (evenimente conexiune) |
+
+### Urmărirea unei Conversații TCP
+
+1. Găsește orice pachet din conversația pe care vrei să o examinezi
+2. Click dreapta → **Follow → TCP Stream**
+3. O fereastră arată conversația completă în text lizibil
+   - Text roșu: Date trimise de client
+   - Text albastru: Date trimise de server
+4. Folosește dropdown-ul pentru a comuta între vizualizări ASCII/Hex/Raw
+5. Închide fereastra pentru a reveni la lista de pachete (filtru auto-aplicat)
+
+### Salvarea Capturilor
+
+1. **File → Save As** (sau Ctrl+Shift+S)
+2. Navighează la: `D:\RETELE\SAPT6\06roWSL\pcap\`
+3. Nume fișier sugestiv: `nat_translation.pcap` sau `sdn_flows.pcap`
+4. Format: Wireshark/pcap sau pcapng (implicit)
+
+### Exportarea Datelor pentru Analiză
+
+1. **File → Export Packet Dissections → As CSV**
+2. Selectează câmpurile de exportat
+3. Salvează în folderul `artifacts/` pentru procesare Python
+
+---
+
 ## Prezentare generală
 
 Această sesiune de laborator integrează două domenii complementare ale arhitecturii moderne de rețea: mecanismele de traducere a adreselor care susțin ciclul de viață extins al IPv4, și schimbarea de paradigmă către rețelele definite prin software (SDN) care decuplează logica de control de hardware-ul de redirecționare.
@@ -36,7 +373,8 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 ### Cerințe software
 
 - Windows 10/11 cu WSL2 activat (Ubuntu 22.04 sau ulterior)
-- Docker Desktop cu integrare backend WSL2
+- Docker Engine (în WSL2)
+- Portainer CE (rulează global pe portul 9000)
 - Wireshark (aplicație nativă Windows)
 - Python 3.11 sau ulterior
 - Git (opțional, pentru controlul versiunilor)
@@ -51,43 +389,45 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 
 ### Configurare inițială (Se rulează o singură dată)
 
-```powershell
-# Deschide PowerShell ca Administrator
-cd WEEK6_WSLkit
+```bash
+# Deschide terminalul Ubuntu (wsl în PowerShell)
+cd /mnt/d/RETELE/SAPT6/06roWSL
 
 # Verifică dacă cerințele preliminare sunt instalate
-python setup/verify_environment.py
+python3 setup/verify_environment.py
 
 # Dacă vreo verificare eșuează, rulează helper-ul de instalare
-python setup/install_prerequisites.py
-
-# Configurează Docker pentru operațiuni privilegiate
-python setup/configure_docker.py
+python3 setup/install_prerequisites.py
 ```
 
 ### Pornirea laboratorului
 
-```powershell
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT6/06roWSL
+
 # Pornește toate serviciile (containere Docker, configurare rețea)
-python scripts/start_lab.py
+python3 scripts/start_lab.py
 
 # Verifică dacă serviciile rulează
-python scripts/start_lab.py --status
+python3 scripts/start_lab.py --status
 
 # Pentru reconstruirea containerelor după modificări
-python scripts/start_lab.py --rebuild
+python3 scripts/start_lab.py --rebuild
 ```
 
 ### Accesarea serviciilor
 
 | Serviciu | URL/Port | Scop |
 |----------|----------|------|
-| Portainer | https://localhost:9443 | Panou de administrare containere |
+| Portainer | http://localhost:9000 | Panou de administrare containere |
 | Controller SDN | localhost:6633 | Endpoint controller OpenFlow |
 | Router NAT (rnat) | 203.0.113.1 | Gateway NAT cu interfață publică |
 | Observator NAT | Port 5000 | Demonstrație traducere PAT |
 | Echo TCP | Port 9090 | Testare conectivitate SDN |
 | Echo UDP | Port 9091 | Testare politici specifice protocolului |
+
+**Notă:** Portainer rulează global și nu trebuie pornit/oprit cu laboratorul.
 
 ## Topologia rețelei
 
@@ -125,11 +465,13 @@ python scripts/start_lab.py --rebuild
 
 **Context:** Când hosturile private (adrese RFC 1918) comunică cu serverele publice, NAT rescrie adresele sursă la adresa IP publică a routerului. PAT extinde acest lucru traducând și porturile sursă, permițând mai multor hosturi interne să partajeze o singură adresă publică.
 
+**Pregătire Wireshark:** Deschide Wireshark pe Windows și pornește captura pe interfața `vEthernet (WSL)` ÎNAINTE de a începe exercițiul.
+
 **Pași:**
 
 1. Pornește topologia NAT:
-   ```powershell
-   python scripts/run_demo.py --demo nat
+   ```bash
+   python3 scripts/run_demo.py --demo nat
    ```
 
 2. În CLI-ul Mininet, verifică configurația interfețelor:
@@ -162,8 +504,8 @@ python scripts/start_lab.py --rebuild
 - Tabela NAT menține starea bidirecțională pentru traficul de retur
 
 **Verificare:**
-```powershell
-python tests/test_exercises.py --exercise 1
+```bash
+python3 tests/test_exercises.py --exercise 1
 ```
 
 ### Exercițiul 2: Topologie SDN și observarea fluxurilor
@@ -177,8 +519,8 @@ python tests/test_exercises.py --exercise 1
 **Pași:**
 
 1. Pornește topologia SDN cu reguli de flux:
-   ```powershell
-   python scripts/run_demo.py --demo sdn
+   ```bash
+   python3 scripts/run_demo.py --demo sdn
    ```
 
 2. În CLI-ul Mininet, verifică conectivitatea:
@@ -220,8 +562,8 @@ python tests/test_exercises.py --exercise 1
 - Numărul de potriviri în fluxuri crește cu traficul
 
 **Verificare:**
-```powershell
-python tests/test_exercises.py --exercise 2
+```bash
+python3 tests/test_exercises.py --exercise 2
 ```
 
 ### Exercițiul 3: Modificarea politicilor SDN
@@ -233,7 +575,7 @@ python tests/test_exercises.py --exercise 2
 **Pași:**
 
 1. Examinează codul controller-ului:
-   ```powershell
+   ```bash
    # Deschide controller-ul de politici în editorul tău
    code src/apps/sdn_policy_controller.py
    ```
@@ -260,13 +602,22 @@ python tests/test_exercises.py --exercise 2
 ## Oprirea laboratorului
 
 ### Oprire standard
-```powershell
-python scripts/stop_lab.py
+
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT6/06roWSL
+
+# Oprește containerele de laborator (Portainer rămâne activ!)
+python3 scripts/stop_lab.py
+
+# Verifică - ar trebui să vezi doar portainer
+docker ps
 ```
 
 ### Curățare completă (resetare totală)
-```powershell
-python scripts/cleanup.py --full --prune
+
+```bash
+python3 scripts/cleanup.py --full --prune
 ```
 
 ## Teme pentru acasă
@@ -297,8 +648,8 @@ Proiectează și implementează o politică SDN care:
 
 #### Problemă: Erori la curățarea Mininet ("File exists")
 **Soluție:** Rulează curățarea cu flag-ul force:
-```powershell
-python scripts/cleanup.py --force
+```bash
+python3 scripts/cleanup.py --force
 # Sau manual în WSL:
 sudo mn -c
 ```
@@ -311,10 +662,11 @@ ovs-vsctl show
 ```
 
 #### Problemă: Containerele Docker nu pornesc în modul privilegiat
-**Soluție:** Asigură-te că Docker Desktop este configurat pentru integrarea WSL2:
-1. Deschide Docker Desktop Settings
-2. Navighează la Resources > WSL Integration
-3. Activează integrarea cu distribuția ta Ubuntu
+**Soluție:** Asigură-te că Docker este configurat corect în WSL2:
+```bash
+sudo service docker start
+docker info | grep "Security Options"
+```
 
 #### Problemă: NAT nu traduce pachetele
 **Soluție:** Verifică dacă IP forwarding-ul este activat:
@@ -446,4 +798,216 @@ OpenFlow oferă interfața southbound între controller și switch-uri, definind
 
 ---
 
+## 🔧 Depanare Extinsă
+
+### Probleme Docker
+
+**Problemă:** "Cannot connect to Docker daemon"
+```bash
+# Pornește serviciul Docker în WSL
+sudo service docker start
+# Parolă: stud
+
+# Verifică statusul
+sudo service docker status
+
+# Verifică că funcționează
+docker ps
+```
+
+**Problemă:** Permisiune refuzată la rularea docker
+```bash
+# Adaugă utilizatorul la grupul docker
+sudo usermod -aG docker $USER
+
+# Aplică modificările
+newgrp docker
+
+# Sau deconectează-te și reconectează-te din WSL
+exit
+wsl
+```
+
+**Problemă:** Serviciul Docker nu pornește
+```bash
+# Verifică statusul detaliat
+sudo service docker status
+
+# Rulează daemon-ul manual pentru a vedea erorile
+sudo dockerd
+
+# Verifică log-urile
+sudo cat /var/log/docker.log
+```
+
+### Probleme Portainer
+
+**Problemă:** Nu pot accesa http://localhost:9000
+```bash
+# Verifică dacă containerul Portainer există și rulează
+docker ps -a | grep portainer
+
+# Dacă e oprit, pornește-l
+docker start portainer
+
+# Dacă nu există, creează-l
+docker run -d -p 9000:9000 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
+
+# Verifică log-urile
+docker logs portainer
+```
+
+**Problemă:** Am uitat parola Portainer
+```bash
+# ATENȚIE: Aceasta resetează Portainer (pierde setările dar NU containerele)
+docker stop portainer
+docker rm portainer
+docker volume rm portainer_data
+
+# Recreează cu comanda de mai sus
+# La prima accesare, setează parola nouă: studstudstud
+```
+
+### Probleme Wireshark
+
+**Problemă:** Nu se capturează pachete
+- ✅ Verifică interfața corectă selectată (vEthernet WSL)
+- ✅ Asigură-te că traficul este generat ÎN TIMPUL capturii
+- ✅ Verifică că filtrul de afișare nu ascunde pachetele (șterge filtrul)
+- ✅ Încearcă "Capture → Options" și activează modul promiscuous
+
+**Problemă:** "No interfaces found" sau eroare de permisiune
+- Rulează Wireshark ca Administrator (click dreapta → Run as administrator)
+- Reinstalează Npcap cu opțiunea "WinPcap API-compatible Mode" bifată
+
+**Problemă:** Nu văd traficul containerelor Docker
+- Selectează interfața `vEthernet (WSL)`, nu `Ethernet` sau `Wi-Fi`
+- Asigură-te că containerele sunt pe rețea bridge, nu host
+
+### Probleme Mininet și OVS
+
+**Problemă:** Erori la curățarea Mininet
+```bash
+# Curățare forțată
+sudo mn -c
+
+# Verifică procese reziduale
+ps aux | grep -E "(ovs|mn)"
+
+# Oprește OVS dacă e necesar
+sudo service openvswitch-switch stop
+sudo service openvswitch-switch start
+```
+
+**Problemă:** Controller-ul SDN nu primește conexiuni
+```bash
+# Verifică portul 6633
+ss -tlnp | grep 6633
+
+# Verifică configurația OVS
+ovs-vsctl show
+
+# Setează controller-ul manual
+ovs-vsctl set-controller s1 tcp:127.0.0.1:6633
+```
+
+### Probleme de Rețea
+
+**Problemă:** Containerul nu poate accesa internetul
+```bash
+# Verifică rețeaua Docker
+docker network ls
+docker network inspect week6_network
+
+# Verifică DNS în container
+docker exec week6_lab cat /etc/resolv.conf
+```
+
+**Problemă:** Portul este deja utilizat
+```bash
+# Găsește ce folosește portul (în WSL)
+sudo ss -tlnp | grep 6633
+
+# Oprește procesul sau folosește alt port
+```
+
+---
+
+## 🧹 Procedura Completă de Curățare
+
+### Sfârșit de Sesiune (Rapidă)
+
+```bash
+# În terminalul Ubuntu
+cd /mnt/d/RETELE/SAPT6/06roWSL
+
+# Oprește containerele de laborator (Portainer rămâne activ!)
+python3 scripts/stop_lab.py
+
+# Curăță Mininet dacă a fost folosit
+sudo mn -c 2>/dev/null
+
+# Verifică - ar trebui să vezi doar portainer
+docker ps
+```
+
+### Sfârșit de Săptămână (Completă)
+
+```bash
+# Curățare completă laborator
+python3 scripts/cleanup.py --full
+
+# Elimină imaginile nefolosite
+docker image prune -f
+
+# Elimină rețelele nefolosite
+docker network prune -f
+
+# Verifică utilizarea discului
+docker system df
+```
+
+### Resetare Totală (Înainte de Semestru Nou)
+
+```bash
+# ATENȚIE: Aceasta elimină TOTUL în afară de Portainer
+
+# Oprește toate containerele EXCEPTÂND Portainer
+docker stop $(docker ps -q --filter "name=week6")
+
+# Elimină containerele oprite (nu Portainer)
+docker container prune -f
+
+# Elimină imaginile nefolosite
+docker image prune -a -f
+
+# Elimină rețelele nefolosite
+docker network prune -f
+
+# Verifică că Portainer încă rulează
+docker ps
+```
+
+**⚠️ NU rula NICIODATĂ `docker system prune -a` fără să excluzi Portainer!**
+
+### Verificare Post-Curățare
+
+```bash
+# Verifică ce a rămas
+docker ps -a          # Containere
+docker images         # Imagini
+docker network ls     # Rețele
+docker volume ls      # Volume
+
+# Ar trebui să vezi doar:
+# - Container: portainer
+# - Volum: portainer_data
+# - Rețele: bridge, host, none (implicite)
+```
+
+---
+
 *Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix*
+*Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer*
