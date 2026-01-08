@@ -345,7 +345,7 @@ Acest document prezintă soluții pentru problemele frecvente întâlnite în la
 
 2. Testați din container:
    ```bash
-   docker exec week14_client nc -v echo 9000
+   docker exec week14_client nc -v echo 9090
    ```
 
 3. Verificați log-urile:

@@ -449,7 +449,7 @@ class NetworkUtils:
         # Guess service from well-known ports
         service_map = {
             22: "ssh", 80: "http", 443: "https",
-            8080: "http-proxy", 9000: "echo",
+            8080: "http-proxy", 9090: "echo",
             8001: "http-alt", 8002: "http-alt"
         }
         

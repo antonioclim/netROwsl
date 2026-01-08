@@ -80,7 +80,7 @@ EXPOSE 8001 8002
 # Load balancer
 EXPOSE 8080
 # TCP echo server
-EXPOSE 9000
+EXPOSE 9090
 
 # Volume mount points for persistent data
 VOLUME ["/app/artifacts", "/app/pcap"]

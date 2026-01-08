@@ -158,7 +158,7 @@ def test_echo_functional():
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(3)
-        sock.connect(('localhost', 9000))
+        sock.connect(('localhost', 9090))
         sock.sendall(b"Test\n")
         raspuns = sock.recv(1024).decode()
         sock.close()
@@ -203,7 +203,7 @@ def ruleaza_test_rapid(output_json=False):
     raport.adauga(RezultatTest("Rețele configurate", trecut, durata, mesaj))
     
     # Test 4-7: Porturi
-    porturi = [(8080, "LB"), (8001, "App1"), (8002, "App2"), (9000, "Echo")]
+    porturi = [(8080, "LB"), (8001, "App1"), (8002, "App2"), (9090, "Echo")]
     for port, nume in porturi:
         (trecut, mesaj), durata = test_port_accesibil(port, nume)
         raport.adauga(RezultatTest(f"Port {port} ({nume})", trecut, durata, mesaj))

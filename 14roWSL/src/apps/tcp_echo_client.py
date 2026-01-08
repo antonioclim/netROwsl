@@ -7,7 +7,7 @@ Features:
   - Reports latency and validity
 
 Usage:
-  python3 tcp_echo_client.py --host 10.0.14.101 --port 9000 --message "hello"
+  python3 tcp_echo_client.py --host 10.0.14.101 --port 9090 --message "hello"
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ def log(msg: str) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="TCP Echo Client")
     parser.add_argument("--host", required=True, help="Server address")
-    parser.add_argument("--port", type=int, default=9000, help="Server port")
+    parser.add_argument("--port", type=int, default=9090, help="Server port")
     parser.add_argument("--message", default="hello", help="Message to send")
     parser.add_argument("--timeout", type=float, default=5.0, help="Timeout (s)")
     return parser.parse_args()

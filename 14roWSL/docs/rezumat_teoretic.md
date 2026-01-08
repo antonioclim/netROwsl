@@ -295,7 +295,7 @@ import socket
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Bind la adresă și port
-server.bind(('0.0.0.0', 9000))
+server.bind(('0.0.0.0', 9090))
 
 # Ascultă conexiuni
 server.listen(5)
@@ -322,7 +322,7 @@ import socket
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Conectare la server
-client.connect(('localhost', 9000))
+client.connect(('localhost', 9090))
 
 # Trimite date
 client.send(b"Mesaj")

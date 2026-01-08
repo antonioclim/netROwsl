@@ -139,7 +139,7 @@ def main():
     # Determină filtrul
     filtru = args.filtru
     if args.lab:
-        filtru = "port 8080 or port 8001 or port 8002 or port 9000"
+        filtru = "port 8080 or port 8001 or port 8002 or port 9090"
         afiseaza_info("Se folosește filtrul pentru porturile laboratorului")
     
     # Execută captura

@@ -83,7 +83,7 @@ def test_echo_tcp() -> RezultatTest:
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(5)
-        sock.connect(('localhost', 9000))
+        sock.connect(('localhost', 9090))
         
         mesaj_test = "Test123\n"
         sock.sendall(mesaj_test.encode())
