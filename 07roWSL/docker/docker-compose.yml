@@ -1,6 +1,17 @@
 # Configurare Docker Compose pentru Săptămâna 7
 # Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 #
+# Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer
+#
+# NOTĂ IMPORTANTĂ:
+# ================
+# Portainer rulează GLOBAL pe portul 9000 și NU este definit aici.
+# Accesați Portainer la: http://localhost:9000
+# Credențiale: stud / studstudstud
+#
+# NU folosiți portul 9000 pentru serviciile de laborator!
+# Portainer este gestionat separat și rămâne activ între laboratoare.
+#
 # Acest fișier definește serviciile pentru laboratorul de interceptare
 # și filtrare a pachetelor.
 #

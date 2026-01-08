@@ -4,6 +4,17 @@
 # NETWORKING class - ASE, Informatics | by Revolvix
 # =============================================================================
 #
+# Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer
+#
+# NOTĂ IMPORTANTĂ:
+# ================
+# Portainer rulează GLOBAL pe portul 9000 și NU este definit aici.
+# Accesați Portainer la: http://localhost:9000
+# Credențiale: stud / studstudstud
+#
+# NU folosiți portul 9000 pentru serviciile de laborator!
+# Portainer este gestionat separat și rămâne activ între laboratoare.
+#
 # Architecture:
 #   nginx (reverse proxy + load balancer) → backend1, backend2, backend3
 #
@@ -16,7 +27,7 @@
 # Ports:
 #   8080  - HTTP (nginx)
 #   8443  - HTTPS (nginx, self-signed)
-#   9443  - Portainer (optional)
+#   9000  - RESERVED FOR PORTAINER (global, not defined here)
 #
 # =============================================================================
 
@@ -150,29 +161,6 @@ services:
       - "com.ase.role=backend"
       - "com.ase.backend.id=3"
 
-  # ===========================================================================
-  # Portainer CE (Optional Container Management)
-  # ===========================================================================
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: week8-portainer
-    hostname: portainer
-    ports:
-      - "9443:9443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - portainer-data:/data
-    networks:
-      week8-network:
-        ipv4_address: 172.28.8.100
-    restart: unless-stopped
-    profiles:
-      - management
-    labels:
-      - "com.ase.week=8"
-      - "com.ase.project=week8-lab"
-      - "com.ase.role=management"
-
 # =============================================================================
 # Docker Network
 # =============================================================================
@@ -190,6 +178,6 @@ networks:
 # Persistent Volumes
 # =============================================================================
 volumes:
-  portainer-data:
+  nginx-logs:
     driver: local
-    name: week8-portainer-data
+    name: week8-nginx-logs
