@@ -5,10 +5,14 @@ Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
 
 Acest script oprește grațios toate containerele Docker,
 păstrând datele și volumele pentru utilizare ulterioară.
+
+IMPORTANT: Portainer NU este oprit - rulează global pe portul 9000!
 """
 
 import sys
 import argparse
+import socket
+import subprocess
 from pathlib import Path
 
 # Adaugă directorul rădăcină la cale
@@ -19,6 +23,35 @@ from scripts.utils.docker_utils import ManagerDocker
 from scripts.utils.logger import configureaza_logger, afiseaza_banner
 
 logger = configureaza_logger("opreste_lab")
+
+# Credențiale standard
+PORTAINER_PORT = 9000
+PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
+
+
+def verifica_portainer_status() -> bool:
+    """Verifică dacă Portainer rulează pe portul 9000."""
+    try:
+        result = subprocess.run(
+            ["docker", "ps", "--filter", "name=portainer", "--format", "{{.Status}}"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0 and "Up" in result.stdout:
+            return True
+        
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            result = sock.connect_ex(('localhost', PORTAINER_PORT))
+            sock.close()
+            return result == 0
+        except Exception:
+            return False
+            
+    except Exception:
+        return False
 
 
 def main():
@@ -41,29 +74,37 @@ def main():
 
     afiseaza_banner(
         "Oprire Mediu de Laborator",
-        "Săptămâna 9 - Nivelul Sesiune și Prezentare"
+        "Săptămâna 9 - Nivelul Sesiune și Prezentare",
+        "(Portainer rămâne activ pe portul 9000)"
     )
 
     docker = ManagerDocker(RADACINA_PROIECT / "docker")
 
     try:
-        logger.info("Se opresc containerele...")
-        logger.info("(Datele și volumele vor fi păstrate)")
+        logger.info("Se opresc containerele de laborator...")
+        logger.info("(Portainer va rămâne activ, datele și volumele vor fi păstrate)")
         
         # Oprește serviciile fără a elimina volumele
         succes = docker.compose_down(volume=False)
 
         if succes:
-            logger.info("")
-            logger.info("=" * 50)
-            logger.info("Toate containerele au fost oprite cu succes!")
+            print()
+            logger.info("=" * 60)
+            logger.info("✓ Toate containerele de laborator au fost oprite cu succes!")
+            
+            # Verifică și afișează status Portainer
+            if verifica_portainer_status():
+                logger.info(f"✓ Portainer continuă să ruleze pe {PORTAINER_URL}")
+            else:
+                logger.warning(f"⚠ Portainer nu rulează pe {PORTAINER_URL}")
+            
             logger.info("")
             logger.info("Volumele de date au fost păstrate.")
-            logger.info("Pentru a reporni: python scripts/porneste_lab.py")
+            logger.info("Pentru a reporni: python3 scripts/porneste_lab.py")
             logger.info("")
             logger.info("Pentru curățare completă (șterge și datele):")
-            logger.info("  python scripts/curata.py --complet")
-            logger.info("=" * 50)
+            logger.info("  python3 scripts/curata.py --complet")
+            logger.info("=" * 60)
             return 0
         else:
             logger.error("Eroare la oprirea containerelor.")

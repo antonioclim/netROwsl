@@ -1,7 +1,18 @@
 # Docker Compose pentru Laboratorul Săptămânii 10
 # Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
 #
-# Servicii: HTTP, DNS, SSH, FTP, Debug, Portainer
+# Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer
+#
+# NOTĂ IMPORTANTĂ:
+# ================
+# Portainer rulează GLOBAL pe portul 9000 și NU este definit aici.
+# Accesați Portainer la: http://localhost:9000
+# Credențiale: stud / studstudstud
+#
+# NU folosiți portul 9000 pentru serviciile de laborator!
+# Portainer este gestionat separat și rămâne activ între laboratoare.
+#
+# Servicii: HTTP, DNS, SSH, FTP, Debug
 # Rețea: week10_labnet (172.20.0.0/24)
 
 version: "3.8"
@@ -145,25 +156,6 @@ services:
     command: ["tail", "-f", "/dev/null"]
     restart: unless-stopped
 
-  # ═══════════════════════════════════════════════════════════════════
-  # PORTAINER
-  # Interfață web pentru managementul Docker
-  # Acces: https://localhost:9443
-  # ═══════════════════════════════════════════════════════════════════
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: week10_portainer
-    hostname: portainer
-    ports:
-      - "9443:9443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - week10_portainer_data:/data
-    networks:
-      labnet:
-        ipv4_address: 172.20.0.250
-    restart: unless-stopped
-
 # ═══════════════════════════════════════════════════════════════════
 # REȚEA
 # Rețea bridge izolată pentru laborator
@@ -187,5 +179,3 @@ volumes:
     name: week10_ssh_data
   week10_ftp_data:
     name: week10_ftp_data
-  week10_portainer_data:
-    name: week10_portainer_data
