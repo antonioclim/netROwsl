@@ -3,9 +3,8 @@
 Script de Verificare a Mediului de Lucru
 Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 
-Verifică dacă toate cerințele preliminare sunt instalate și configurate corect.
-
-ADAPTAT PENTRU: WSL2 + Ubuntu 22.04 + Docker (în WSL) + Portainer Global
+Verifică dacă toate cerințele preliminare sunt instalate și configurate corect
+pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer.
 """
 
 from __future__ import annotations
@@ -13,9 +12,10 @@ from __future__ import annotations
 import subprocess
 import sys
 import shutil
+import socket
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 
 class Verificator:
@@ -29,45 +29,30 @@ class Verificator:
     def verifica(self, nume: str, conditie: bool, sfat_rezolvare: str = "") -> None:
         """Verifică o condiție și afișează rezultatul."""
         if conditie:
-            print(f"  [\033[92mREUȘIT\033[0m] {nume}")
+            print(f"  [REUȘIT] {nume}")
             self.reusit += 1
         else:
-            print(f"  [\033[91mEȘUAT\033[0m]  {nume}")
+            print(f"  [EȘUAT]  {nume}")
             if sfat_rezolvare:
-                print(f"           \033[93mSoluție:\033[0m {sfat_rezolvare}")
+                print(f"           Soluție: {sfat_rezolvare}")
             self.esuat += 1
 
     def avertizeaza(self, nume: str, mesaj: str) -> None:
         """Afișează un avertisment."""
-        print(f"  [\033[93mATENȚIE\033[0m] {nume}: {mesaj}")
+        print(f"  [ATENȚIE] {nume}: {mesaj}")
         self.avertismente += 1
-
-    def info(self, mesaj: str) -> None:
-        """Afișează un mesaj informativ."""
-        print(f"           {mesaj}")
 
     def sumar(self) -> int:
         """Afișează sumarul verificărilor și returnează codul de ieșire."""
         print("\n" + "=" * 60)
-        print(f"Rezultate: \033[92m{self.reusit} reușite\033[0m, "
-              f"\033[91m{self.esuat} eșuate\033[0m, "
-              f"\033[93m{self.avertismente} avertismente\033[0m")
-        
+        print(f"Rezultate: {self.reusit} reușite, {self.esuat} eșuate, "
+              f"{self.avertismente} avertismente")
         if self.esuat == 0:
-            print("\n\033[92m✓ Mediul de lucru este pregătit pentru Laboratorul Săptămânii 1!\033[0m")
+            print("✓ Mediul de lucru este pregătit!")
             return 0
         else:
-            print("\n\033[91m✗ Vă rugăm să rezolvați problemele de mai sus înainte de a continua.\033[0m")
+            print("✗ Vă rugăm să rezolvați problemele de mai sus înainte de a continua.")
             return 1
-
-
-def ruleaza_in_wsl() -> bool:
-    """Verifică dacă rulăm în interiorul WSL."""
-    try:
-        with open("/proc/version", "r") as f:
-            return "microsoft" in f.read().lower()
-    except:
-        return False
 
 
 def verifica_comanda(cmd: str) -> bool:
@@ -75,149 +60,94 @@ def verifica_comanda(cmd: str) -> bool:
     return shutil.which(cmd) is not None
 
 
-def verifica_docker_ruleaza_wsl() -> bool:
-    """Verifică dacă daemon-ul Docker răspunde (mediu WSL)."""
+def verifica_docker_ruleaza() -> bool:
+    """Verifică dacă daemon-ul Docker rulează."""
     try:
         rezultat = subprocess.run(
             ["docker", "info"],
             capture_output=True,
-            timeout=15
+            timeout=10
         )
         return rezultat.returncode == 0
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+    except Exception:
         return False
 
 
-def verifica_docker_ruleaza_windows() -> bool:
-    """Verifică dacă Docker este accesibil din Windows prin WSL."""
+def porneste_docker() -> bool:
+    """Încearcă să pornească serviciul Docker în WSL."""
     try:
         rezultat = subprocess.run(
-            ["wsl", "docker", "info"],
+            ["sudo", "service", "docker", "start"],
             capture_output=True,
-            timeout=15
+            timeout=30
         )
         return rezultat.returncode == 0
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+    except Exception:
         return False
 
 
-def verifica_docker_compose_wsl() -> bool:
-    """Verifică dacă Docker Compose este disponibil în WSL."""
+def verifica_wsl2() -> bool:
+    """Verifică dacă rulăm în WSL2."""
     try:
-        # Încearcă docker-compose (stil v1, comun în WSL)
+        # Verifică dacă suntem în WSL
+        if not os.path.exists("/proc/version"):
+            return False
+        
+        with open("/proc/version", "r") as f:
+            version_info = f.read().lower()
+        
+        # Verifică că este WSL (nu nativ Linux)
+        if "microsoft" not in version_info and "wsl" not in version_info:
+            return False
+        
+        # Verifică WSL2 vs WSL1
+        # WSL2 are kernel Microsoft, WSL1 nu
+        if "wsl2" in version_info:
+            return True
+        
+        # Alternativ, verifică prin /proc/sys/fs/binfmt_misc
+        # sau prezența /run/WSL
+        return os.path.exists("/run/WSL") or "microsoft-standard" in version_info
+        
+    except Exception:
+        return False
+
+
+def verifica_ubuntu_versiune() -> Tuple[bool, str]:
+    """Verifică versiunea Ubuntu."""
+    try:
+        if os.path.exists("/etc/os-release"):
+            with open("/etc/os-release", "r") as f:
+                content = f.read()
+            
+            # Extrage VERSION_ID
+            for line in content.split("\n"):
+                if line.startswith("VERSION_ID="):
+                    version = line.split("=")[1].strip('"')
+                    # Verifică dacă este 22.04
+                    is_correct = version.startswith("22.04")
+                    return is_correct, version
+        
+        # Fallback: folosește lsb_release
         rezultat = subprocess.run(
-            ["docker-compose", "--version"],
+            ["lsb_release", "-rs"],
             capture_output=True,
+            text=True,
             timeout=10
         )
         if rezultat.returncode == 0:
-            return True
+            version = rezultat.stdout.strip()
+            is_correct = version.startswith("22.04")
+            return is_correct, version
         
-        # Încearcă docker compose (stil v2)
-        rezultat = subprocess.run(
-            ["docker", "compose", "version"],
-            capture_output=True,
-            timeout=10
-        )
-        return rezultat.returncode == 0
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-        return False
+        return False, "necunoscut"
+    except Exception:
+        return False, "necunoscut"
 
 
-def verifica_portainer_ruleaza() -> bool:
-    """Verifică dacă containerul Portainer rulează pe portul 9000."""
-    try:
-        if ruleaza_in_wsl():
-            rezultat = subprocess.run(
-                ["docker", "ps", "--filter", "name=portainer", "--format", "{{.Names}}"],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-        else:
-            rezultat = subprocess.run(
-                ["wsl", "docker", "ps", "--filter", "name=portainer", "--format", "{{.Names}}"],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-        
-        return "portainer" in rezultat.stdout.lower()
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-        return False
-
-
-def verifica_wsl2_ubuntu_implicit() -> bool:
-    """Verifică dacă Ubuntu-22.04 este distribuția WSL implicită."""
-    if sys.platform != "win32":
-        # Suntem în WSL, verificăm dacă e Ubuntu
-        try:
-            rezultat = subprocess.run(
-                ["lsb_release", "-d"],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
-            return "22.04" in rezultat.stdout
-        except:
-            return False
-    
-    try:
-        rezultat = subprocess.run(
-            ["wsl", "--status"],
-            capture_output=True,
-            timeout=10
-        )
-        iesire = (rezultat.stdout.decode(errors="ignore") + 
-                  rezultat.stderr.decode(errors="ignore"))
-        return "Ubuntu-22.04" in iesire or "Ubuntu" in iesire
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-        return False
-
-
-def verifica_wsl2_disponibil() -> bool:
-    """Verifică dacă WSL2 este configurat."""
-    if sys.platform != "win32":
-        # Suntem deja în WSL, deci e disponibil
-        return ruleaza_in_wsl()
-    
-    try:
-        rezultat = subprocess.run(
-            ["wsl", "--status"],
-            capture_output=True,
-            timeout=10
-        )
-        iesire = (rezultat.stdout.decode(errors="ignore") + 
-                  rezultat.stderr.decode(errors="ignore"))
-        return "WSL 2" in iesire or "Default Version: 2" in iesire
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-        return False
-
-
-def verifica_wireshark() -> bool:
-    """Verifică dacă Wireshark este instalat."""
-    # Căi Windows
-    cai_windows = [
-        Path(r"C:\Program Files\Wireshark\Wireshark.exe"),
-        Path(r"C:\Program Files (x86)\Wireshark\Wireshark.exe"),
-    ]
-    
-    for cale in cai_windows:
-        if cale.exists():
-            return True
-    
-    # Dacă suntem în WSL, verificăm căile Windows prin /mnt/c
-    cai_wsl = [
-        Path("/mnt/c/Program Files/Wireshark/Wireshark.exe"),
-        Path("/mnt/c/Program Files (x86)/Wireshark/Wireshark.exe"),
-    ]
-    
-    for cale in cai_wsl:
-        if cale.exists():
-            return True
-    
-    # Fallback Linux/WSL
-    return verifica_comanda("wireshark") or verifica_comanda("tshark")
+def verifica_versiune_python() -> tuple[int, int, int]:
+    """Returnează versiunea Python curentă."""
+    return sys.version_info[:3]
 
 
 def verifica_pachet_python(nume_pachet: str) -> bool:
@@ -229,28 +159,54 @@ def verifica_pachet_python(nume_pachet: str) -> bool:
         return False
 
 
-def obtine_versiune_docker() -> str | None:
-    """Obține string-ul versiunii Docker."""
+def verifica_docker_compose() -> bool:
+    """Verifică dacă Docker Compose este disponibil."""
     try:
-        if ruleaza_in_wsl():
-            rezultat = subprocess.run(
-                ["docker", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-        else:
-            rezultat = subprocess.run(
-                ["wsl", "docker", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-        if rezultat.returncode == 0:
-            return rezultat.stdout.strip()
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-        pass
-    return None
+        rezultat = subprocess.run(
+            ["docker", "compose", "version"],
+            capture_output=True,
+            timeout=10
+        )
+        return rezultat.returncode == 0
+    except Exception:
+        return False
+
+
+def verifica_wireshark() -> bool:
+    """Verifică dacă Wireshark este instalat (pe Windows, accesibil din WSL)."""
+    # Verifică în locații comune pe Windows (accesibile din WSL)
+    cai_wireshark = [
+        Path("/mnt/c/Program Files/Wireshark/Wireshark.exe"),
+        Path("/mnt/c/Program Files (x86)/Wireshark/Wireshark.exe"),
+    ]
+    return any(cale.exists() for cale in cai_wireshark)
+
+
+def verifica_portainer_ruleaza() -> bool:
+    """Verifică dacă Portainer rulează pe portul 9000."""
+    try:
+        # Verifică dacă containerul Portainer există și rulează
+        rezultat = subprocess.run(
+            ["docker", "ps", "--filter", "name=portainer", "--format", "{{.Status}}"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if rezultat.returncode == 0 and "Up" in rezultat.stdout:
+            return True
+        
+        # Verifică alternativ dacă portul 9000 răspunde
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            result = sock.connect_ex(('localhost', 9000))
+            sock.close()
+            return result == 0
+        except Exception:
+            return False
+            
+    except Exception:
+        return False
 
 
 def verifica_structura_proiect() -> bool:
@@ -266,180 +222,164 @@ def verifica_structura_proiect() -> bool:
     return all((radacina / d).is_dir() for d in directoare_necesare)
 
 
+def afiseaza_info_portainer() -> None:
+    """Afișează informații despre cum să pornești Portainer."""
+    print("\n  Cum să pornești Portainer:")
+    print("  docker run -d -p 9000:9000 --name portainer --restart=always \\")
+    print("    -v /var/run/docker.sock:/var/run/docker.sock \\")
+    print("    -v portainer_data:/data portainer/portainer-ce:latest")
+    print("\n  După pornire, accesează: http://localhost:9000")
+    print("  Credențiale: stud / studstudstud")
+
+
 def main() -> int:
     """Funcția principală de verificare."""
     print("=" * 60)
     print("Verificarea Mediului pentru Laboratorul Săptămânii 1")
-    print("Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix")
+    print("Curs REȚELE DE CALCULATOARE - ASE, Informatică")
+    print("Mediu: WSL2 + Ubuntu 22.04 + Docker + Portainer")
     print("=" * 60)
-    print("\nMediu: WSL2 + Ubuntu 22.04 + Docker + Portainer")
-    
-    in_wsl = ruleaza_in_wsl()
-    if in_wsl:
-        print("Detectat: Rulează în interiorul WSL")
-    else:
-        print("Detectat: Rulează pe Windows")
+    print()
 
     v = Verificator()
 
-    # Verificare mediu Python
-    print("\n\033[1mMediul Python:\033[0m")
-    major, minor, patch = sys.version_info[:3]
+    # Verificare mediu WSL2
+    print("Mediul WSL2:")
+    v.verifica(
+        "Rulare în WSL2",
+        verifica_wsl2(),
+        "Asigurați-vă că rulați în WSL2, nu nativ Linux sau WSL1"
+    )
+    
+    ubuntu_ok, ubuntu_versiune = verifica_ubuntu_versiune()
+    v.verifica(
+        f"Ubuntu {ubuntu_versiune}",
+        ubuntu_ok,
+        "Instalați Ubuntu 22.04 ca distribuție WSL implicită"
+    )
+
+    # Verificare versiune Python
+    print("\nMediul Python:")
+    major, minor, patch = verifica_versiune_python()
     v.verifica(
         f"Python {major}.{minor}.{patch}",
         (major, minor) >= (3, 11),
-        "Instalați Python 3.11 sau mai recent de pe python.org"
+        "Instalați Python 3.11 sau mai recent: sudo apt install python3.11"
     )
 
     # Verificare pachete Python necesare
     pachete_necesare = {
-        "docker": "pip install docker",
-        "requests": "pip install requests",
-        "yaml": "pip install pyyaml",
+        "docker": "pip install docker --break-system-packages",
+        "requests": "pip install requests --break-system-packages",
+        "yaml": "pip install pyyaml --break-system-packages",
     }
     
     for pachet, comanda_instalare in pachete_necesare.items():
-        nume_afisat = "pyyaml" if pachet == "yaml" else pachet
+        nume_import = "yaml" if pachet == "yaml" else pachet
         v.verifica(
-            f"Pachet Python: {nume_afisat}",
-            verifica_pachet_python(pachet),
+            f"Pachet Python: {pachet}",
+            verifica_pachet_python(nume_import),
             comanda_instalare
         )
 
-    # Pachete opționale
-    pachete_optionale = ["scapy", "dpkt"]
-    for pachet in pachete_optionale:
+    # Verificare pachete Python pentru analiză rețea (opționale dar recomandate)
+    pachete_retea = {
+        "scapy": "pip install scapy --break-system-packages",
+        "dpkt": "pip install dpkt --break-system-packages",
+    }
+    
+    print("\nPachete Analiză Rețea (opționale):")
+    for pachet, comanda_instalare in pachete_retea.items():
         if verifica_pachet_python(pachet):
-            v.verifica(f"Pachet Python: {pachet} (opțional)", True)
+            v.verifica(f"Pachet Python: {pachet}", True)
         else:
-            v.avertizeaza(pachet, f"Pachet opțional neinstalat (pip install {pachet})")
+            v.avertizeaza(pachet, f"Recomandat pentru analiză avansată. Instalare: {comanda_instalare}")
 
-    # Verificare mediu WSL2
-    print("\n\033[1mMediul WSL2:\033[0m")
-    
+    # Verificare Docker
+    print("\nMediul Docker:")
     v.verifica(
-        "WSL2 disponibil și configurat",
-        verifica_wsl2_disponibil(),
-        "Activați WSL2: wsl --install (necesită restart)"
-    )
-    
-    v.verifica(
-        "Ubuntu 22.04 este distribuția implicită",
-        verifica_wsl2_ubuntu_implicit(),
-        "Setați implicit: wsl --set-default Ubuntu-22.04"
-    )
-
-    # Verificare mediu Docker (în WSL)
-    print("\n\033[1mMediul Docker (în WSL):\033[0m")
-    
-    if in_wsl:
-        docker_instalat = verifica_comanda("docker")
-    else:
-        try:
-            rezultat = subprocess.run(["wsl", "which", "docker"], capture_output=True, timeout=5)
-            docker_instalat = rezultat.returncode == 0
-        except:
-            docker_instalat = False
-    
-    v.verifica(
-        "Docker CLI disponibil în WSL",
-        docker_instalat,
+        "Docker instalat",
+        verifica_comanda("docker"),
         "Instalați Docker în WSL: sudo apt install docker.io"
     )
-
-    if docker_instalat:
-        versiune_docker = obtine_versiune_docker()
-        if versiune_docker:
-            v.info(f"Versiune: {versiune_docker}")
-
-    if in_wsl:
-        docker_ruleaza = verifica_docker_ruleaza_wsl()
-    else:
-        docker_ruleaza = verifica_docker_ruleaza_windows()
+    v.verifica(
+        "Docker Compose instalat",
+        verifica_docker_compose(),
+        "Instalați Docker Compose: sudo apt install docker-compose-plugin"
+    )
+    
+    docker_ruleaza = verifica_docker_ruleaza()
+    if not docker_ruleaza:
+        print("  [INFO] Docker nu rulează. Se încearcă pornirea...")
+        if porneste_docker():
+            docker_ruleaza = verifica_docker_ruleaza()
+            if docker_ruleaza:
+                print("  [INFO] Docker a fost pornit cu succes!")
     
     v.verifica(
         "Daemon-ul Docker rulează",
         docker_ruleaza,
-        "Porniți Docker: sudo service docker start (în Ubuntu WSL)"
+        "Porniți Docker: sudo service docker start"
     )
 
-    if in_wsl:
-        compose_ok = verifica_docker_compose_wsl()
+    # Verificare Portainer (doar dacă Docker rulează)
+    print("\nPortainer (Management Vizual):")
+    if docker_ruleaza:
+        portainer_ok = verifica_portainer_ruleaza()
+        v.verifica(
+            "Portainer rulează pe portul 9000",
+            portainer_ok,
+            "Portainer nu rulează. Vezi instrucțiunile de mai jos."
+        )
+        if not portainer_ok:
+            afiseaza_info_portainer()
     else:
-        try:
-            rezultat = subprocess.run(["wsl", "docker-compose", "--version"], capture_output=True, timeout=10)
-            compose_ok = rezultat.returncode == 0
-        except:
-            compose_ok = False
-    
-    v.verifica(
-        "Docker Compose disponibil",
-        compose_ok,
-        "Instalați: sudo apt install docker-compose"
-    )
+        v.avertizeaza("Portainer", "Nu se poate verifica - Docker nu rulează")
 
-    # Portainer (Serviciu Global)
-    print("\n\033[1mPortainer (Serviciu Global):\033[0m")
-    
-    portainer_ok = verifica_portainer_ruleaza()
+    # Verificare instrumente de rețea
+    print("\nInstrumente de Rețea:")
     v.verifica(
-        "Portainer rulează pe portul 9000",
-        portainer_ok,
-        "Porniți Portainer: docker start portainer"
-    )
-    
-    if portainer_ok:
-        v.info("Acces: http://localhost:9000")
-        v.info("Credențiale: stud / studstudstud")
-
-    # Instrumente de rețea
-    print("\n\033[1mInstrumente de Analiză Rețea:\033[0m")
-    
-    v.verifica(
-        "Wireshark instalat",
+        "Wireshark disponibil (Windows)",
         verifica_wireshark(),
         "Instalați Wireshark de pe wireshark.org (pe Windows)"
     )
 
-    if verifica_comanda("tshark"):
-        v.verifica("tshark (CLI) disponibil", True)
-    else:
-        v.avertizeaza("tshark", "Analiza pachetelor CLI va folosi containerul Docker")
+    # Verificare structura proiectului
+    print("\nStructura Proiectului:")
+    v.verifica(
+        "Directoare necesare prezente",
+        verifica_structura_proiect(),
+        "Clonați repository-ul complet: git clone https://github.com/antonioclim/netROwsl.git"
+    )
 
-    # Instrumente opționale
-    print("\n\033[1mInstrumente Opționale:\033[0m")
-    
+    # Verificări opționale
+    print("\nInstrumente Opționale:")
     if verifica_comanda("git"):
         v.verifica("Git instalat", True)
     else:
         v.avertizeaza("Git", "Recomandat pentru controlul versiunilor")
 
-    if verifica_comanda("curl"):
-        v.verifica("curl instalat", True)
+    if verifica_comanda("code") or os.path.exists("/mnt/c/Users"):
+        # Verifică VS Code în Windows
+        vscode_paths = [
+            Path("/mnt/c/Program Files/Microsoft VS Code/Code.exe"),
+            Path("/mnt/c/Users") / os.environ.get("USER", "stud") / "AppData/Local/Programs/Microsoft VS Code/Code.exe"
+        ]
+        if any(p.exists() for p in vscode_paths) or verifica_comanda("code"):
+            v.verifica("VS Code disponibil", True)
+        else:
+            v.avertizeaza("VS Code", "Recomandat pentru editarea codului")
     else:
-        v.avertizeaza("curl", "Util pentru testarea HTTP")
+        v.avertizeaza("VS Code", "Recomandat pentru editarea codului")
 
-    # Structura proiectului
-    print("\n\033[1mStructura Proiectului:\033[0m")
-    
-    radacina = Path(__file__).parent.parent
-    directoare_necesare = ["docker", "scripts", "src", "tests", "pcap", "artifacts"]
-    
-    for dir_nume in directoare_necesare:
-        cale_dir = radacina / dir_nume
-        v.verifica(
-            f"Director: {dir_nume}/",
-            cale_dir.exists(),
-            f"Director lipsă: {cale_dir}"
-        )
-
-    # Verifică existența docker-compose.yml
-    fisier_compose = radacina / "docker" / "docker-compose.yml"
-    v.verifica(
-        "docker-compose.yml prezent",
-        fisier_compose.exists(),
-        "Fișierul de configurare Docker lipsește"
-    )
+    # Afișare informații de acces
+    print("\n" + "-" * 60)
+    print("Puncte de Acces:")
+    print(f"  • Portainer:     http://localhost:9000")
+    print(f"  • Container Lab: docker exec -it week1_lab bash")
+    print(f"  • Port TCP:      localhost:9090")
+    print(f"  • Port UDP:      localhost:9091")
+    print("-" * 60)
 
     return v.sumar()
 

@@ -1,14 +1,22 @@
 # Configurație Docker Compose pentru Laboratorul Săptămânii 1
 # Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 #
-# ADAPTAT PENTRU: WSL2 + Ubuntu 22.04 + Docker (în WSL) + Portainer Global
-# NOTĂ: Portainer NU este inclus aici - rulează global pe portul 9000
-#       Accesați-l la http://localhost:9000 (credențiale: stud/studstudstud)
+# Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer
+#
+# NOTĂ IMPORTANTĂ:
+# ================
+# Portainer rulează GLOBAL pe portul 9000 și NU este definit aici.
+# Accesați Portainer la: http://localhost:9000
+# Credențiale: stud / studstudstud
+#
+# NU folosiți portul 9000 pentru serviciile de laborator!
+# Portainer este gestionat separat și rămâne activ între laboratoare.
 #
 # Utilizare:
-#   docker-compose up -d              # Pornire servicii
-#   docker-compose down               # Oprire servicii
-#   docker-compose logs               # Vizualizare jurnale
+#   docker compose up -d              # Pornire servicii
+#   docker compose down               # Oprire servicii
+#   docker compose logs               # Vizualizare jurnale
+#   docker compose build --no-cache   # Reconstruire imagini
 
 services:
   # Container principal de laborator
@@ -22,9 +30,8 @@ services:
       week1_network:
         ipv4_address: 172.20.1.2
     ports:
-      - "9090:9090"       # Port TCP pentru exerciții
-      - "9091:9091/udp"   # Port UDP pentru exerciții
-      - "9092:9092"       # Port alternativ
+      - "9090:9090"      # Port TCP pentru exerciții
+      - "9091:9091/udp"  # Port UDP pentru exerciții
     volumes:
       - ../src:/work/src:ro
       - ../pcap:/work/pcap
@@ -36,15 +43,11 @@ services:
     tty: true
     restart: unless-stopped
 
-# NOTĂ: Portainer NU este definit aici!
-# Rulează ca serviciu global pe portul 9000
-# Pornit separat cu: docker start portainer
-# Sau instalat fresh cu:
-#   docker run -d -p 9000:9000 --name portainer --restart=always \
-#     -v /var/run/docker.sock:/var/run/docker.sock \
-#     -v portainer_data:/data portainer/portainer-ce:latest
-
 # Definiție rețea
+# ================
+# Rețeaua week1_network este izolată pentru acest laborator.
+# Subrețeaua 172.20.1.0/24 este specifică Săptămânii 1.
+# Alte săptămâni vor folosi subrețele diferite (172.20.N.0/24).
 networks:
   week1_network:
     name: week1_network
@@ -54,3 +57,9 @@ networks:
       config:
         - subnet: 172.20.1.0/24
           gateway: 172.20.1.1
+
+# Volume persistente
+# ==================
+# Notă: Nu este definit niciun volum Portainer aici.
+# Volumul portainer_data este gestionat global.
+volumes: {}

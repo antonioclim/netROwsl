@@ -2,14 +2,25 @@
 # Laborator Rețele de Calculatoare - ASE, Informatică Economică
 # by Revolvix
 #
+# Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer
+#
+# NOTĂ IMPORTANTĂ:
+# ================
+# Portainer rulează GLOBAL pe portul 9000 și NU este definit aici.
+# Accesați Portainer la: http://localhost:9000
+# Credențiale: stud / studstudstud
+#
+# NU folosiți portul 9000 pentru serviciile de laborator!
+# Portainer este gestionat separat și rămâne activ între laboratoare.
+#
 # Arhitectură:
 #   - week2_lab: Container principal pentru exerciții (TCP/UDP)
-#   - portainer: Interfață web pentru managementul Docker
 #
 # Utilizare:
 #   docker compose up -d        # Pornire în fundal
 #   docker compose down         # Oprire
 #   docker compose logs -f      # Vizualizare loguri
+#   docker compose build --no-cache  # Reconstruire imagini
 
 services:
   # Container principal pentru laborator
@@ -54,25 +65,11 @@ services:
       week2_network:
         ipv4_address: 10.0.2.10
 
-  # Portainer - Interfață web pentru Docker
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: week2_portainer
-    
-    ports:
-      - "9443:9443"    # HTTPS
-    
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    
-    restart: unless-stopped
-    
-    networks:
-      week2_network:
-        ipv4_address: 10.0.2.100
-
 # Rețea dedicată pentru acest laborator
+# =====================================
+# Rețeaua week2_network este izolată pentru acest laborator.
+# Subrețeaua 10.0.2.0/24 este specifică Săptămânii 2.
+# Alte săptămâni vor folosi subrețele diferite.
 networks:
   week2_network:
     name: week2_network
@@ -84,6 +81,7 @@ networks:
           gateway: 10.0.2.1
 
 # Volume pentru date persistente
-volumes:
-  portainer_data:
-    name: week2_portainer_data
+# ==============================
+# Notă: Nu este definit niciun volum Portainer aici.
+# Volumul portainer_data este gestionat global.
+volumes: {}
