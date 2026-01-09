@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Revolvix">
+    <meta name="description" content="Săptămâna 2 - Modelele Arhitecturale OSI și TCP/IP">
+    <title>Săptămâna 2: Modele Arhitecturale de Rețea – OSI &amp; TCP/IP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --secondary: #0ea5e9;
+            --secondary-dark: #0284c7;
+            --accent: #f59e0b;
+            --accent-warm: #ea580c;
+            --success: #10b981;
+            --success-dark: #059669;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            --purple-dark: #7c3aed;
+            --bg-light: #f8fafc;
+            --bg-cool: #f0f9ff;
+            --bg-warm: #fffbeb;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-light); color: var(--text-dark); overflow: hidden; height: 100vh; line-height: 1.6; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; color: var(--primary); }
+        code, pre, .code-block { font-family: 'JetBrains Mono', 'Consolas', monospace; }
+        .presentation { height: 100vh; display: flex; flex-direction: column; }
+        .progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: var(--border); z-index: 1000; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--secondary), var(--success)); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 0%; }
+        .header-bar { position: fixed; top: 4px; left: 0; right: 0; padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; background: rgba(248, 250, 252, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); z-index: 999; }
+        .logo { font-family: 'Source Serif 4', serif; font-weight: 700; font-size: 1.25rem; color: var(--primary); }
+        .logo span { color: var(--text-muted); font-weight: 400; font-size: 0.95rem; }
+        .slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--text-muted); background: var(--bg-cool); padding: 0.35rem 0.75rem; border-radius: 8px; }
+        .slides-wrapper { flex: 1; position: relative; overflow: hidden; margin-top: 60px; }
+        .slide { position: absolute; inset: 0; padding: 2.5rem 4rem 5rem; display: none; flex-direction: column; overflow-y: auto; background: var(--bg-light); }
+        .slide.active { display: flex; animation: slideIn 0.45s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; opacity: 0; }
+        .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; }
+        .slide-title { font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; line-height: 1.2; }
+        .slide-subtitle { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 2rem; font-weight: 400; }
+        .slide-content { flex: 1; }
+        h3 { font-size: 1.35rem; color: var(--secondary-dark); margin: 1.5rem 0 0.75rem; }
+        h4 { font-size: 1.15rem; color: var(--primary); margin: 1rem 0 0.5rem; }
+        p { margin-bottom: 1rem; font-size: 1.1rem; line-height: 1.8; }
+        ul, ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+        li { margin-bottom: 0.6rem; line-height: 1.7; font-size: 1.05rem; }
+        strong { color: var(--primary); font-weight: 600; }
+        code { background: var(--primary); color: var(--accent); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.95em; }
+        .highlight-box { background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%); border-left: 4px solid var(--secondary); padding: 1.25rem 1.5rem; border-radius: 0 16px 16px 0; margin: 1rem 0; }
+        .highlight-box p { margin-bottom: 0.5rem; } .highlight-box p:last-child { margin-bottom: 0; }
+        .definition-box { background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.05) 100%); border-left: 4px solid var(--success); padding: 1.25rem 1.5rem; border-radius: 0 16px 16px 0; margin: 1rem 0; }
+        .definition-box::before { content: "📖 Definiție"; display: block; font-weight: 700; color: var(--success-dark); margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .story-box { background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.05) 100%); border-left: 4px solid var(--purple); padding: 1.25rem 1.5rem; border-radius: 0 16px 16px 0; margin: 1rem 0; }
+        .story-box::before { content: "📚 Context Istoric"; display: block; font-weight: 700; color: var(--purple-dark); margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .warning-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%); border-left: 4px solid var(--accent); padding: 1.25rem 1.5rem; border-radius: 0 16px 16px 0; margin: 1rem 0; }
+        .warning-box::before { content: "⚠️ Important"; display: block; font-weight: 700; color: var(--accent-warm); margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .insight-box { background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.05) 100%); border-left: 4px solid var(--danger); padding: 1.25rem 1.5rem; border-radius: 0 16px 16px 0; margin: 1rem 0; }
+        .insight-box::before { content: "💡 Observație Cheie"; display: block; font-weight: 700; color: var(--danger); margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.05); }
+        .card-accent { border-left: 4px solid var(--accent); } .card-success { border-left: 4px solid var(--success); } .card-secondary { border-left: 4px solid var(--secondary); } .card-danger { border-left: 4px solid var(--danger); } .card-purple { border-left: 4px solid var(--purple); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        @media (max-width: 1200px) { .grid-3 { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } .slide { padding: 1.5rem 2rem 5rem; } }
+        .table-container { overflow-x: auto; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin: 1rem 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 1rem; }
+        th { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; padding: 1rem 1.25rem; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
+        th:first-child { border-radius: 16px 0 0 0; } th:last-child { border-radius: 0 16px 0 0; }
+        td { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border); background: white; }
+        tr:hover td { background: var(--bg-cool); }
+        tr:last-child td:first-child { border-radius: 0 0 0 16px; } tr:last-child td:last-child { border-radius: 0 0 16px 0; }
+        .code-block { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); border-radius: 16px; padding: 1.5rem; margin: 1rem 0; position: relative; overflow-x: auto; }
+        .code-block::before { content: attr(data-lang); position: absolute; top: 0.75rem; right: 1rem; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; background: rgba(255,255,255,0.1); padding: 0.25rem 0.5rem; border-radius: 4px; }
+        .code-block pre { color: #e2e8f0; font-size: 1rem; line-height: 1.7; margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+        .code-block .comment { color: #6b7280; font-style: italic; } .code-block .keyword { color: #c084fc; } .code-block .string { color: #4ade80; } .code-block .number { color: #fbbf24; } .code-block .function { color: #60a5fa; } .code-block .builtin { color: #f472b6; }
+        .osi-stack { display: flex; flex-direction: column; gap: 0.4rem; }
+        .osi-layer { display: flex; align-items: center; padding: 0.85rem 1.25rem; border-radius: 12px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid transparent; }
+        .osi-layer:hover { transform: translateX(8px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+        .osi-layer .num { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 1rem; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .osi-layer .layer-info { flex: 1; } .osi-layer .layer-name { font-weight: 600; font-size: 1.05rem; } .osi-layer .layer-examples { font-size: 0.9rem; color: var(--text-muted); margin-top: 0.15rem; }
+        .osi-layer.l7 { background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); } .osi-layer.l7 .num { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .osi-layer.l6 { background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); } .osi-layer.l6 .num { background: linear-gradient(135deg, #ec4899, #db2777); }
+        .osi-layer.l5 { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); } .osi-layer.l5 .num { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .osi-layer.l4 { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); } .osi-layer.l4 .num { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .osi-layer.l3 { background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); } .osi-layer.l3 .num { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .osi-layer.l2 { background: rgba(6, 182, 212, 0.15); border-color: rgba(6, 182, 212, 0.3); } .osi-layer.l2 .num { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .osi-layer.l1 { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); } .osi-layer.l1 .num { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .tcpip-stack { display: flex; flex-direction: column; gap: 0.5rem; }
+        .tcpip-layer { padding: 1rem 1.25rem; border-radius: 12px; border-left: 5px solid; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .tcpip-layer.app { border-color: var(--accent); background: var(--bg-warm); }
+        .tcpip-layer.transport { border-color: var(--secondary); background: var(--bg-cool); }
+        .tcpip-layer.internet { border-color: var(--success); background: rgba(16, 185, 129, 0.08); }
+        .tcpip-layer.link { border-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
+        .quiz-container { margin: 1.5rem 0; }
+        .quiz-question { font-size: 1.15rem; margin-bottom: 1rem; color: var(--text-dark); font-weight: 500; }
+        .quiz-option { display: block; width: 100%; padding: 1rem 1.25rem; margin: 0.5rem 0; text-align: left; background: white; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); color: var(--text-dark); font-size: 1rem; font-family: 'Inter', sans-serif; }
+        .quiz-option:hover { border-color: var(--secondary); background: var(--bg-cool); transform: translateX(4px); }
+        .quiz-option.correct { background: rgba(16, 185, 129, 0.15); border-color: var(--success); color: var(--success-dark); }
+        .quiz-option.wrong { background: rgba(239, 68, 68, 0.15); border-color: var(--danger); }
+        .quiz-option:disabled { cursor: not-allowed; }
+        .quiz-feedback { padding: 1rem 1.25rem; border-radius: 12px; margin-top: 1rem; display: none; }
+        .quiz-feedback.show { display: block; animation: fadeUp 0.3s ease; }
+        .quiz-feedback.correct { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); }
+        .quiz-feedback.wrong { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); }
+        .diagram-container { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin: 1rem 0; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .diagram-container svg { max-width: 100%; height: auto; }
+        .nav-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.75rem; z-index: 1000; background: white; padding: 0.5rem; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 1px solid var(--border); }
+        .nav-btn { width: 48px; height: 48px; border-radius: 50%; border: none; background: var(--bg-light); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--primary); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-btn:hover { background: var(--secondary); color: white; transform: scale(1.1); }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+        .nav-btn.toc-btn { font-size: 0.9rem; width: auto; padding: 0 1rem; border-radius: 24px; }
+        .toc-modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .toc-modal.show { display: flex; }
+        .toc-content { background: white; border-radius: 20px; padding: 2rem; max-width: 600px; max-height: 80vh; overflow-y: auto; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .toc-content h2 { margin-bottom: 1.5rem; color: var(--primary); }
+        .toc-section { margin-bottom: 1.5rem; }
+        .toc-section-title { font-weight: 600; color: var(--secondary-dark); margin-bottom: 0.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .toc-item { padding: 0.5rem 1rem; cursor: pointer; border-radius: 8px; transition: all 0.2s; font-size: 0.95rem; }
+        .toc-item:hover { background: var(--bg-cool); color: var(--secondary-dark); }
+        .footer-attribution { position: fixed; bottom: 0.75rem; left: 1.5rem; font-size: 0.75rem; color: var(--text-muted); z-index: 100; }
+        .title-slide { background: linear-gradient(135deg, var(--primary) 0%, #1e3a5f 50%, var(--primary-light) 100%); color: white; text-align: center; justify-content: center; align-items: center; }
+        .title-slide .slide-title { font-size: 3.5rem; color: white; margin-bottom: 1rem; }
+        .title-slide .slide-subtitle { font-size: 1.5rem; color: rgba(255,255,255,0.85); margin-bottom: 2rem; }
+        .title-slide .meta-info { color: var(--secondary); font-size: 1.1rem; margin-bottom: 3rem; }
+        .title-slide kbd { background: rgba(255,255,255,0.15); padding: 0.3rem 0.6rem; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.2); }
+        .protocol-header { display: flex; flex-wrap: wrap; border: 2px solid var(--primary); border-radius: 12px; overflow: hidden; margin: 1rem 0; }
+        .header-field { flex: 1; min-width: 60px; padding: 0.75rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); text-align: center; background: white; }
+        .header-field:last-child { border-right: none; }
+        .header-field.span-2 { flex: 2; } .header-field.span-4 { flex: 4; } .header-field.span-8 { flex: 8; }
+        .field-name { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .field-value { font-weight: 600; font-size: 0.95rem; color: var(--primary); margin: 0.25rem 0; }
+        .field-bits { font-size: 0.65rem; color: var(--secondary); font-family: 'JetBrains Mono', monospace; }
+        .interactive-panel { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin: 1rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .interactive-panel input[type="range"] { width: 100%; margin: 0.5rem 0; }
+        .result-display { background: var(--primary); color: var(--accent); padding: 1rem; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; margin-top: 1rem; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <div class="progress-container"><div class="progress-fill" id="progress"></div></div>
+        <div class="header-bar">
+            <div class="logo">ASE-CSIE <span>| Rețele de Calculatoare – Săptămâna 2</span></div>
+            <div class="slide-counter"><span id="current">1</span> / <span id="total">30</span></div>
+        </div>
+        <div class="slides-wrapper" id="slides">
+            <!-- SLIDE 1: Title -->
+            <section class="slide title-slide active" data-slide="1">
+                <h1 class="slide-title">Modele Arhitecturale de Rețea</h1>
+                <p class="slide-subtitle">OSI &amp; TCP/IP – De la Teorie la Practică</p>
+                <p class="meta-info">Săptămâna 2 • Rețele de Calculatoare • 90 minute</p>
+                <div style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin-top:2rem;">Navigați cu <kbd>←</kbd> <kbd>→</kbd> sau <kbd>Space</kbd> • Apăsați <kbd>T</kbd> pentru cuprins • <kbd>F</kbd> pentru ecran complet</div>
+                <p style="margin-top:2rem;color:rgba(255,255,255,0.5);font-size:0.85rem;">Licență Informatică Economică, Anul 3, Semestrul 2</p>
+            </section>
+
+            <!-- SLIDE 2: Learning Objectives -->
+            <section class="slide" data-slide="2">
+                <h2 class="slide-title">Obiectivele Învățării</h2>
+                <p class="slide-subtitle">Ce veți putea face după această prelegere</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="card card-secondary fade-up">
+                            <h4>🎯 Cunoștințe &amp; Înțelegere</h4>
+                            <ul>
+                                <li><strong>Explicați</strong> de ce există modele arhitecturale în rețelistică</li>
+                                <li><strong>Descrieți</strong> funcția fiecărui nivel OSI</li>
+                                <li><strong>Comparați</strong> OSI cu TCP/IP și justificați diferențele</li>
+                                <li><strong>Definiți</strong> terminologia cheie: PDU, încapsulare, stiva de protocoale</li>
+                            </ul>
+                        </div>
+                        <div class="card card-success fade-up delay-2">
+                            <h4>⚡ Aplicare Practică</h4>
+                            <ul>
+                                <li><strong>Identificați</strong> la ce nivel apare o problemă de rețea</li>
+                                <li><strong>Calculați</strong> overhead-ul protocoalelor pentru diferite scenarii</li>
+                                <li><strong>Utilizați</strong> gândirea stratificată pentru depanare sistematică</li>
+                                <li><strong>Pregătiți-vă</strong> pentru programarea socket-urilor în săptămânile următoare</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="highlight-box fade-up delay-4">
+                        <p><strong>Referință Prospectivă:</strong> Aceste concepte formează fundamentul pentru Săptămânile 3–8 unde examinăm fiecare nivel în detaliu.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 3: Why This Matters -->
+            <section class="slide" data-slide="3">
+                <h2 class="slide-title">De Ce Contează pentru Programatori</h2>
+                <p class="slide-subtitle">Motivația practică pentru înțelegerea arhitecturii de rețea</p>
+                <div class="slide-content">
+                    <div class="highlight-box">
+                        <p><strong>Scenariu Real:</strong> Microserviciul dvs. încetează brusc să comunice cu baza de date. Unde este problema?</p>
+                    </div>
+                    <div class="grid-3" style="margin-top:1.5rem;">
+                        <div class="card card-danger fade-up"><div style="font-size:2rem;margin-bottom:0.5rem;">🔌</div><strong>Nivelul Fizic?</strong><p style="font-size:0.95rem;color:var(--text-muted);margin-top:0.5rem;">Cablu deconectat, placă de rețea defectă</p></div>
+                        <div class="card card-success fade-up delay-2"><div style="font-size:2rem;margin-bottom:0.5rem;">🌐</div><strong>Nivelul Rețea?</strong><p style="font-size:0.95rem;color:var(--text-muted);margin-top:0.5rem;">Rută greșită, firewall care blochează</p></div>
+                        <div class="card card-accent fade-up delay-4"><div style="font-size:2rem;margin-bottom:0.5rem;">📦</div><strong>Nivelul Aplicație?</strong><p style="font-size:0.95rem;color:var(--text-muted);margin-top:0.5rem;">Bug în cod, timeout</p></div>
+                    </div>
+                    <p style="margin-top:1.5rem;text-align:center;font-size:1.1rem;">Modelele arhitecturale oferă un <strong>cadru mental</strong> pentru depanare sistematică.</p>
+                </div>
+            </section>
+
+            <!-- SLIDE 4: Protocol Wars -->
+            <section class="slide" data-slide="4">
+                <h2 class="slide-title">Războiul Protocoalelor: O Poveste de Avertizare</h2>
+                <p class="slide-subtitle">Cum pragmatismul a învins birocrația</p>
+                <div class="slide-content">
+                    <div class="story-box">
+                        <p>În anii 1980, <strong>industria telecomunicațiilor</strong> a susținut modelul OSI—proiectat de comitete cu volume de documentație. Între timp, <strong>comunitatea academică</strong> a promovat TCP/IP cu „consens aproximativ și cod funcțional."</p>
+                        <p style="margin-top:1rem;">OSI s-a prăbușit sub propria complexitate. TCP/IP, inclus în BSD UNIX din 1983, a triumfat. Universitățile planificaseră inițial să folosească „TCP/IP până când OSI devine disponibil"—apoi au abandonat în liniște OSI complet.</p>
+                    </div>
+                    <div class="grid-2" style="margin-top:1rem;">
+                        <div class="card card-danger"><h4>Căderea OSI</h4><ul><li>Șapte ani de la proiectare la prima implementare</li><li>Documentele de specificație se măsurau în kilograme</li><li>Proiectat de comitete, nu de ingineri</li></ul></div>
+                        <div class="card card-success"><h4>Victoria TCP/IP</h4><ul><li>Implementare de referință gratuită în BSD UNIX</li><li>Testat la scară înainte de standardizare</li><li>„Codul este specificația"</li></ul></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 5: Problem of Complexity -->
+            <section class="slide" data-slide="5">
+                <h2 class="slide-title">Problema Complexității</h2>
+                <p class="slide-subtitle">De ce avem nevoie de modele arhitecturale în rețelistică</p>
+                <div class="slide-content">
+                    <div class="warning-box">
+                        <p><strong>Provocarea:</strong> Hardware divers, software variat, protocoale multiple—toate trebuind să coopereze global, fabricate de diferiți furnizori, la decenii distanță.</p>
+                    </div>
+                    <div class="grid-2" style="margin-top:1rem;">
+                        <div><h4>Fără Stratificare</h4><ul><li>Fiecare aplicație trebuie să înțeleagă fiecare tehnologie de rețea</li><li>Schimbarea hardware-ului înseamnă rescrierea software-ului</li><li>Fără interoperabilitate între furnizori</li></ul><p style="margin-top:1rem;color:var(--danger);"><strong>Rezultat:</strong> Haos. Insule proprietare.</p></div>
+                        <div><h4>Cu Stratificare</h4><ul><li>Fiecare nivel are responsabilități focalizate</li><li>Nivelurile interacționează prin interfețe bine definite</li><li>Componentele pot fi schimbate fără a afecta altele</li></ul><p style="margin-top:1rem;color:var(--success);"><strong>Rezultat:</strong> Internetul global. Trilioane de dispozitive.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 6: Building Analogy -->
+            <section class="slide" data-slide="6">
+                <h2 class="slide-title">Analogia Construcției</h2>
+                <p class="slide-subtitle">Înțelegerea arhitecturii stratificate prin construcții</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="diagram-container">
+                            <svg viewBox="0 0 300 320" style="max-width:100%;">
+                                <rect x="50" y="20" width="200" height="40" fill="#f59e0b" rx="4"/><text x="150" y="45" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Design Interior</text>
+                                <rect x="50" y="70" width="200" height="40" fill="#8b5cf6" rx="4"/><text x="150" y="95" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Instalații Electrice &amp; HVAC</text>
+                                <rect x="50" y="120" width="200" height="40" fill="#3b82f6" rx="4"/><text x="150" y="145" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Instalații Sanitare</text>
+                                <rect x="50" y="170" width="200" height="40" fill="#22c55e" rx="4"/><text x="150" y="195" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Structură de Rezistență</text>
+                                <rect x="50" y="220" width="200" height="40" fill="#06b6d4" rx="4"/><text x="150" y="245" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Fundație</text>
+                                <rect x="50" y="270" width="200" height="40" fill="#ef4444" rx="4"/><text x="150" y="295" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Teren/Amplasament</text>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="definition-box"><p><strong>Separarea Responsabilităților:</strong> Electricianul nu modifică fundația. Designerul de interior nu reinstalează cablajul.</p></div>
+                            <ul style="margin-top:1rem;"><li>Fiecare specialist lucrează la <strong>propriul nivel</strong></li><li>Nivelurile superioare <strong>se bazează pe</strong> serviciile nivelurilor inferioare</li><li>Schimbările la un nivel nu necesită reconstruirea altora</li></ul>
+                            <div class="highlight-box" style="margin-top:1rem;"><p>În rețelistică: Dezvoltatorul web scrie HTTP fără să înțeleagă fibra optică.</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 7: Layer Concept -->
+            <section class="slide" data-slide="7">
+                <h2 class="slide-title">Conceptul de Nivel</h2>
+                <p class="slide-subtitle">Cum comunică nivelurile între ele</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div>
+                            <h4>Principii Fundamentale</h4>
+                            <ul><li>Un nivel <strong>oferă servicii</strong> nivelului de deasupra</li><li>Un nivel <strong>folosește servicii</strong> de la nivelul de dedesubt</li><li>Fiecare nivel „vede" doar nivelurile <strong>adiacente</strong></li><li>Comunicarea orizontală este <strong>virtuală</strong>—datele curg vertical</li></ul>
+                            <div class="definition-box" style="margin-top:1rem;"><p><strong>Service Access Point (SAP):</strong> Interfața prin care un nivel oferă servicii nivelului de deasupra.</p></div>
+                        </div>
+                        <div class="card">
+                            <h4>Terminologie Cheie</h4>
+                            <div class="table-container">
+                                <table><tr><th>Termen</th><th>Semnificație</th></tr>
+                                <tr><td><code>PDU</code></td><td>Protocol Data Unit – date la orice nivel dat</td></tr>
+                                <tr><td><code>SDU</code></td><td>Service Data Unit – payload de la nivelul superior</td></tr>
+                                <tr><td><code>Header</code></td><td>Informații de control adăugate de fiecare nivel</td></tr>
+                                <tr><td><code>Trailer</code></td><td>Info control la final (de obicei L2)</td></tr></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 8: OSI Introduction -->
+            <section class="slide" data-slide="8">
+                <h2 class="slide-title">Modelul de Referință OSI</h2>
+                <p class="slide-subtitle">Open Systems Interconnection – Cadrul teoretic</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div>
+                            <div class="definition-box"><p><strong>OSI</strong> = Open Systems Interconnection</p><p>Standardizat de ISO în 1984 (ISO 7498)</p></div>
+                            <h4 style="margin-top:1rem;">Caracteristici</h4>
+                            <ul><li>Model de referință <strong>teoretic</strong></li><li><strong>Șapte niveluri distincte</strong></li><li>Dezvoltat ca răspuns la sistemele proprietare</li><li>Specificație independentă de implementare</li></ul>
+                        </div>
+                        <div class="card">
+                            <h4>Scopul Practic Astăzi</h4>
+                            <p>OSI oferă un <strong>vocabular comun</strong> pentru discutarea rețelelor. Deși TCP/IP este folosit în practică, descriem problemele folosind terminologia OSI.</p>
+                            <div class="warning-box" style="margin-top:1rem;"><p>OSI este un model de <em>referință</em>. TCP/IP este modelul de <em>implementare</em>.</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 9: OSI 7 Layers -->
+            <section class="slide" data-slide="9">
+                <h2 class="slide-title">Cele Șapte Niveluri OSI</h2>
+                <p class="slide-subtitle">De la transmisia fizică la aplicațiile utilizatorului</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="osi-stack">
+                            <div class="osi-layer l7"><span class="num">7</span><div class="layer-info"><div class="layer-name">Aplicație</div><div class="layer-examples">HTTP, FTP, SMTP, DNS, SSH</div></div></div>
+                            <div class="osi-layer l6"><span class="num">6</span><div class="layer-info"><div class="layer-name">Prezentare</div><div class="layer-examples">TLS/SSL, JPEG, MPEG, UTF-8</div></div></div>
+                            <div class="osi-layer l5"><span class="num">5</span><div class="layer-info"><div class="layer-name">Sesiune</div><div class="layer-examples">NetBIOS, RPC, managementul sesiunilor</div></div></div>
+                            <div class="osi-layer l4"><span class="num">4</span><div class="layer-info"><div class="layer-name">Transport</div><div class="layer-examples">TCP, UDP, SCTP, QUIC</div></div></div>
+                            <div class="osi-layer l3"><span class="num">3</span><div class="layer-info"><div class="layer-name">Rețea</div><div class="layer-examples">IP (v4/v6), ICMP, OSPF, BGP</div></div></div>
+                            <div class="osi-layer l2"><span class="num">2</span><div class="layer-info"><div class="layer-name">Legătură de Date</div><div class="layer-examples">Ethernet, Wi-Fi (802.11), PPP</div></div></div>
+                            <div class="osi-layer l1"><span class="num">1</span><div class="layer-info"><div class="layer-name">Fizic</div><div class="layer-examples">Cabluri, fibră, unde radio</div></div></div>
+                        </div>
+                        <div>
+                            <div class="card card-purple"><h4>Mnemonic Clasic</h4><p style="font-family:'JetBrains Mono',monospace;font-size:1.05rem;color:var(--purple);"><strong>A</strong>ll <strong>P</strong>eople <strong>S</strong>eem <strong>T</strong>o <strong>N</strong>eed <strong>D</strong>ata <strong>P</strong>rocessing</p><p style="margin-top:0.5rem;color:var(--text-muted);font-size:0.9rem;">(Aplicație → Fizic, de sus în jos)</p></div>
+                            <div class="card" style="margin-top:1rem;"><h4>PDU-uri la Fiecare Nivel</h4><ul style="font-size:0.95rem;"><li>L7-L5: <strong>Date</strong></li><li>L4: <strong>Segment</strong> (TCP) / <strong>Datagramă</strong> (UDP)</li><li>L3: <strong>Pachet</strong></li><li>L2: <strong>Cadru</strong></li><li>L1: <strong>Bit</strong></li></ul></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 10: Layer 1-2 -->
+            <section class="slide" data-slide="10">
+                <h2 class="slide-title">Nivelurile 1 &amp; 2 – Fizic și Legătură de Date</h2>
+                <p class="slide-subtitle">Fundamentul comunicației în rețea</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="card card-danger"><h4>Nivelul 1 – Fizic</h4>
+                            <ul><li><strong>Funcție:</strong> Transmite biți brut prin mediul fizic</li><li><strong>PDU:</strong> Bit (sau simbol)</li><li><strong>Preocupări:</strong> Niveluri de tensiune, sincronizare, conectori</li><li><strong>Exemple:</strong> Cabluri Ethernet, fibră optică, radio Wi-Fi</li></ul>
+                            <div class="highlight-box" style="margin-top:1rem;"><p><strong>Standard cheie:</strong> IEEE 802.3 (nivelul fizic Ethernet)</p></div>
+                        </div>
+                        <div class="card card-secondary"><h4>Nivelul 2 – Legătură de Date</h4>
+                            <ul><li><strong>Funcție:</strong> Livrare nod-la-nod, detecția erorilor</li><li><strong>PDU:</strong> Cadru</li><li><strong>Adresare:</strong> Adrese MAC (48 biți)</li><li><strong>Exemple:</strong> Ethernet, Wi-Fi, PPP</li></ul>
+                            <div class="highlight-box" style="margin-top:1rem;"><p><strong>Adresă MAC:</strong> <code>00:1A:2B:3C:4D:5E</code> – identificator hardware</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 11: Layer 3 -->
+            <section class="slide" data-slide="11">
+                <h2 class="slide-title">Nivelul 3 – Rețea</h2>
+                <p class="slide-subtitle">Adresarea logică și rutarea între rețele</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div>
+                            <div class="table-container">
+                                <table><tr><th>Aspect</th><th>Detalii</th></tr>
+                                <tr><td><strong>Funcție</strong></td><td>Rutează pachete între rețele</td></tr>
+                                <tr><td><strong>PDU</strong></td><td>Pachet</td></tr>
+                                <tr><td><strong>Adresare</strong></td><td>Adrese IP (32 biți v4, 128 biți v6)</td></tr>
+                                <tr><td><strong>Protocoale</strong></td><td>IP, ICMP, ARP, protocoale de rutare</td></tr></table>
+                            </div>
+                            <h4 style="margin-top:1rem;">Responsabilități Principale</h4>
+                            <ul><li><strong>Adresare logică:</strong> Adresele IP identifică global gazdele</li><li><strong>Rutare:</strong> Determinarea căii prin rețele</li><li><strong>Fragmentare:</strong> Împărțirea pachetelor pentru MTU-uri mai mici</li></ul>
+                        </div>
+                        <div class="card card-success">
+                            <h4>MAC vs IP: Diferența Critică</h4>
+                            <div class="table-container"><table style="font-size:0.9rem;"><tr><th>MAC (Nivelul 2)</th><th>IP (Nivelul 3)</th></tr>
+                            <tr><td>Fizic (hardware)</td><td>Logic (configurabil)</td></tr>
+                            <tr><td>Domeniu local (aceeași LAN)</td><td>Domeniu global (rutabil)</td></tr>
+                            <tr><td>Se schimbă la fiecare hop</td><td>Rămâne constant cap-la-cap</td></tr></table></div>
+                            <div class="insight-box" style="margin-top:1rem;"><p>La fiecare hop de router, adresele MAC se schimbă, dar adresele IP rămân aceleași!</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 12: Layer 4 -->
+            <section class="slide" data-slide="12">
+                <h2 class="slide-title">Nivelul 4 – Transport</h2>
+                <p class="slide-subtitle">Comunicare cap-la-cap între procese</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="card card-secondary"><h4>TCP – Transmission Control Protocol</h4>
+                            <ul><li><strong>Orientat conexiune:</strong> handshake în 3 pași</li><li><strong>Fiabil:</strong> Confirmări, retransmisii</li><li><strong>Ordonat:</strong> Datele sunt livrate în secvență</li><li><strong>Control flux &amp; congestie:</strong> Încorporat</li></ul>
+                            <p style="margin-top:1rem;color:var(--secondary);font-weight:500;">Folosiți când: Fiecare octet contează (HTTP, SSH, email)</p></div>
+                        <div class="card card-accent"><h4>UDP – User Datagram Protocol</h4>
+                            <ul><li><strong>Fără conexiune:</strong> Fără handshake, fără stare</li><li><strong>Nefiabil:</strong> Fără garanții</li><li><strong>Neordonat:</strong> Pachetele pot ajunge în altă ordine</li><li><strong>Overhead minim:</strong> Header de 8 octeți</li></ul>
+                            <p style="margin-top:1rem;color:var(--accent);font-weight:500;">Folosiți când: Viteza contează (DNS, VoIP, gaming)</p></div>
+                    </div>
+                    <div class="definition-box" style="margin-top:1rem;"><p><strong>Socket:</strong> Combinația (adresă IP, număr port) identifică unic un punct final. Numerele de port sunt 0–65535.</p></div>
+                </div>
+            </section>
+
+            <!-- SLIDE 13: Upper Layers -->
+            <section class="slide" data-slide="13">
+                <h2 class="slide-title">Nivelurile Superioare (5-6-7)</h2>
+                <p class="slide-subtitle">Sesiune, Prezentare și Aplicație</p>
+                <div class="slide-content">
+                    <div class="grid-3">
+                        <div class="card card-purple"><h4>Nivelul 5 – Sesiune</h4><p>Gestionează dialogul între aplicații: stabilire, menținere, încheiere.</p><p style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">Exemple: NetBIOS, RPC</p></div>
+                        <div class="card card-accent"><h4>Nivelul 6 – Prezentare</h4><p>Traducerea datelor, criptare, compresie pentru interpretare uniformă.</p><p style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">Exemple: TLS/SSL, JPEG, UTF-8</p></div>
+                        <div class="card card-success"><h4>Nivelul 7 – Aplicație</h4><p>Protocoale și servicii orientate utilizator. Interfața cu care interacționează oamenii.</p><p style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">Exemple: HTTP, FTP, SMTP, DNS</p></div>
+                    </div>
+                    <div class="warning-box" style="margin-top:1.5rem;"><p>În TCP/IP, nivelurile 5–7 sunt combinate într-un singur nivel „Aplicație". Majoritatea protocoalelor moderne gestionează aceste preocupări intern.</p></div>
+                </div>
+            </section>
+
+            <!-- SLIDE 14: Quiz OSI -->
+            <section class="slide" data-slide="14">
+                <h2 class="slide-title">Verificare Cunoștințe</h2>
+                <p class="slide-subtitle">Testați-vă înțelegerea nivelurilor OSI</p>
+                <div class="slide-content">
+                    <div class="quiz-container">
+                        <p class="quiz-question"><strong>Întrebare:</strong> Ce tip de adresare folosește Nivelul 2 (Legătură de Date)?</p>
+                        <button class="quiz-option" onclick="checkQuiz(this, false)">A) Adrese IP (32 sau 128 biți)</button>
+                        <button class="quiz-option" onclick="checkQuiz(this, true)">B) Adrese MAC (48 biți)</button>
+                        <button class="quiz-option" onclick="checkQuiz(this, false)">C) Numere de port (16 biți)</button>
+                        <button class="quiz-option" onclick="checkQuiz(this, false)">D) URL-uri și nume de domeniu</button>
+                        <div class="quiz-feedback"><p><strong>Corect!</strong> Adresele MAC (Media Access Control) sunt identificatori hardware de 48 biți folosiți la Nivelul 2 pentru comunicarea în rețeaua locală. Adresele IP operează la Nivelul 3, numerele de port la Nivelul 4.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 15: Encapsulation -->
+            <section class="slide" data-slide="15">
+                <h2 class="slide-title">Încapsularea</h2>
+                <p class="slide-subtitle">Cum sunt împachetate datele la fiecare nivel</p>
+                <div class="slide-content">
+                    <div class="definition-box"><p><strong>Încapsulare:</strong> Procesul de împachetare a datelor cu headere de protocol (și uneori trailere) pe măsură ce trec în jos prin stiva de rețea.</p></div>
+                    <div class="diagram-container" style="margin-top:1.5rem;">
+                        <svg viewBox="0 0 700 220" style="max-width:100%;">
+                            <rect x="250" y="10" width="200" height="30" fill="#f59e0b" rx="4"/><text x="350" y="30" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Date Aplicație</text><text x="580" y="30" fill="#64748b" font-size="10">L7: Date</text>
+                            <rect x="200" y="50" width="50" height="30" fill="#3b82f6" rx="4"/><text x="225" y="70" text-anchor="middle" fill="white" font-size="9">TCP</text>
+                            <rect x="250" y="50" width="200" height="30" fill="#f59e0b" rx="4"/><text x="350" y="70" text-anchor="middle" fill="white" font-size="11">Date</text><text x="580" y="70" fill="#64748b" font-size="10">L4: Segment</text>
+                            <rect x="150" y="90" width="50" height="30" fill="#22c55e" rx="4"/><text x="175" y="110" text-anchor="middle" fill="white" font-size="9">IP</text>
+                            <rect x="200" y="90" width="50" height="30" fill="#3b82f6" rx="4"/><text x="225" y="110" text-anchor="middle" fill="white" font-size="9">TCP</text>
+                            <rect x="250" y="90" width="200" height="30" fill="#f59e0b" rx="4"/><text x="350" y="110" text-anchor="middle" fill="white" font-size="11">Date</text><text x="580" y="110" fill="#64748b" font-size="10">L3: Pachet</text>
+                            <rect x="100" y="130" width="50" height="30" fill="#06b6d4" rx="4"/><text x="125" y="150" text-anchor="middle" fill="white" font-size="8">ETH</text>
+                            <rect x="150" y="130" width="50" height="30" fill="#22c55e" rx="4"/><text x="175" y="150" text-anchor="middle" fill="white" font-size="9">IP</text>
+                            <rect x="200" y="130" width="50" height="30" fill="#3b82f6" rx="4"/><text x="225" y="150" text-anchor="middle" fill="white" font-size="9">TCP</text>
+                            <rect x="250" y="130" width="200" height="30" fill="#f59e0b" rx="4"/><text x="350" y="150" text-anchor="middle" fill="white" font-size="11">Date</text>
+                            <rect x="450" y="130" width="35" height="30" fill="#06b6d4" rx="4"/><text x="467" y="150" text-anchor="middle" fill="white" font-size="8">FCS</text><text x="580" y="150" fill="#64748b" font-size="10">L2: Cadru</text>
+                            <rect x="100" y="170" width="385" height="25" fill="#ef4444" rx="4"/><text x="292" y="187" text-anchor="middle" fill="white" font-size="10">01101001 01010110 11001010 ...</text><text x="580" y="187" fill="#64748b" font-size="10">L1: Biți</text>
+                        </svg>
+                    </div>
+                    <div class="highlight-box"><p><strong>Header-ul fiecărui nivel conține:</strong> Informații de control pentru protocolul acelui nivel. Payload-ul de deasupra devine date opace.</p></div>
+                </div>
+            </section>
+
+            <!-- SLIDE 16: TCP/IP Model -->
+            <section class="slide" data-slide="16">
+                <h2 class="slide-title">Modelul TCP/IP</h2>
+                <p class="slide-subtitle">Modelul practic de implementare</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="tcpip-stack">
+                            <div class="tcpip-layer app"><h4 style="margin:0;color:var(--accent);">Nivelul Aplicație</h4><p style="margin:0.5rem 0 0;font-size:0.95rem;">HTTP, FTP, SMTP, DNS, SSH, DHCP</p><p style="margin:0.25rem 0 0;font-size:0.85rem;color:var(--text-muted);">Combină OSI L5-6-7</p></div>
+                            <div class="tcpip-layer transport"><h4 style="margin:0;color:var(--secondary);">Nivelul Transport</h4><p style="margin:0.5rem 0 0;font-size:0.95rem;">TCP, UDP, SCTP</p><p style="margin:0.25rem 0 0;font-size:0.85rem;color:var(--text-muted);">= OSI L4</p></div>
+                            <div class="tcpip-layer internet"><h4 style="margin:0;color:var(--success);">Nivelul Internet</h4><p style="margin:0.5rem 0 0;font-size:0.95rem;">IP (v4/v6), ICMP</p><p style="margin:0.25rem 0 0;font-size:0.85rem;color:var(--text-muted);">= OSI L3</p></div>
+                            <div class="tcpip-layer link"><h4 style="margin:0;color:var(--danger);">Nivelul Acces la Rețea</h4><p style="margin:0.5rem 0 0;font-size:0.95rem;">Ethernet, Wi-Fi, PPP</p><p style="margin:0.25rem 0 0;font-size:0.85rem;color:var(--text-muted);">Combină OSI L1-2</p></div>
+                        </div>
+                        <div>
+                            <div class="definition-box"><p><strong>TCP/IP</strong> = Transmission Control Protocol / Internet Protocol</p><p>Dezvoltat de DARPA (anii 1970), standardizat prin RFC-uri</p></div>
+                            <div class="card" style="margin-top:1rem;"><h4>De Ce a Câștigat TCP/IP</h4><ul><li>Cod funcțional înainte de specificația completă</li><li>Implementare de referință gratuită în BSD UNIX</li><li>Testat la scară pe ARPANET</li><li>„Consens aproximativ și cod funcțional"</li></ul></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 17: OSI vs TCP/IP -->
+            <section class="slide" data-slide="17">
+                <h2 class="slide-title">Comparație OSI vs TCP/IP</h2>
+                <p class="slide-subtitle">Diferențe cheie între modele</p>
+                <div class="slide-content">
+                    <div class="table-container">
+                        <table><tr><th>Aspect</th><th>Modelul OSI</th><th>Modelul TCP/IP</th></tr>
+                        <tr><td><strong>Origine</strong></td><td>Comitet ISO (1984)</td><td>Cercetare DARPA/DoD (anii 1970)</td></tr>
+                        <tr><td><strong>Niveluri</strong></td><td>7 niveluri</td><td>4 niveluri</td></tr>
+                        <tr><td><strong>Abordare</strong></td><td>Model întâi, protocoale apoi</td><td>Protocoale întâi, model derivat</td></tr>
+                        <tr><td><strong>Sesiune &amp; Prezentare</strong></td><td>Niveluri separate</td><td>Integrate în Aplicație</td></tr>
+                        <tr><td><strong>Implementare</strong></td><td>Rar implementat strict</td><td>Internetul actual</td></tr>
+                        <tr><td><strong>Utilizare Modernă</strong></td><td>Predare, discuții</td><td>Rețelistică reală</td></tr></table>
+                    </div>
+                    <div class="grid-2" style="margin-top:1rem;">
+                        <div class="highlight-box"><p><strong>Avantaj OSI:</strong> Separare mai clară a preocupărilor, mai bun pentru predare.</p></div>
+                        <div class="highlight-box"><p><strong>Avantaj TCP/IP:</strong> Reflectă implementările reale, mai simplu.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 18: Quiz TCP/IP -->
+            <section class="slide" data-slide="18">
+                <h2 class="slide-title">Verificare Cunoștințe</h2>
+                <p class="slide-subtitle">Înțelegerea Modelului TCP/IP</p>
+                <div class="slide-content">
+                    <div class="quiz-container">
+                        <p class="quiz-question"><strong>Întrebare:</strong> În ce ordine sunt adăugate headerele când trimitem o cerere HTTP?</p>
+                        <button class="quiz-option" onclick="checkQuiz(this, false)">A) Ethernet → IP → TCP → HTTP</button>
+                        <button class="quiz-option" onclick="checkQuiz(this, false)">B) HTTP → IP → TCP → Ethernet</button>
+                        <button class="quiz-option" onclick="checkQuiz(this, true)">C) HTTP → TCP → IP → Ethernet</button>
+                        <button class="quiz-option" onclick="checkQuiz(this, false)">D) TCP → HTTP → Ethernet → IP</button>
+                        <div class="quiz-feedback"><p><strong>Corect!</strong> Datele curg în jos prin stivă. Datele HTTP sunt generate la nivelul aplicație, apoi încapsulate cu header TCP (transport), header IP (internet) și în final header/trailer Ethernet (acces la rețea).</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 19: Protocol Overhead -->
+            <section class="slide" data-slide="19">
+                <h2 class="slide-title">Overhead-ul Protocoalelor</h2>
+                <p class="slide-subtitle">Calcularea costului încapsulării</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="interactive-panel">
+                            <h4>Calculator Overhead</h4>
+                            <p style="margin-bottom:1rem;">Dimensiune date aplicație:</p>
+                            <input type="range" id="dataSize" min="1" max="1460" value="100" oninput="calculateOverhead()">
+                            <p style="text-align:center;font-family:'JetBrains Mono',monospace;"><span id="dataSizeValue">100</span> octeți</p>
+                            <div class="result-display">
+                                <p>Cadru Ethernet: <span id="frameSize">154</span> octeți</p>
+                                <p>Overhead: <span id="overheadPercent">35.1</span>%</p>
+                                <p>Eficiență: <span id="efficiencyPercent">64.9</span>%</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h4>Dimensiuni Headere</h4>
+                            <div class="table-container"><table style="font-size:0.9rem;"><tr><th>Nivel</th><th>Protocol</th><th>Dimensiune</th></tr>
+                            <tr><td>L2</td><td>Ethernet (header+FCS)</td><td>18 octeți</td></tr>
+                            <tr><td>L3</td><td>IPv4 (min)</td><td>20 octeți</td></tr>
+                            <tr><td>L4</td><td>TCP (min)</td><td>20 octeți</td></tr>
+                            <tr><td>L4</td><td>UDP</td><td>8 octeți</td></tr>
+                            <tr><td colspan="2"><strong>Total (TCP)</strong></td><td><strong>54 octeți</strong></td></tr></table></div>
+                            <div class="warning-box" style="margin-top:1rem;"><p>Pentru payload-uri mici, eficiența scade semnificativ. Cu 1 octet de date, overhead-ul este 98%!</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 20: Socket Introduction -->
+            <section class="slide" data-slide="20">
+                <h2 class="slide-title">De la Teorie la Cod</h2>
+                <p class="slide-subtitle">Introducere în API-ul Socket</p>
+                <div class="slide-content">
+                    <div class="highlight-box"><p><strong>Întrebarea:</strong> Înțelegem nivelurile—dar cum <em>scriem programe</em> care comunică prin rețele?</p></div>
+                    <div class="grid-2" style="margin-top:1.5rem;">
+                        <div>
+                            <h4>API-ul Socket</h4>
+                            <p>Socket-urile oferă <strong>interfața de programare</strong> între aplicația dvs. (Nivelul 7) și nivelul transport (Nivelul 4).</p>
+                            <div class="definition-box" style="margin-top:1rem;"><p><strong>Socket:</strong> Un punct final pentru comunicare. Identificat prin (adresă IP, număr port). API-ul permite crearea conexiunilor, trimiterea și recepția datelor.</p></div>
+                        </div>
+                        <div class="card">
+                            <h4>Notă Istorică</h4>
+                            <p>API-ul socket a fost introdus în <strong>BSD UNIX 4.2</strong> (1983). A devenit standardul de facto pentru programarea de rețea.</p>
+                            <p style="margin-top:1rem;color:var(--text-muted);">Același API este folosit în aproape orice SO: Linux, Windows (Winsock), macOS.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 21: Socket Types -->
+            <section class="slide" data-slide="21">
+                <h2 class="slide-title">Tipuri de Socket</h2>
+                <p class="slide-subtitle">Alegerea socket-ului potrivit pentru nevoile dvs.</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="card card-secondary"><h4>SOCK_STREAM (TCP)</h4>
+                            <ul><li>Orientat conexiune</li><li>Flux de octeți fiabil, ordonat</li><li>Necesită <code>connect()</code> înainte de trimitere</li><li>Folosește <code>send()</code> / <code>recv()</code></li></ul>
+                            <div class="code-block" data-lang="Python" style="margin-top:1rem;"><pre><span class="keyword">import</span> socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect((<span class="string">"example.com"</span>, <span class="number">80</span>))</pre></div>
+                        </div>
+                        <div class="card card-accent"><h4>SOCK_DGRAM (UDP)</h4>
+                            <ul><li>Fără conexiune</li><li>Nefiabil, orientat mesaje</li><li>Nu necesită conexiune</li><li>Folosește <code>sendto()</code> / <code>recvfrom()</code></li></ul>
+                            <div class="code-block" data-lang="Python" style="margin-top:1rem;"><pre><span class="keyword">import</span> socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.sendto(data, (<span class="string">"example.com"</span>, <span class="number">53</span>))</pre></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 22: Python TCP Example -->
+            <section class="slide" data-slide="22">
+                <h2 class="slide-title">Exemplu Server TCP în Python</h2>
+                <p class="slide-subtitle">Din starterkit: ex_2_01_tcp.py</p>
+                <div class="slide-content">
+                    <div class="code-block" data-lang="Python"><pre><span class="keyword">import</span> socket
+
+<span class="comment"># Creează socket: AF_INET = IPv4, SOCK_STREAM = TCP</span>
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="number">1</span>)
+sock.bind((<span class="string">"0.0.0.0"</span>, <span class="number">9090</span>))  <span class="comment"># Leagă pe toate interfețele</span>
+sock.listen(<span class="number">32</span>)  <span class="comment"># Backlog de 32 conexiuni în așteptare</span>
+
+<span class="keyword">while</span> <span class="builtin">True</span>:
+    conn, addr = sock.accept()  <span class="comment"># Blochează până se conectează un client</span>
+    data = conn.recv(<span class="number">1024</span>)
+    response = <span class="string">b"OK: "</span> + data.upper()
+    conn.sendall(response)
+    conn.close()</pre></div>
+                    <div class="highlight-box"><p><strong>Încercați:</strong> <code>python3 seminar/python/exercises/ex_2_01_tcp.py server --port 9090</code></p></div>
+                </div>
+            </section>
+
+            <!-- SLIDE 23: TCP Handshake -->
+            <section class="slide" data-slide="23">
+                <h2 class="slide-title">Handshake-ul TCP în Trei Pași</h2>
+                <p class="slide-subtitle">Stabilirea unei conexiuni fiabile</p>
+                <div class="slide-content">
+                    <div class="diagram-container">
+                        <svg viewBox="0 0 600 220" style="max-width:100%;">
+                            <text x="100" y="25" text-anchor="middle" fill="#64748b" font-size="14" font-weight="bold">Client</text>
+                            <text x="500" y="25" text-anchor="middle" fill="#64748b" font-size="14" font-weight="bold">Server</text>
+                            <line x1="100" y1="40" x2="100" y2="200" stroke="#64748b" stroke-width="3"/>
+                            <line x1="500" y1="40" x2="500" y2="200" stroke="#64748b" stroke-width="3"/>
+                            <line x1="100" y1="60" x2="500" y2="85" stroke="#3b82f6" stroke-width="2" marker-end="url(#arr)"/><text x="300" y="65" text-anchor="middle" fill="#3b82f6" font-size="12" font-weight="bold">SYN (seq=x)</text>
+                            <line x1="500" y1="105" x2="100" y2="130" stroke="#22c55e" stroke-width="2" marker-end="url(#arr)"/><text x="300" y="125" text-anchor="middle" fill="#22c55e" font-size="12" font-weight="bold">SYN-ACK (seq=y, ack=x+1)</text>
+                            <line x1="100" y1="150" x2="500" y2="175" stroke="#f59e0b" stroke-width="2" marker-end="url(#arr)"/><text x="300" y="170" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="bold">ACK (ack=y+1)</text>
+                            <text x="300" y="200" text-anchor="middle" fill="#64748b" font-size="10">STABILITĂ - Schimbul de date poate începe</text>
+                            <defs><marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/></marker></defs>
+                        </svg>
+                    </div>
+                    <div class="highlight-box"><p><strong>De ce trei mesaje?</strong> Fiecare parte trebuie să confirme că poate atât trimite cât și primi. SYN stabilește client→server. SYN-ACK confirmă că serverul a primit. ACK final confirmă că clientul a primit.</p></div>
+                </div>
+            </section>
+
+            <!-- SLIDE 24: Debugging -->
+            <section class="slide" data-slide="24">
+                <h2 class="slide-title">Depanare cu Niveluri</h2>
+                <p class="slide-subtitle">Depanare sistematică folosind modelul OSI</p>
+                <div class="slide-content">
+                    <p>Când o aplicație de rețea eșuează, lucrați <strong>de jos în sus</strong> prin niveluri:</p>
+                    <div class="table-container" style="margin-top:1rem;">
+                        <table><tr><th>Nivel</th><th>Verificare</th><th>Comandă</th></tr>
+                        <tr><td><strong>L1 Fizic</strong></td><td>Cablu conectat? LED de link?</td><td><code>ip link show</code></td></tr>
+                        <tr><td><strong>L2 Legătură Date</strong></td><td>Interfață activă? MAC corect?</td><td><code>ip link show</code>, <code>arp -a</code></td></tr>
+                        <tr><td><strong>L3 Rețea</strong></td><td>Am IP? Pot ping gateway?</td><td><code>ip addr</code>, <code>ping</code>, <code>traceroute</code></td></tr>
+                        <tr><td><strong>L4 Transport</strong></td><td>Port deschis? Serviciu ascultă?</td><td><code>ss -tuln</code>, <code>nc -zv host port</code></td></tr>
+                        <tr><td><strong>L7 Aplicație</strong></td><td>Aplicația răspunde corect?</td><td><code>curl</code>, log-uri aplicație</td></tr></table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 25: Common Misconceptions -->
+            <section class="slide" data-slide="25">
+                <h2 class="slide-title">Concepții Greșite Frecvente</h2>
+                <p class="slide-subtitle">Clarificarea confuziilor comune</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="insight-box"><p><strong>❌ Concepție Greșită:</strong> „Datele călătoresc orizontal între niveluri pereche."</p><p><strong>✓ Realitate:</strong> Datele călătoresc <em>în jos</em> prin stivă la emițător, prin mediul fizic, apoi <em>în sus</em> la receptor.</p></div>
+                        <div class="insight-box"><p><strong>❌ Concepție Greșită:</strong> „TCP garantează livrarea."</p><p><strong>✓ Realitate:</strong> TCP garantează livrarea <em>sau notificarea eșecului</em>. Dacă rețeaua e inaccesibilă, TCP renunță în final.</p></div>
+                        <div class="insight-box"><p><strong>❌ Concepție Greșită:</strong> „Modelul OSI este folosit în rețele reale."</p><p><strong>✓ Realitate:</strong> TCP/IP este ce e implementat. OSI este un model de referință pentru discuții.</p></div>
+                        <div class="insight-box"><p><strong>❌ Concepție Greșită:</strong> „Adresele MAC nu se schimbă la rutare."</p><p><strong>✓ Realitate:</strong> MAC Sursă/Destinație se schimbă la fiecare hop. Adresele IP rămân constante (cu excepția NAT).</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 26: Exercises -->
+            <section class="slide" data-slide="26">
+                <h2 class="slide-title">Exerciții Practice</h2>
+                <p class="slide-subtitle">Exersați cu starterkit-ul</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="card card-secondary"><h4>Exercițiu 1: Server TCP Echo</h4>
+                            <div class="code-block" data-lang="Bash" style="margin-top:0.5rem;"><pre><span class="comment"># Terminal 1: Pornește serverul</span>
+make tcp-server
+<span class="comment"># Terminal 2: Trimite mesaj</span>
+make tcp-client MSG=<span class="string">"Hello Network"</span>
+<span class="comment"># Terminal 3: Captează traficul</span>
+make analyze-tcp</pre></div>
+                        </div>
+                        <div class="card card-accent"><h4>Exercițiu 2: Protocol UDP</h4>
+                            <div class="code-block" data-lang="Bash" style="margin-top:0.5rem;"><pre><span class="comment"># Client UDP interactiv</span>
+python3 ex_2_02_udp.py client \
+  --host 127.0.0.1 --port 9091 -i
+<span class="comment"># Încercați: ping, time, upper:hello</span></pre></div>
+                        </div>
+                    </div>
+                    <div class="highlight-box" style="margin-top:1rem;"><p><strong>Provocare:</strong> Folosiți Wireshark sau tshark pentru a observa handshake-ul TCP în 3 pași. Identificați pachetele SYN, SYN-ACK și ACK.</p></div>
+                </div>
+            </section>
+
+            <!-- SLIDE 27: Key Takeaways -->
+            <section class="slide" data-slide="27">
+                <h2 class="slide-title">Concluzii Cheie</h2>
+                <p class="slide-subtitle">Ce ar trebui să rețineți</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="card card-success"><h4>✅ Concepte Înțelese</h4>
+                            <ul><li>Scopul arhitecturii stratificate (reducerea complexității, interoperabilitate)</li><li>Cele 7 niveluri OSI și funcțiile lor</li><li>Modelul TCP/IP cu 4 niveluri</li><li>Procesele de încapsulare/decapsulare</li><li>Diferența între adresarea MAC și IP</li><li>Caracteristicile TCP vs UDP</li></ul>
+                        </div>
+                        <div class="card card-secondary"><h4>🔧 Abilități Practice</h4>
+                            <ul><li>Identificarea nivelului la care apare o problemă</li><li>Utilizarea comenzilor de diagnostic (ping, ss, tcpdump)</li><li>Înțelegerea overhead-ului protocoalelor</li><li>Concepte de bază ale programării socket</li><li>Pregătire pentru programarea practică socket</li></ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 28: Next Week -->
+            <section class="slide" data-slide="28">
+                <h2 class="slide-title">Săptămâna Viitoare</h2>
+                <p class="slide-subtitle">Săptămâna 3: Programare Socket în Profunzime</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="card"><h4>📚 Subiecte Prelegere Următoare</h4><ul><li>Programare socket în detaliu</li><li>Servere concurente (threading)</li><li>I/O blocant vs non-blocant</li><li>Design protocoale de aplicație</li></ul></div>
+                        <div class="card"><h4>🎯 Pregătire</h4><ul><li>Rulați <code>make verify</code> în starterkit</li><li>Completați Exercițiile 1 și 2</li><li>Citiți: Rhodes &amp; Goetzen, Capitolele 2-3</li><li>Revizuiți bazele threading Python</li></ul></div>
+                    </div>
+                    <div class="highlight-box" style="margin-top:1.5rem;"><p><strong>Seminarul din această săptămână:</strong> Veți implementa un server TCP concurent. Asigurați-vă că mediul de dezvoltare este pregătit!</p></div>
+                </div>
+            </section>
+
+            <!-- SLIDE 29: References -->
+            <section class="slide" data-slide="29">
+                <h2 class="slide-title">Referințe &amp; Lectură Suplimentară</h2>
+                <p class="slide-subtitle">Aprofundați-vă înțelegerea</p>
+                <div class="slide-content">
+                    <div class="grid-2">
+                        <div class="card"><h4>📖 Lectură Obligatorie</h4>
+                            <ul><li>Kurose &amp; Ross – <em>Computer Networking: A Top-Down Approach</em>, Ed. 7, Cap 1-2</li><li>Rhodes &amp; Goetzen – <em>Foundations of Python Network Programming</em>, Cap 1-3</li></ul>
+                            <h4 style="margin-top:1rem;">📜 RFC-uri</h4>
+                            <ul><li>RFC 791: Internet Protocol (IP)</li><li>RFC 793: TCP</li><li>RFC 768: UDP</li></ul>
+                        </div>
+                        <div class="card"><h4>🔗 Resurse Online</h4>
+                            <ul><li>Documentația Wireshark</li><li>Documentația modulului Python Socket</li><li>Tutorial Mininet</li></ul>
+                            <h4 style="margin-top:1rem;">🎬 Resurse Video</h4>
+                            <ul><li>Computerphile: seria „TCP/IP Model"</li><li>Ben Eater: playlist „Networking Tutorial"</li></ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 30: End -->
+            <section class="slide title-slide" data-slide="30">
+                <h1 class="slide-title">Întrebări?</h1>
+                <p class="slide-subtitle">Vom continua cu exerciții practice la seminar</p>
+                <div style="margin-top:3rem;"><p style="color:rgba(255,255,255,0.8);font-size:1.1rem;">Starterkit: <code style="background:rgba(255,255,255,0.15);color:white;">~/WEEK2/</code></p><p style="color:rgba(255,255,255,0.6);font-size:0.95rem;margin-top:1rem;">Rulați <code style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);">make help</code> pentru a vedea comenzile disponibile</p></div>
+                <div style="margin-top:4rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.2);"><p style="color:rgba(255,255,255,0.5);font-size:0.85rem;">Academia de Studii Economice din București – Facultatea CSIE</p><p style="color:rgba(255,255,255,0.4);font-size:0.8rem;">Rețele de Calculatoare • Licență Informatică Economică • Anul 3, Semestrul 2</p></div>
+            </section>
+        </div>
+        <!-- Navigation Controls -->
+        <div class="nav-controls">
+            <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" title="Anterior (←)">←</button>
+            <button class="nav-btn toc-btn" onclick="toggleTOC()" title="Cuprins (T)">☰ Cuprins</button>
+            <button class="nav-btn" onclick="toggleFullscreen()" title="Ecran Complet (F)">⛶</button>
+            <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)" title="Următor (→)">→</button>
+        </div>
+        <div class="footer-attribution">de Revolvix</div>
+
+        <!-- Table of Contents Modal -->
+        <div class="toc-modal" id="tocModal" onclick="closeTOCOnBackdrop(event)">
+            <div class="toc-content">
+                <h2>Cuprins</h2>
+                <div class="toc-section"><div class="toc-section-title">Introducere</div>
+                    <div class="toc-item" onclick="goToSlide(1)">1. Titlu</div>
+                    <div class="toc-item" onclick="goToSlide(2)">2. Obiectivele Învățării</div>
+                    <div class="toc-item" onclick="goToSlide(3)">3. De Ce Contează</div>
+                    <div class="toc-item" onclick="goToSlide(4)">4. Războiul Protocoalelor</div>
+                </div>
+                <div class="toc-section"><div class="toc-section-title">Arhitectură Stratificată</div>
+                    <div class="toc-item" onclick="goToSlide(5)">5. Problema Complexității</div>
+                    <div class="toc-item" onclick="goToSlide(6)">6. Analogia Construcției</div>
+                    <div class="toc-item" onclick="goToSlide(7)">7. Conceptul de Nivel</div>
+                </div>
+                <div class="toc-section"><div class="toc-section-title">Modelul OSI</div>
+                    <div class="toc-item" onclick="goToSlide(8)">8. Introducere OSI</div>
+                    <div class="toc-item" onclick="goToSlide(9)">9. Cele Șapte Niveluri</div>
+                    <div class="toc-item" onclick="goToSlide(10)">10. Nivelurile 1 &amp; 2</div>
+                    <div class="toc-item" onclick="goToSlide(11)">11. Nivelul 3 – Rețea</div>
+                    <div class="toc-item" onclick="goToSlide(12)">12. Nivelul 4 – Transport</div>
+                    <div class="toc-item" onclick="goToSlide(13)">13. Niveluri Superioare</div>
+                    <div class="toc-item" onclick="goToSlide(14)">14. Quiz: OSI</div>
+                    <div class="toc-item" onclick="goToSlide(15)">15. Încapsulare</div>
+                </div>
+                <div class="toc-section"><div class="toc-section-title">Modelul TCP/IP</div>
+                    <div class="toc-item" onclick="goToSlide(16)">16. Modelul TCP/IP</div>
+                    <div class="toc-item" onclick="goToSlide(17)">17. OSI vs TCP/IP</div>
+                    <div class="toc-item" onclick="goToSlide(18)">18. Quiz: TCP/IP</div>
+                    <div class="toc-item" onclick="goToSlide(19)">19. Overhead Protocoale</div>
+                </div>
+                <div class="toc-section"><div class="toc-section-title">Programare Socket</div>
+                    <div class="toc-item" onclick="goToSlide(20)">20. De la Teorie la Cod</div>
+                    <div class="toc-item" onclick="goToSlide(21)">21. Tipuri de Socket</div>
+                    <div class="toc-item" onclick="goToSlide(22)">22. Exemplu Server TCP</div>
+                    <div class="toc-item" onclick="goToSlide(23)">23. Handshake TCP</div>
+                </div>
+                <div class="toc-section"><div class="toc-section-title">Aplicare Practică</div>
+                    <div class="toc-item" onclick="goToSlide(24)">24. Depanare cu Niveluri</div>
+                    <div class="toc-item" onclick="goToSlide(25)">25. Concepții Greșite</div>
+                    <div class="toc-item" onclick="goToSlide(26)">26. Exerciții</div>
+                </div>
+                <div class="toc-section"><div class="toc-section-title">Recapitulare</div>
+                    <div class="toc-item" onclick="goToSlide(27)">27. Concluzii Cheie</div>
+                    <div class="toc-item" onclick="goToSlide(28)">28. Săptămâna Viitoare</div>
+                    <div class="toc-item" onclick="goToSlide(29)">29. Referințe</div>
+                    <div class="toc-item" onclick="goToSlide(30)">30. Întrebări</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        document.getElementById('total').textContent = totalSlides;
+
+        function showSlide(n) {
+            if (n < 1) n = 1;
+            if (n > totalSlides) n = totalSlides;
+            slides.forEach(s => s.classList.remove('active'));
+            slides[n - 1].classList.add('active');
+            currentSlide = n;
+            document.getElementById('current').textContent = n;
+            document.getElementById('progress').style.width = ((n / totalSlides) * 100) + '%';
+            document.getElementById('prevBtn').disabled = (n === 1);
+            document.getElementById('nextBtn').disabled = (n === totalSlides);
+        }
+
+        function changeSlide(delta) { showSlide(currentSlide + delta); }
+        function goToSlide(n) { showSlide(n); closeTOC(); }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            switch(e.key) {
+                case 'ArrowRight': case ' ': e.preventDefault(); changeSlide(1); break;
+                case 'ArrowLeft': changeSlide(-1); break;
+                case 'Home': showSlide(1); break;
+                case 'End': showSlide(totalSlides); break;
+                case 'f': case 'F': toggleFullscreen(); break;
+                case 't': case 'T': toggleTOC(); break;
+                case 'Escape': closeTOC(); break;
+            }
+        });
+
+        document.querySelector('.slides-wrapper').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('.quiz-option') || e.target.closest('.interactive-panel') || e.target.closest('a')) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            if (x > rect.width / 2) changeSlide(1);
+            else changeSlide(-1);
+        });
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        }
+
+        function toggleTOC() { document.getElementById('tocModal').classList.toggle('show'); }
+        function closeTOC() { document.getElementById('tocModal').classList.remove('show'); }
+        function closeTOCOnBackdrop(e) { if (e.target === document.getElementById('tocModal')) closeTOC(); }
+
+        function checkQuiz(btn, isCorrect) {
+            const container = btn.closest('.quiz-container');
+            const options = container.querySelectorAll('.quiz-option');
+            const feedback = container.querySelector('.quiz-feedback');
+            options.forEach(opt => { opt.disabled = true; opt.style.pointerEvents = 'none'; });
+            if (isCorrect) { btn.classList.add('correct'); feedback.classList.add('correct'); }
+            else {
+                btn.classList.add('wrong'); feedback.classList.add('wrong');
+                options.forEach(opt => { if (opt.onclick && opt.onclick.toString().includes('true')) opt.classList.add('correct'); });
+            }
+            feedback.classList.add('show');
+        }
+
+        function calculateOverhead() {
+            const dataSize = parseInt(document.getElementById('dataSize').value);
+            document.getElementById('dataSizeValue').textContent = dataSize;
+            const totalOverhead = 54; // Ethernet(18) + IP(20) + TCP(20) - 4 for calculation
+            const frameSize = dataSize + 54;
+            document.getElementById('frameSize').textContent = frameSize;
+            document.getElementById('overheadPercent').textContent = ((54 / frameSize) * 100).toFixed(1);
+            document.getElementById('efficiencyPercent').textContent = ((dataSize / frameSize) * 100).toFixed(1);
+        }
+
+        showSlide(1);
+        calculateOverhead();
+    </script>
+</body>
+</html>

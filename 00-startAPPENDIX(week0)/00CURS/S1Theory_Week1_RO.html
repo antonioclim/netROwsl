@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="ro-RO">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Facultatea CSIE-ASE">
+    <meta name="generator" content="Revolvix">
+    <title>Săptămâna 1 – Fundamente ale Rețelelor de Calculatoare | ASE-CSIE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+        :root{--primary:#0f172a;--primary-light:#1e293b;--secondary:#0ea5e9;--secondary-dark:#0284c7;--accent:#f59e0b;--accent-warm:#ea580c;--success:#10b981;--success-dark:#059669;--warning:#fbbf24;--danger:#ef4444;--purple:#8b5cf6;--purple-dark:#7c3aed;--bg-light:#f8fafc;--bg-warm:#fffbeb;--bg-cool:#f0f9ff;--text-dark:#1e293b;--text-muted:#64748b;--text-light:#f1f5f9;--card-bg:#fff;--border:#e2e8f0;--shadow-sm:0 1px 2px rgba(0,0,0,0.05);--shadow-md:0 4px 6px -1px rgba(0,0,0,0.1);--shadow-lg:0 10px 15px -3px rgba(0,0,0,0.1);--shadow-xl:0 20px 25px -5px rgba(0,0,0,0.1)}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,var(--bg-light) 0%,#e0f2fe 50%,var(--bg-warm) 100%);color:var(--text-dark);overflow:hidden;line-height:1.7;-webkit-font-smoothing:antialiased}
+        .presentation{height:100vh;width:100vw;position:relative}
+        .slide{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;justify-content:center;align-items:center;padding:70px 90px 90px;background:linear-gradient(160deg,#fff 0%,var(--bg-light) 40%,#e0f2fe 100%);animation:slideIn .45s cubic-bezier(.4,0,.2,1);overflow-y:auto}
+        .slide.active{display:flex}
+        @keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+        .slide-content{max-width:1400px;width:100%;text-align:center}
+        h1{font-family:'Source Serif 4',Georgia,serif;font-size:3.4rem;font-weight:700;color:var(--primary);margin-bottom:1.5rem;letter-spacing:-.03em;line-height:1.15}
+        h2{font-family:'Source Serif 4',Georgia,serif;font-size:2.7rem;font-weight:600;color:var(--primary);margin-bottom:1.3rem;letter-spacing:-.02em}
+        h3{font-family:'Inter',sans-serif;font-size:1.7rem;font-weight:600;color:var(--secondary-dark);margin-bottom:1rem}
+        h4{font-family:'Inter',sans-serif;font-size:1.35rem;font-weight:600;color:var(--primary);margin-bottom:.6rem}
+        p,li{font-size:1.45rem;line-height:1.85;color:var(--text-dark)}
+        ul{list-style:none;text-align:left;display:inline-block;max-width:1000px}
+        li{margin:.9rem 0;padding-left:2.2rem;position:relative}
+        li::before{content:'▹';position:absolute;left:0;color:var(--secondary);font-weight:700;font-size:1.2rem}
+        code{font-family:'JetBrains Mono','Consolas',monospace;background:linear-gradient(135deg,#f1f5f9 0%,#e2e8f0 100%);padding:.2em .5em;border-radius:6px;font-size:.88em;color:var(--primary);border:1px solid var(--border)}
+        strong{color:var(--primary);font-weight:600}
+        em{color:var(--secondary-dark);font-style:italic}
+        .highlight-box{background:linear-gradient(135deg,var(--secondary) 0%,var(--secondary-dark) 100%);color:#fff;padding:2rem 2.8rem;border-radius:20px;margin:1.8rem auto;box-shadow:var(--shadow-xl);max-width:900px;position:relative;overflow:hidden}
+        .highlight-box::before{content:'';position:absolute;top:-50%;right:-20%;width:200px;height:200px;background:rgba(255,255,255,.1);border-radius:50%}
+        .highlight-box p{color:#fff;font-size:1.35rem}
+        .highlight-box code{background:rgba(255,255,255,.2);border:none;color:#fff}
+        .definition-box{background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);border-left:5px solid var(--success);padding:1.8rem 2.2rem;border-radius:0 16px 16px 0;margin:1.5rem auto;text-align:left;max-width:950px;box-shadow:var(--shadow-md)}
+        .definition-box .def-label{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--success-dark);margin-bottom:.5rem}
+        .definition-box p{font-size:1.3rem;color:#166534}
+        .story-box{background:linear-gradient(135deg,#faf5ff 0%,#f3e8ff 100%);border-left:5px solid var(--purple);padding:1.8rem 2.2rem;border-radius:0 16px 16px 0;margin:1.5rem auto;text-align:left;max-width:950px;box-shadow:var(--shadow-md)}
+        .story-box .story-title{font-size:1.1rem;color:var(--purple-dark);font-weight:700;margin-bottom:.6rem;display:flex;align-items:center;gap:.6rem}
+        .story-box p{font-size:1.25rem;color:#581c87}
+        .warning-box{background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border-left:5px solid var(--accent);padding:1.6rem 2rem;border-radius:0 14px 14px 0;margin:1.5rem auto;text-align:left;max-width:900px}
+        .warning-box .warn-title{font-size:1rem;color:#92400e;font-weight:700;margin-bottom:.4rem}
+        .warning-box p{font-size:1.15rem;color:#78350f}
+        .insight-box{background:linear-gradient(135deg,#fef2f2 0%,#fecaca 100%);border-left:5px solid var(--danger);padding:1.6rem 2rem;border-radius:0 14px 14px 0;margin:1.5rem auto;text-align:left;max-width:900px}
+        .insight-box .insight-title{font-size:1rem;color:#991b1b;font-weight:700;margin-bottom:.4rem}
+        .insight-box p{font-size:1.15rem;color:#7f1d1d}
+        .diagram-container{background:#fff;border-radius:20px;padding:2rem;box-shadow:var(--shadow-lg);margin:1.5rem auto;border:1px solid var(--border);max-width:900px}
+        .diagram-container svg{max-width:100%;height:auto}
+        .code-block{background:linear-gradient(145deg,#0f172a 0%,#1e293b 100%);color:#e2e8f0;padding:1.8rem 2.2rem;border-radius:16px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:1.05rem;line-height:1.7;margin:1.2rem auto;overflow-x:auto;position:relative;max-width:950px;box-shadow:var(--shadow-xl);border:1px solid #334155}
+        .code-block::before{content:attr(data-lang);position:absolute;top:.6rem;right:.8rem;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#64748b;background:#1e293b;padding:.2rem .6rem;border-radius:4px}
+        .code-block .comment{color:#64748b;font-style:italic}
+        .code-block .keyword{color:#c084fc;font-weight:500}
+        .code-block .string{color:#4ade80}
+        .code-block .number{color:#fb923c}
+        .code-block .function{color:#60a5fa}
+        .code-block .builtin{color:#fbbf24}
+        .nav-container{position:fixed;bottom:35px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:18px;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);padding:14px 28px;border-radius:50px;box-shadow:var(--shadow-xl)}
+        .nav-btn{width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;font-size:1.4rem;transition:all .25s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:center;font-weight:600}
+        .nav-btn.prev{background:var(--primary);color:#fff}
+        .nav-btn.next{background:var(--accent);color:#fff}
+        .nav-btn.fullscreen{background:var(--success);color:#fff}
+        .nav-btn.toc{background:var(--purple);color:#fff;font-size:1.1rem}
+        .nav-btn:hover{transform:scale(1.12);box-shadow:var(--shadow-lg)}
+        .nav-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+        .progress-bar{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--secondary) 0%,var(--accent) 50%,var(--success) 100%);transition:width .35s cubic-bezier(.4,0,.2,1);z-index:200}
+        .slide-counter{position:fixed;top:22px;right:35px;font-size:1rem;font-weight:700;color:var(--primary);background:rgba(255,255,255,.95);backdrop-filter:blur(8px);padding:10px 18px;border-radius:25px;box-shadow:var(--shadow-md);z-index:100;font-family:'JetBrains Mono',monospace}
+        .logo-corner{position:fixed;top:22px;left:35px;font-size:.85rem;font-weight:600;color:var(--text-muted);z-index:100}
+        .footer-info{position:fixed;bottom:12px;left:35px;font-size:.8rem;color:var(--text-muted);z-index:50}
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:2rem;text-align:left;margin-top:1.5rem}
+        .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:1.5rem}
+        .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.3rem;margin-top:1.5rem}
+        .card{background:#fff;padding:1.8rem;border-radius:18px;box-shadow:var(--shadow-md);transition:all .3s cubic-bezier(.4,0,.2,1);border:1px solid var(--border);text-align:left}
+        .card:hover{transform:translateY(-6px);box-shadow:var(--shadow-xl);border-color:var(--secondary)}
+        .card-icon{font-size:2.6rem;margin-bottom:.9rem}
+        .card h4{margin-bottom:.5rem}
+        .card p{font-size:1.1rem;color:var(--text-muted)}
+        .card-accent{border-left:4px solid var(--secondary)}
+        .card-success{border-left:4px solid var(--success)}
+        .card-warning{border-left:4px solid var(--accent)}
+        .card-danger{border-left:4px solid var(--danger)}
+        .table-container{overflow-x:auto;margin:1.5rem auto;max-width:1000px;border-radius:16px;box-shadow:var(--shadow-lg)}
+        table{width:100%;border-collapse:collapse;background:#fff;font-size:1.1rem}
+        th,td{padding:1.1rem 1.4rem;text-align:left;border-bottom:1px solid var(--border)}
+        th{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);color:#fff;font-weight:600;font-size:1rem;text-transform:uppercase;letter-spacing:.05em}
+        th:first-child{border-radius:16px 0 0 0}
+        th:last-child{border-radius:0 16px 0 0}
+        tr:hover{background:var(--bg-cool)}
+        .quiz-container{background:#fff;border-radius:20px;padding:2.2rem;box-shadow:var(--shadow-lg);text-align:left;max-width:900px;margin:1.5rem auto;border:1px solid var(--border)}
+        .quiz-question{font-size:1.4rem;color:var(--primary);margin-bottom:1.5rem;font-weight:600}
+        .quiz-option{display:block;padding:1.1rem 1.5rem;margin:.7rem 0;background:var(--bg-light);border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:1.15rem;transition:all .25s ease}
+        .quiz-option:hover{border-color:var(--secondary);background:var(--bg-cool);transform:translateX(4px)}
+        .quiz-option.correct{border-color:var(--success);background:#dcfce7}
+        .quiz-option.incorrect{border-color:var(--danger);background:#fee2e2}
+        .quiz-feedback{padding:1.2rem 1.5rem;border-radius:12px;margin-top:1.2rem;display:none;font-size:1.1rem}
+        .quiz-feedback.show{display:block}
+        .quiz-feedback.correct{background:#bbf7d0;color:#14532d}
+        .quiz-feedback.incorrect{background:#fecaca;color:#7f1d1d}
+        .interactive-panel{background:#fff;border:2px solid var(--secondary);border-radius:20px;padding:2rem;margin:1.5rem auto;max-width:900px;box-shadow:var(--shadow-lg)}
+        .slider-row{display:flex;align-items:center;gap:1.5rem;margin:1.1rem 0}
+        .slider-row label{min-width:200px;font-weight:600;font-size:1.05rem}
+        .slider-row input[type="range"]{flex:1;height:8px;-webkit-appearance:none;background:linear-gradient(90deg,var(--border) 0%,var(--secondary) 100%);border-radius:4px}
+        .slider-row input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--secondary);cursor:pointer;box-shadow:var(--shadow-md)}
+        .slider-value{min-width:130px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:1rem;color:var(--secondary-dark);text-align:right}
+        .result-display{margin-top:1.5rem;padding:1.2rem 1.8rem;background:linear-gradient(135deg,var(--bg-cool) 0%,#dbeafe 100%);border-radius:12px;font-size:1.25rem;font-weight:600;color:var(--secondary-dark);text-align:center}
+        .reveal-btn{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-warm) 100%);color:#fff;border:none;padding:.9rem 1.8rem;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:1rem;transition:all .25s ease;box-shadow:var(--shadow-md)}
+        .reveal-btn:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+        .reveal-content{display:none;margin-top:1.2rem;padding:1.2rem 1.5rem;background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border-radius:12px;font-size:1.15rem}
+        .reveal-content.show{display:block}
+        .animate-in{animation:fadeUp .6s cubic-bezier(.4,0,.2,1) forwards;opacity:0}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+        .delay-1{animation-delay:.1s}
+        .delay-2{animation-delay:.2s}
+        .delay-3{animation-delay:.3s}
+        .delay-4{animation-delay:.4s}
+        .delay-5{animation-delay:.5s}
+        .delay-6{animation-delay:.6s}
+        .timeline{position:relative;max-width:900px;margin:2rem auto;padding-left:40px}
+        .timeline::before{content:'';position:absolute;left:12px;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--secondary) 0%,var(--purple) 50%,var(--success) 100%);border-radius:2px}
+        .timeline-item{position:relative;margin-bottom:2rem;text-align:left}
+        .timeline-item::before{content:'';position:absolute;left:-34px;top:8px;width:16px;height:16px;background:#fff;border:4px solid var(--secondary);border-radius:50%;z-index:1}
+        .timeline-year{font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:700;color:var(--secondary);margin-bottom:.3rem}
+        .timeline-title{font-size:1.2rem;font-weight:600;color:var(--primary);margin-bottom:.3rem}
+        .timeline-desc{font-size:1rem;color:var(--text-muted)}
+        .protocol-header{display:flex;flex-wrap:wrap;max-width:900px;margin:1.5rem auto;border:2px solid var(--primary);border-radius:12px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:.85rem}
+        .header-row{display:flex;width:100%;border-bottom:1px solid var(--border)}
+        .header-row:last-child{border-bottom:none}
+        .header-field{flex:1;padding:.8rem;text-align:center;border-right:1px solid var(--border);background:#fff}
+        .header-field:last-child{border-right:none}
+        .header-field.span-2{flex:2}
+        .header-field.span-4{flex:4}
+        .header-field.span-8{flex:8}
+        .field-name{font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem}
+        .field-value{font-weight:600;color:var(--primary)}
+        .field-bits{font-size:.65rem;color:var(--secondary)}
+        .toc-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:500;justify-content:center;align-items:center}
+        .toc-modal.show{display:flex}
+        .toc-content{background:#fff;border-radius:24px;padding:2.5rem;max-width:700px;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-xl);position:relative}
+        .toc-content h3{margin-bottom:1.5rem;text-align:center}
+        .toc-section{margin-bottom:1.2rem}
+        .toc-section-title{font-weight:700;color:var(--secondary);font-size:.85rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem}
+        .toc-item{padding:.6rem 1rem;cursor:pointer;border-radius:8px;transition:all .2s;font-size:1rem;color:var(--text-dark)}
+        .toc-item:hover{background:var(--bg-cool);color:var(--secondary)}
+        .toc-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted)}
+        :fullscreen .slide{padding:90px 120px 110px}
+        :fullscreen h1{font-size:3.8rem}
+        :fullscreen h2{font-size:3.2rem}
+        :fullscreen p,:fullscreen li{font-size:1.6rem}
+        @media(max-width:1200px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:768px){.slide{padding:50px 30px 80px}h1{font-size:2.2rem}h2{font-size:1.8rem}p,li{font-size:1.1rem}.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+        ::-webkit-scrollbar{width:8px;height:8px}
+        ::-webkit-scrollbar-track{background:var(--bg-light)}
+        ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+        ::-webkit-scrollbar-thumb:hover{background:var(--secondary)}
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="slide-counter" id="slideCounter">1 / 45</div>
+    <div class="logo-corner">ASE-CSIE • Rețele de Calculatoare</div>
+    <div class="presentation" id="presentation">
+        <!-- SLIDE 1: Titlu -->
+        <div class="slide active" data-slide="1">
+            <div class="slide-content">
+                <p style="font-size:1rem;color:var(--secondary);font-weight:600;letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem">Săptămâna 1 din 14</p>
+                <h1>🌐 Fundamente ale Rețelelor de Calculatoare</h1>
+                <h3 style="color:var(--text-muted);font-weight:400">Concepte, Componente, Clasificări și Mecanisme de Bază</h3>
+                <div style="margin-top:2.5rem;font-size:1.15rem;color:var(--text-muted);line-height:2">
+                    <p><strong>Curs:</strong> Rețele de Calculatoare (Computer Networks)</p>
+                    <p><strong>Program:</strong> Licență Informatică Economică, Anul 3, Semestrul 2</p>
+                    <p><strong>Instituție:</strong> Academia de Studii Economice din București – Facultatea CSIE</p>
+                </div>
+                <p style="margin-top:2.5rem;font-size:.95rem;color:var(--text-muted)">Durată: ~90 minute • Navigare: ← → sau butoane • Ecran complet: F • Cuprins: T</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Introducere Istorică -->
+        <div class="slide" data-slide="2">
+            <div class="slide-content">
+                <h2>📡 Nașterea Erei Rețelelor</h2>
+                <div class="story-box animate-in">
+                    <div class="story-title">🕰️ 29 Octombrie 1969 — Primul Mesaj de Rețea</div>
+                    <p>La ora 22:30, Charley Kline, un student la UCLA, a încercat să transmită cuvântul <strong>„LOGIN"</strong> către un calculator de la Stanford Research Institute, aflat la 560 de kilometri distanță. Sistemul s-a blocat după doar două caractere: <strong>„L"</strong> și <strong>„O"</strong>.</p>
+                </div>
+                <p class="animate-in delay-2" style="margin-top:1.5rem;font-size:1.3rem">Astfel, <em>„LO"</em> a devenit prima informație transmisă vreodată printr-o rețea de calculatoare — un semnal accidental al unei revoluții care avea să transforme civilizația umană.</p>
+                <div class="highlight-box animate-in delay-3">
+                    <p>💡 De la două caractere care au blocat un sistem la <strong>5,4 miliarde</strong> de utilizatori de internet care schimbă <strong>400 exabytes</strong> de date lunar — aceasta este povestea pe care o vom explora.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: De Ce Contează -->
+        <div class="slide" data-slide="3">
+            <div class="slide-content">
+                <h2>💡 De Ce Contează Rețelele de Calculatoare Pentru Tine</h2>
+                <div class="grid-3">
+                    <div class="card card-accent animate-in delay-1">
+                        <div class="card-icon">🔧</div>
+                        <h4>Depanarea Sistemelor Distribuite</h4>
+                        <p>Diagnostichează vârfuri de latență, eșecuri de conexiune și pierderi de pachete în arhitecturi microservicii</p>
+                    </div>
+                    <div class="card card-success animate-in delay-2">
+                        <div class="card-icon">⚡</div>
+                        <h4>Optimizarea Performanței</h4>
+                        <p>Reduce timpii de răspuns API de la 800ms la 50ms înțelegând reglarea TCP și plasarea CDN</p>
+                    </div>
+                    <div class="card card-warning animate-in delay-3">
+                        <div class="card-icon">🔒</div>
+                        <h4>Ingineria Securității</h4>
+                        <p>Înțelege atacurile de rețea (DDoS, MITM) și implementează firewall-uri, VPN-uri și TLS corect</p>
+                    </div>
+                </div>
+                <div class="story-box animate-in delay-4" style="margin-top:1.5rem">
+                    <div class="story-title">💼 Scenariul din Industrie</div>
+                    <p>Un startup pierde 2M€ venituri când aplicația lor devine indisponibilă timp de 4 ore. Cauza principală? O configurație greșită DNS cu un TTL de 86400s. Cunoștințele de rețelistică transformă o carieră de programator într-una de inginer de sisteme.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Obiectivele Învățării -->
+        <div class="slide" data-slide="4">
+            <div class="slide-content">
+                <h2>🎯 Obiectivele Învățării pentru Săptămâna 1</h2>
+                <div class="grid-2">
+                    <div class="card animate-in delay-1">
+                        <h4>📚 Cunoștințe (A Ști)</h4>
+                        <ul style="font-size:1.05rem">
+                            <li>Definește componentele de bază ale rețelei și rolurile lor</li>
+                            <li>Descrie comutarea de circuite vs. comutarea de pachete</li>
+                            <li>Explică modelul stratificat TCP/IP</li>
+                            <li>Diferențiază MAC, IP și adresele porturilor</li>
+                        </ul>
+                    </div>
+                    <div class="card animate-in delay-2">
+                        <h4>🛠️ Competențe (A Putea Aplica)</h4>
+                        <ul style="font-size:1.05rem">
+                            <li>Folosește <code>ip</code>, <code>ss</code>, <code>ping</code> pentru a inspecta configurația rețelei</li>
+                            <li>Capturează și interpretează traficul cu <code>tcpdump</code></li>
+                            <li>Calculează întârzieri de transmisie și propagare</li>
+                            <li>Creează conexiuni TCP/UDP simple cu <code>netcat</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Harta Cursului -->
+        <div class="slide" data-slide="5">
+            <div class="slide-content">
+                <h2>🗺️ Harta Cursului: 14 Săptămâni</h2>
+                <div class="timeline animate-in">
+                    <div class="timeline-item"><div class="timeline-year">Săpt. 1–2</div><div class="timeline-title">Fundamente & Programare Socket</div><div class="timeline-desc">Componente rețea, TCP/IP, instrumente diagnostice, servere client/server</div></div>
+                    <div class="timeline-item"><div class="timeline-year">Săpt. 3–5</div><div class="timeline-title">Stratul de Legătură de Date</div><div class="timeline-desc">Ethernet, adresare MAC, comutare, VLAN-uri, ARP</div></div>
+                    <div class="timeline-item"><div class="timeline-year">Săpt. 6–8</div><div class="timeline-title">Stratul de Rețea</div><div class="timeline-desc">Adresare IP, subrețele, rutare, ICMP, IPv6</div></div>
+                    <div class="timeline-item"><div class="timeline-year">Săpt. 9–11</div><div class="timeline-title">Stratul de Transport & Aplicație</div><div class="timeline-desc">TCP profund, UDP, DNS, HTTP, protocoale email</div></div>
+                    <div class="timeline-item"><div class="timeline-year">Săpt. 12–14</div><div class="timeline-title">Subiecte Avansate</div><div class="timeline-desc">Securitate rețea, SDN, IoT, cloud networking</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: Ce Este o Rețea -->
+        <div class="slide" data-slide="6">
+            <div class="slide-content">
+                <h2>📚 Ce Este o Rețea de Calculatoare?</h2>
+                <div class="definition-box animate-in">
+                    <div class="def-label">Definiție</div>
+                    <p>O <strong>rețea de calculatoare</strong> este o colecție de dispozitive de calcul interconectate care pot schimba date și partaja resurse. Conexiunea poate fi fizică (cabluri, fibre) sau wireless (radio, infraroșu).</p>
+                </div>
+                <div class="grid-3 animate-in delay-2">
+                    <div class="card card-accent"><div class="card-icon">🖥️</div><h4>Dispozitive</h4><p>Calculatoare, servere, telefoane, senzori IoT</p></div>
+                    <div class="card card-success"><div class="card-icon">🔗</div><h4>Conexiuni</h4><p>Cabluri (UTP, fibre), unde radio</p></div>
+                    <div class="card card-warning"><div class="card-icon">📋</div><h4>Protocoale</h4><p>Reguli care guvernează formatul și sincronizarea datelor</p></div>
+                </div>
+                <p class="animate-in delay-3" style="margin-top:1.5rem;font-size:1.2rem;color:var(--text-muted)">Cea mai simplă rețea: două calculatoare conectate printr-un cablu, rulând software compatibil.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: Diagrama Rețelei -->
+        <div class="slide" data-slide="7">
+            <div class="slide-content">
+                <h2>🖥️ Anatomia unei Rețele Simple</h2>
+                <div class="diagram-container animate-in">
+                    <svg viewBox="0 0 900 300" style="max-width:900px">
+                        <rect x="20" y="20" width="260" height="260" rx="15" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+                        <text x="150" y="50" text-anchor="middle" fill="#166534" font-size="12" font-weight="600">REȚEA LOCALĂ (LAN)</text>
+                        <rect x="50" y="75" width="85" height="60" rx="10" fill="#0ea5e9"/>
+                        <text x="92" y="105" text-anchor="middle" fill="white" font-size="11" font-weight="600">Stație lucru</text>
+                        <text x="92" y="122" text-anchor="middle" fill="#bae6fd" font-size="9">192.168.1.10</text>
+                        <rect x="50" y="165" width="85" height="60" rx="10" fill="#0ea5e9"/>
+                        <text x="92" y="195" text-anchor="middle" fill="white" font-size="11" font-weight="600">Laptop</text>
+                        <text x="92" y="212" text-anchor="middle" fill="#bae6fd" font-size="9">192.168.1.11</text>
+                        <rect x="170" y="115" width="90" height="45" rx="8" fill="#10b981"/>
+                        <text x="215" y="142" text-anchor="middle" fill="white" font-size="10" font-weight="600">Switch (L2)</text>
+                        <rect x="320" y="105" width="100" height="65" rx="10" fill="#8b5cf6"/>
+                        <text x="370" y="132" text-anchor="middle" fill="white" font-size="11" font-weight="600">Router (L3)</text>
+                        <text x="370" y="150" text-anchor="middle" fill="#ddd6fe" font-size="9">Gateway: .1</text>
+                        <ellipse cx="530" cy="137" rx="75" ry="45" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="530" y="132" text-anchor="middle" fill="#92400e" font-size="12" font-weight="600">Internet</text>
+                        <text x="530" y="150" text-anchor="middle" fill="#a16207" font-size="9">(WAN)</text>
+                        <rect x="670" y="95" width="95" height="85" rx="10" fill="#ef4444"/>
+                        <text x="717" y="128" text-anchor="middle" fill="white" font-size="11" font-weight="600">Server Web</text>
+                        <text x="717" y="148" text-anchor="middle" fill="#fecaca" font-size="9">93.184.216.34</text>
+                        <text x="717" y="165" text-anchor="middle" fill="#fecaca" font-size="8">(example.com)</text>
+                        <line x1="135" y1="105" x2="170" y2="130" stroke="#334155" stroke-width="3"/>
+                        <line x1="135" y1="195" x2="170" y2="150" stroke="#334155" stroke-width="3"/>
+                        <line x1="260" y1="137" x2="320" y2="137" stroke="#334155" stroke-width="3"/>
+                        <line x1="420" y1="137" x2="455" y2="137" stroke="#334155" stroke-width="3" stroke-dasharray="8,4"/>
+                        <line x1="605" y1="137" x2="670" y2="137" stroke="#334155" stroke-width="3" stroke-dasharray="8,4"/>
+                    </svg>
+                </div>
+                <div class="grid-3 animate-in delay-2" style="max-width:900px;margin:0 auto">
+                    <div style="text-align:center"><div style="color:#0ea5e9;font-weight:700">Dispozitive Terminale</div><div style="font-size:.95rem;color:var(--text-muted)">Generează și consumă date</div></div>
+                    <div style="text-align:center"><div style="color:#10b981;font-weight:700">Switch (Strat 2)</div><div style="font-size:.95rem;color:var(--text-muted)">Redirecționează cadre după MAC</div></div>
+                    <div style="text-align:center"><div style="color:#8b5cf6;font-weight:700">Router (Strat 3)</div><div style="font-size:.95rem;color:var(--text-muted)">Rutează pachete după IP</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Componentele Rețelei -->
+        <div class="slide" data-slide="8">
+            <div class="slide-content">
+                <h2>🔩 Componentele Fundamentale ale Rețelei</h2>
+                <div class="grid-4">
+                    <div class="card animate-in delay-1">
+                        <div class="card-icon">💻</div>
+                        <h4>Gazde (Sisteme Terminale)</h4>
+                        <p>Dispozitive care inițiază sau termină comunicarea de rețea: PC-uri, servere, smartphone-uri, senzori IoT</p>
+                    </div>
+                    <div class="card animate-in delay-2">
+                        <div class="card-icon">🔌</div>
+                        <h4>Placă de Rețea (NIC)</h4>
+                        <p>Adaptor hardware cu adresă MAC unică; face legătura între gazdă și mediul fizic</p>
+                    </div>
+                    <div class="card animate-in delay-3">
+                        <div class="card-icon">🔀</div>
+                        <h4>Switch</h4>
+                        <p>Dispozitiv de Strat 2; învață adresele MAC; redirecționează cadre doar către portul destinație</p>
+                    </div>
+                    <div class="card animate-in delay-4">
+                        <div class="card-icon">🌐</div>
+                        <h4>Router</h4>
+                        <p>Dispozitiv de Strat 3; rutează pachete între rețele IP diferite; menține tabele de rutare</p>
+                    </div>
+                </div>
+                <div class="warning-box animate-in delay-5" style="margin-top:1.5rem">
+                    <div class="warn-title">⚠️ Notă Istorică: Hub-ul</div>
+                    <p>Înainte de switch-uri, <strong>hub-urile</strong> transmiteau fiecare cadru către toate porturile, cauzând <em>domenii de coliziune</em> care cuprindeau întreaga rețea. Switch-urile au eliminat acest lucru creând domenii de coliziune separate per port.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: MAC vs IP -->
+        <div class="slide" data-slide="9">
+            <div class="slide-content">
+                <h2>🏷️ Adresarea în Rețea: MAC vs IP</h2>
+                <div class="table-container animate-in">
+                    <table>
+                        <thead><tr><th>Caracteristică</th><th>Adresă MAC</th><th>Adresă IP</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Strat</strong></td><td>Legătură de Date (Strat 2)</td><td>Rețea (Strat 3)</td></tr>
+                            <tr><td><strong>Format</strong></td><td>48 biți: <code>AA:BB:CC:DD:EE:FF</code></td><td>IPv4: 32 biți <code>192.168.1.10</code></td></tr>
+                            <tr><td><strong>Atribuire</strong></td><td>Înscrisă în NIC de producător</td><td>Configurată manual sau prin DHCP</td></tr>
+                            <tr><td><strong>Domeniu</strong></td><td>Doar segment local (nu se rutează)</td><td>Global (rutabilă între rețele)</td></tr>
+                            <tr><td><strong>Analogie</strong></td><td>Amprenta ta — identitate permanentă</td><td>Adresa ta poștală — bazată pe locație</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="code-block animate-in delay-2" data-lang="bash">
+<span class="comment"># Vizualizează adresele MAC și IP pe Linux</span>
+$ ip -br link
+lo      UNKNOWN   00:00:00:00:00:00
+eth0    UP        <span class="string">02:42:ac:11:00:02</span>
+
+$ ip -br addr
+lo      UNKNOWN   127.0.0.1/8
+eth0    UP        <span class="string">172.17.0.2/16</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: Porturi -->
+        <div class="slide" data-slide="10">
+            <div class="slide-content">
+                <h2>🚪 Porturi: Adresarea Aplicațiilor</h2>
+                <p style="font-size:1.25rem;margin-bottom:1.5rem">O adresă IP identifică o <em>gazdă</em>; un <strong>număr de port</strong> identifică un <em>proces</em> pe acea gazdă.</p>
+                <div class="diagram-container animate-in">
+                    <svg viewBox="0 0 750 200" style="max-width:750px">
+                        <rect x="220" y="25" width="280" height="155" rx="15" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+                        <text x="360" y="48" text-anchor="middle" fill="#334155" font-size="10" font-weight="600">SERVER: 192.168.1.100</text>
+                        <rect x="245" y="62" width="65" height="40" rx="8" fill="#0ea5e9"/><text x="277" y="82" text-anchor="middle" fill="white" font-size="9" font-weight="600">HTTP</text><text x="277" y="95" text-anchor="middle" fill="#bae6fd" font-size="8">:80</text>
+                        <rect x="325" y="62" width="65" height="40" rx="8" fill="#10b981"/><text x="357" y="82" text-anchor="middle" fill="white" font-size="9" font-weight="600">SSH</text><text x="357" y="95" text-anchor="middle" fill="#a7f3d0" font-size="8">:22</text>
+                        <rect x="405" y="62" width="65" height="40" rx="8" fill="#8b5cf6"/><text x="437" y="82" text-anchor="middle" fill="white" font-size="9" font-weight="600">MySQL</text><text x="437" y="95" text-anchor="middle" fill="#ddd6fe" font-size="8">:3306</text>
+                        <rect x="245" y="115" width="65" height="40" rx="8" fill="#f59e0b"/><text x="277" y="135" text-anchor="middle" fill="white" font-size="9" font-weight="600">Custom</text><text x="277" y="148" text-anchor="middle" fill="#fef3c7" font-size="8">:9090</text>
+                        <rect x="40" y="75" width="90" height="45" rx="10" fill="#64748b"/><text x="85" y="98" text-anchor="middle" fill="white" font-size="9" font-weight="600">Client</text><text x="85" y="112" text-anchor="middle" fill="#e2e8f0" font-size="7">:54321 (efemer)</text>
+                        <path d="M 130 97 Q 180 70 245 82" stroke="#0ea5e9" stroke-width="2" fill="none"/>
+                        <text x="175" y="62" text-anchor="middle" fill="#0ea5e9" font-size="8">TCP către :80</text>
+                        <text x="600" y="65" text-anchor="start" fill="#334155" font-size="9" font-weight="600">Intervale Porturi:</text>
+                        <text x="600" y="82" text-anchor="start" fill="#64748b" font-size="8">0-1023: Cunoscute</text>
+                        <text x="600" y="97" text-anchor="start" fill="#64748b" font-size="8">1024-49151: Înregistrate</text>
+                        <text x="600" y="112" text-anchor="start" fill="#64748b" font-size="8">49152-65535: Efemere</text>
+                    </svg>
+                </div>
+                <div class="code-block animate-in delay-2" data-lang="bash">
+<span class="comment"># Listează toate socket-urile TCP și UDP în ascultare cu info despre proces</span>
+$ ss -lntup
+Netid  State   Recv-Q  Send-Q   Local Address:Port   Peer Address:Port  Process
+tcp    LISTEN  0       128      0.0.0.0:<span class="number">22</span>           0.0.0.0:*          users:(("sshd",pid=1234))
+tcp    LISTEN  0       511      0.0.0.0:<span class="number">80</span>           0.0.0.0:*          users:(("nginx",pid=5678))
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: Clasificări de Rețele -->
+        <div class="slide" data-slide="11">
+            <div class="slide-content">
+                <h2>🗺️ Clasificarea Rețelelor după Acoperire Geografică</h2>
+                <div class="table-container animate-in">
+                    <table>
+                        <thead><tr><th>Tip</th><th>Acoperire</th><th>Tehnologii</th><th>Exemple</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>PAN</strong><br><span style="font-size:.85rem;color:var(--text-muted)">Rețea de Arie Personală</span></td><td>~10 metri</td><td>Bluetooth, USB, ZigBee, NFC</td><td>Smartphone către căști</td></tr>
+                            <tr><td><strong>LAN</strong><br><span style="font-size:.85rem;color:var(--text-muted)">Rețea Locală</span></td><td>~1 kilometru</td><td>Ethernet (802.3), Wi-Fi (802.11)</td><td>Rețea de birou, campus</td></tr>
+                            <tr><td><strong>MAN</strong><br><span style="font-size:.85rem;color:var(--text-muted)">Rețea Metropolitană</span></td><td>~50 kilometri</td><td>Metro Ethernet, inele de fibră</td><td>Rețea municipală la nivel de oraș</td></tr>
+                            <tr><td><strong>WAN</strong><br><span style="font-size:.85rem;color:var(--text-muted)">Rețea de Arie Extinsă</span></td><td>Nelimitată</td><td>MPLS, linii închiriate, satelit</td><td>Interconexiuni corporative, Internet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="insight-box animate-in delay-2" style="margin-top:1.5rem">
+                    <div class="insight-title">💡 Rețeaua Ta de Acasă</div>
+                    <p>Wi-Fi-ul tău de acasă constituie un <strong>LAN</strong>. Router-ul tău conectează acest LAN la <strong>WAN</strong>-ul furnizorului tău de internet, care în cele din urmă ajunge la <strong>Internetul</strong> global.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: Topologii -->
+        <div class="slide" data-slide="12">
+            <div class="slide-content">
+                <h2>📐 Topologii Fizice și Logice</h2>
+                <div class="grid-3">
+                    <div class="card animate-in delay-1">
+                        <div class="diagram-container" style="padding:1rem;margin:0">
+                            <svg viewBox="0 0 150 110"><circle cx="75" cy="32" r="16" fill="#0ea5e9"/><text x="75" y="37" text-anchor="middle" fill="white" font-size="9" font-weight="600">SW</text><circle cx="30" cy="90" r="11" fill="#64748b"/><circle cx="75" cy="90" r="11" fill="#64748b"/><circle cx="120" cy="90" r="11" fill="#64748b"/><line x1="75" y1="48" x2="30" y2="79" stroke="#334155" stroke-width="2"/><line x1="75" y1="48" x2="75" y2="79" stroke="#334155" stroke-width="2"/><line x1="75" y1="48" x2="120" y2="79" stroke="#334155" stroke-width="2"/></svg>
+                        </div>
+                        <h4>Topologie Stea</h4>
+                        <p>Switch central; fiecare gazdă are conexiune dedicată. <strong>Cea mai comună</strong> în LAN-uri moderne.</p>
+                    </div>
+                    <div class="card animate-in delay-2">
+                        <div class="diagram-container" style="padding:1rem;margin:0">
+                            <svg viewBox="0 0 150 110"><line x1="20" y1="55" x2="130" y2="55" stroke="#f59e0b" stroke-width="4"/><circle cx="40" cy="55" r="11" fill="#64748b"/><circle cx="75" cy="55" r="11" fill="#64748b"/><circle cx="110" cy="55" r="11" fill="#64748b"/><text x="75" y="88" text-anchor="middle" fill="#92400e" font-size="8">Mediu partajat</text></svg>
+                        </div>
+                        <h4>Topologie Magistrală</h4>
+                        <p>Cablu unic partajat (coaxial). Istoric: Ethernet 10BASE2. Predispusă la coliziuni.</p>
+                    </div>
+                    <div class="card animate-in delay-3">
+                        <div class="diagram-container" style="padding:1rem;margin:0">
+                            <svg viewBox="0 0 150 110"><circle cx="75" cy="55" r="40" fill="none" stroke="#10b981" stroke-width="3"/><circle cx="75" cy="15" r="10" fill="#64748b"/><circle cx="110" cy="40" r="10" fill="#64748b"/><circle cx="110" cy="75" r="10" fill="#64748b"/><circle cx="75" cy="95" r="10" fill="#64748b"/><circle cx="40" cy="75" r="10" fill="#64748b"/><circle cx="40" cy="40" r="10" fill="#64748b"/></svg>
+                        </div>
+                        <h4>Topologie Inel</h4>
+                        <p>Token circulă; transmisie secvențială. Istoric: Token Ring (IEEE 802.5).</p>
+                    </div>
+                </div>
+                <p class="animate-in delay-4" style="margin-top:1.5rem;font-size:1.1rem;color:var(--text-muted)"><strong>Topologie Logică</strong> poate diferi de cea fizică: Wi-Fi apare ca stea logic, dar e broadcast fizic.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: Comutarea de Circuite -->
+        <div class="slide" data-slide="13">
+            <div class="slide-content">
+                <h2>📞 Comutarea de Circuite (Rețele Telefonice)</h2>
+                <div class="diagram-container animate-in">
+                    <svg viewBox="0 0 700 180" style="max-width:700px">
+                        <rect x="30" y="60" width="70" height="50" rx="10" fill="#0ea5e9"/><text x="65" y="90" text-anchor="middle" fill="white" font-size="10" font-weight="600">Apelant</text>
+                        <rect x="600" y="60" width="70" height="50" rx="10" fill="#8b5cf6"/><text x="635" y="90" text-anchor="middle" fill="white" font-size="10" font-weight="600">Receptor</text>
+                        <rect x="180" y="50" width="60" height="70" rx="8" fill="#10b981"/><text x="210" y="90" text-anchor="middle" fill="white" font-size="9">Central 1</text>
+                        <rect x="320" y="50" width="60" height="70" rx="8" fill="#10b981"/><text x="350" y="90" text-anchor="middle" fill="white" font-size="9">Central 2</text>
+                        <rect x="460" y="50" width="60" height="70" rx="8" fill="#10b981"/><text x="490" y="90" text-anchor="middle" fill="white" font-size="9">Central 3</text>
+                        <line x1="100" y1="85" x2="180" y2="85" stroke="#f59e0b" stroke-width="4"/>
+                        <line x1="240" y1="85" x2="320" y2="85" stroke="#f59e0b" stroke-width="4"/>
+                        <line x1="380" y1="85" x2="460" y2="85" stroke="#f59e0b" stroke-width="4"/>
+                        <line x1="520" y1="85" x2="600" y2="85" stroke="#f59e0b" stroke-width="4"/>
+                        <text x="350" y="150" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">Cale dedicată pentru durata apelului</text>
+                    </svg>
+                </div>
+                <div class="grid-2 animate-in delay-2">
+                    <div class="card card-success"><h4>✅ Avantaje</h4><p>Întârziere garantată, constantă; calitate predictibilă; fără congestie odată stabilită</p></div>
+                    <div class="card card-danger"><h4>❌ Dezavantaje</h4><p>Resurse irosite în timpul tăcerilor; configurare lentă; nu scalează pentru trafic în rafale</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: Comutarea de Pachete -->
+        <div class="slide" data-slide="14">
+            <div class="slide-content">
+                <h2>📦 Comutarea de Pachete (Rețele de Date)</h2>
+                <div class="diagram-container animate-in">
+                    <svg viewBox="0 0 700 200" style="max-width:700px">
+                        <rect x="30" y="80" width="70" height="50" rx="10" fill="#0ea5e9"/><text x="65" y="110" text-anchor="middle" fill="white" font-size="10" font-weight="600">Sursă</text>
+                        <rect x="600" y="80" width="70" height="50" rx="10" fill="#8b5cf6"/><text x="635" y="110" text-anchor="middle" fill="white" font-size="10" font-weight="600">Destinație</text>
+                        <rect x="200" y="30" width="50" height="40" rx="8" fill="#10b981"/><text x="225" y="55" text-anchor="middle" fill="white" font-size="8">R1</text>
+                        <rect x="330" y="80" width="50" height="40" rx="8" fill="#10b981"/><text x="355" y="105" text-anchor="middle" fill="white" font-size="8">R2</text>
+                        <rect x="200" y="130" width="50" height="40" rx="8" fill="#10b981"/><text x="225" y="155" text-anchor="middle" fill="white" font-size="8">R3</text>
+                        <rect x="460" y="80" width="50" height="40" rx="8" fill="#10b981"/><text x="485" y="105" text-anchor="middle" fill="white" font-size="8">R4</text>
+                        <rect x="115" y="95" width="25" height="15" rx="3" fill="#ef4444"/><text x="127" y="106" text-anchor="middle" fill="white" font-size="6">P1</text>
+                        <rect x="145" y="95" width="25" height="15" rx="3" fill="#f59e0b"/><text x="157" y="106" text-anchor="middle" fill="white" font-size="6">P2</text>
+                        <path d="M 100 105 Q 150 50 200 50" stroke="#ef4444" stroke-width="2" fill="none" stroke-dasharray="4,2"/>
+                        <path d="M 250 50 Q 300 100 330 100" stroke="#ef4444" stroke-width="2" fill="none" stroke-dasharray="4,2"/>
+                        <path d="M 100 105 Q 150 150 200 150" stroke="#f59e0b" stroke-width="2" fill="none" stroke-dasharray="4,2"/>
+                        <path d="M 250 150 Q 300 100 330 100" stroke="#f59e0b" stroke-width="2" fill="none" stroke-dasharray="4,2"/>
+                        <path d="M 380 100 L 460 100" stroke="#64748b" stroke-width="2" fill="none" stroke-dasharray="4,2"/>
+                        <path d="M 510 100 L 600 100" stroke="#64748b" stroke-width="2" fill="none" stroke-dasharray="4,2"/>
+                        <text x="350" y="185" text-anchor="middle" fill="#334155" font-size="10">Pachetele pot lua căi diferite; ordine variabilă</text>
+                    </svg>
+                </div>
+                <div class="highlight-box animate-in delay-2">
+                    <p>💡 <strong>Multiplexare Statistică:</strong> Lățimea de bandă este partajată dinamic — resursele sunt folosite doar când sunt necesare, permițând o utilizare mult mai mare a linkurilor.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: Comparație Circuit vs Pachet -->
+        <div class="slide" data-slide="15">
+            <div class="slide-content">
+                <h2>⚖️ Comparație: Circuit vs. Pachet</h2>
+                <div class="table-container animate-in">
+                    <table>
+                        <thead><tr><th>Aspect</th><th>Comutare de Circuite</th><th>Comutare de Pachete</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Alocare Resurse</strong></td><td>Rezervare dedicată</td><td>La cerere (statistică)</td></tr>
+                            <tr><td><strong>Eficiență</strong></td><td>Scăzută (risipă în pauze)</td><td>Ridicată (partajare)</td></tr>
+                            <tr><td><strong>Întârziere</strong></td><td>Fixă, previzibilă</td><td>Variabilă (cozi)</td></tr>
+                            <tr><td><strong>Fiabilitate</strong></td><td>Cale unică (risc)</td><td>Căi multiple (robustețe)</td></tr>
+                            <tr><td><strong>Exemple</strong></td><td>PSTN, ISDN</td><td>Internet, Ethernet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="story-box animate-in delay-2" style="margin-top:1.5rem">
+                    <div class="story-title">🚗 Analogie: Autostradă vs. Autostradă cu Bandă Rezervată</div>
+                    <p>Comutarea de circuite este ca o bandă privată pe autostradă — garantată dar golită când nu o folosești. Comutarea de pachete este ca traficul normal — dinamic, eficient, dar ocazional aglomerat.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: Modelul Stratificat -->
+        <div class="slide" data-slide="16">
+            <div class="slide-content">
+                <h2>🏗️ De Ce Straturi? Principiul Modularității</h2>
+                <div class="grid-2">
+                    <div class="card animate-in delay-1">
+                        <div class="card-icon">✈️</div>
+                        <h4>Analogie: Călătorie Aeriană</h4>
+                        <p style="font-size:1.1rem">Bilet → Check-in → Securitate → Îmbarcare → Zbor → Debarcare → Bagaje → Ieșire. Fiecare strat are responsabilități clare; modificarea unuia nu afectează celelalte.</p>
+                    </div>
+                    <div class="card animate-in delay-2">
+                        <div class="card-icon">🔧</div>
+                        <h4>Beneficii ale Stratificării</h4>
+                        <ul style="font-size:1rem">
+                            <li>Reduce complexitatea prin descompunere</li>
+                            <li>Permite înlocuirea componentelor</li>
+                            <li>Facilitează depanarea izolată</li>
+                            <li>Permite dezvoltarea în paralel</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="definition-box animate-in delay-3">
+                    <div class="def-label">Principiu Cheie</div>
+                    <p>Fiecare strat oferă <strong>servicii</strong> stratului de deasupra și folosește serviciile stratului de dedesubt. Comunicarea între straturi se face prin <strong>interfețe</strong> bine definite.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 17: Stiva TCP/IP -->
+        <div class="slide" data-slide="17">
+            <div class="slide-content">
+                <h2>📚 Stiva de Protocoale TCP/IP</h2>
+                <div class="diagram-container animate-in">
+                    <svg viewBox="0 0 700 280" style="max-width:700px">
+                        <rect x="200" y="20" width="300" height="50" rx="10" fill="#ef4444"/><text x="350" y="50" text-anchor="middle" fill="white" font-size="14" font-weight="600">Aplicație</text><text x="520" y="50" fill="#fecaca" font-size="10">HTTP, SMTP, DNS, SSH</text>
+                        <rect x="200" y="80" width="300" height="50" rx="10" fill="#f59e0b"/><text x="350" y="110" text-anchor="middle" fill="white" font-size="14" font-weight="600">Transport</text><text x="520" y="110" fill="#fef3c7" font-size="10">TCP, UDP</text>
+                        <rect x="200" y="140" width="300" height="50" rx="10" fill="#10b981"/><text x="350" y="170" text-anchor="middle" fill="white" font-size="14" font-weight="600">Rețea (Internet)</text><text x="520" y="170" fill="#a7f3d0" font-size="10">IP, ICMP, ARP</text>
+                        <rect x="200" y="200" width="300" height="50" rx="10" fill="#0ea5e9"/><text x="350" y="230" text-anchor="middle" fill="white" font-size="14" font-weight="600">Legătură + Fizic</text><text x="520" y="230" fill="#bae6fd" font-size="10">Ethernet, Wi-Fi</text>
+                        <text x="140" y="50" text-anchor="end" fill="#64748b" font-size="10" font-weight="600">Strat 4</text>
+                        <text x="140" y="110" text-anchor="end" fill="#64748b" font-size="10" font-weight="600">Strat 3</text>
+                        <text x="140" y="170" text-anchor="end" fill="#64748b" font-size="10" font-weight="600">Strat 2</text>
+                        <text x="140" y="230" text-anchor="end" fill="#64748b" font-size="10" font-weight="600">Strat 1</text>
+                    </svg>
+                </div>
+                <div class="warning-box animate-in delay-2">
+                    <div class="warn-title">⚠️ TCP/IP vs. OSI</div>
+                    <p>Modelul TCP/IP are <strong>4 straturi</strong>; modelul OSI (ISO) are <strong>7 straturi</strong>. Vom detalia OSI în Săptămâna 2. În practică, TCP/IP domină Internetul.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 18: Rolurile Straturilor -->
+        <div class="slide" data-slide="18">
+            <div class="slide-content">
+                <h2>🔍 Rolurile Fiecărui Strat</h2>
+                <div class="grid-4">
+                    <div class="card card-danger animate-in delay-1">
+                        <h4 style="color:#ef4444">🔴 Aplicație</h4>
+                        <p>Interfața utilizatorului cu rețeaua. Formatează date pentru aplicații specifice (web, email, transfer fișiere).</p>
+                    </div>
+                    <div class="card card-warning animate-in delay-2">
+                        <h4 style="color:#f59e0b">🟠 Transport</h4>
+                        <p>Livrare end-to-end. TCP: fiabilă, ordonată. UDP: rapidă, fără conexiune. Porturile identifică procesele.</p>
+                    </div>
+                    <div class="card card-success animate-in delay-3">
+                        <h4 style="color:#10b981">🟢 Rețea</h4>
+                        <p>Rutare între rețele. Adresare IP, determinarea căii, fragmentare. Livrare „best effort".</p>
+                    </div>
+                    <div class="card card-accent animate-in delay-4">
+                        <h4 style="color:#0ea5e9">🔵 Legătură+Fizic</h4>
+                        <p>Transfer pe un singur link. Adresare MAC, detectare erori (FCS), codare biți pe mediu.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 19: Încapsulare -->
+        <div class="slide" data-slide="19">
+            <div class="slide-content">
+                <h2>📦 Încapsulare: Împachetarea Datelor Strat cu Strat</h2>
+                <div class="diagram-container animate-in">
+                    <svg viewBox="0 0 750 240" style="max-width:750px">
+                        <rect x="320" y="12" width="130" height="28" rx="6" fill="#ef4444"/><text x="385" y="31" text-anchor="middle" fill="white" font-size="9" font-weight="600">Cerere HTTP</text><text x="240" y="31" fill="#ef4444" font-size="8" font-weight="600">Aplicație →</text>
+                        <rect x="260" y="52" width="58" height="28" rx="6" fill="#f59e0b"/><text x="289" y="71" text-anchor="middle" fill="white" font-size="7">Antet TCP</text>
+                        <rect x="318" y="52" width="132" height="28" rx="6" fill="#fecaca"/><text x="384" y="71" text-anchor="middle" fill="#7f1d1d" font-size="8">Date</text>
+                        <text x="175" y="71" fill="#f59e0b" font-size="8" font-weight="600">Transport →</text><text x="520" y="71" fill="#64748b" font-size="7">= Segment</text>
+                        <rect x="195" y="92" width="58" height="28" rx="6" fill="#10b981"/><text x="224" y="111" text-anchor="middle" fill="white" font-size="7">Antet IP</text>
+                        <rect x="253" y="92" width="65" height="28" rx="6" fill="#fde68a"/><text x="285" y="111" text-anchor="middle" fill="#78350f" font-size="7">TCP</text>
+                        <rect x="318" y="92" width="132" height="28" rx="6" fill="#fecaca"/><text x="384" y="111" text-anchor="middle" fill="#7f1d1d" font-size="8">Date</text>
+                        <text x="175" y="111" fill="#10b981" font-size="8" font-weight="600">Rețea →</text><text x="520" y="111" fill="#64748b" font-size="7">= Pachet</text>
+                        <rect x="130" y="132" width="58" height="28" rx="6" fill="#0ea5e9"/><text x="159" y="151" text-anchor="middle" fill="white" font-size="7">Antet Eth</text>
+                        <rect x="188" y="132" width="65" height="28" rx="6" fill="#bbf7d0"/><text x="220" y="151" text-anchor="middle" fill="#14532d" font-size="7">IP</text>
+                        <rect x="253" y="132" width="65" height="28" rx="6" fill="#fde68a"/><text x="285" y="151" text-anchor="middle" fill="#78350f" font-size="7">TCP</text>
+                        <rect x="318" y="132" width="132" height="28" rx="6" fill="#fecaca"/><text x="384" y="151" text-anchor="middle" fill="#7f1d1d" font-size="8">Date</text>
+                        <rect x="450" y="132" width="42" height="28" rx="6" fill="#0ea5e9"/><text x="471" y="151" text-anchor="middle" fill="white" font-size="6">FCS</text>
+                        <text x="70" y="151" fill="#0ea5e9" font-size="8" font-weight="600">Legătură →</text><text x="545" y="151" fill="#64748b" font-size="7">= Cadru</text>
+                        <rect x="130" y="172" width="362" height="24" rx="6" fill="#64748b"/><text x="311" y="189" text-anchor="middle" fill="white" font-size="8">Biți: 01101001 10110100 01011010 ...</text>
+                        <text x="70" y="189" fill="#64748b" font-size="8" font-weight="600">Fizic →</text>
+                    </svg>
+                </div>
+                <div class="warning-box animate-in delay-2">
+                    <div class="warn-title">⚠️ Maximum Transmission Unit (MTU)</div>
+                    <p>Cadrele Ethernet au un payload maxim de <strong>1500 bytes</strong>. Pachetele IP mai mari trebuie <strong>fragmentate</strong> — împărțite în mai multe cadre — ceea ce afectează performanța.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 20: PDU-uri -->
+        <div class="slide" data-slide="20">
+            <div class="slide-content">
+                <h2>📋 Unități de Date Protocol (PDU)</h2>
+                <p style="font-size:1.2rem;margin-bottom:1.5rem">Fiecare strat are propria terminologie pentru unitatea de date pe care o procesează:</p>
+                <div class="table-container animate-in">
+                    <table>
+                        <thead><tr><th>Strat</th><th>Denumire PDU</th><th>Câmpuri Cheie din Antet</th></tr></thead>
+                        <tbody>
+                            <tr><td style="background:#fef2f2"><strong>Aplicație</strong></td><td>Mesaj / Date</td><td>Specifice protocolului (antete HTTP, etc.)</td></tr>
+                            <tr><td style="background:#fffbeb"><strong>Transport</strong></td><td>Segment (TCP) / Datagramă (UDP)</td><td>Porturi sursă & destinație, numere de secvență</td></tr>
+                            <tr><td style="background:#ecfdf5"><strong>Rețea</strong></td><td>Pachet / Datagramă</td><td>IP sursă & destinație, TTL, protocol</td></tr>
+                            <tr><td style="background:#eff6ff"><strong>Legătură</strong></td><td>Cadru</td><td>MAC sursă & destinație, EtherType, FCS</td></tr>
+                            <tr><td style="background:#f1f5f9"><strong>Fizic</strong></td><td>Biți / Simboluri</td><td>Preambul, delimitator de start</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 21: Antet IPv4 -->
+        <div class="slide" data-slide="21">
+            <div class="slide-content">
+                <h2>🔍 Structura Antetului IPv4 (minim 20 bytes)</h2>
+                <div class="protocol-header animate-in">
+                    <div class="header-row">
+                        <div class="header-field"><div class="field-name">Versiune</div><div class="field-value">4</div><div class="field-bits">4 biți</div></div>
+                        <div class="header-field"><div class="field-name">IHL</div><div class="field-value">5</div><div class="field-bits">4 biți</div></div>
+                        <div class="header-field span-2"><div class="field-name">ToS (DSCP/ECN)</div><div class="field-value">0x00</div><div class="field-bits">8 biți</div></div>
+                        <div class="header-field span-4"><div class="field-name">Lungime Totală</div><div class="field-value">1500</div><div class="field-bits">16 biți</div></div>
+                    </div>
+                    <div class="header-row">
+                        <div class="header-field span-4"><div class="field-name">Identificare</div><div class="field-value">0x1a2b</div><div class="field-bits">16 biți</div></div>
+                        <div class="header-field"><div class="field-name">Flags</div><div class="field-value">010</div><div class="field-bits">3 biți</div></div>
+                        <div class="header-field span-4"><div class="field-name">Offset Fragment</div><div class="field-value">0</div><div class="field-bits">13 biți</div></div>
+                    </div>
+                    <div class="header-row">
+                        <div class="header-field span-2"><div class="field-name">TTL</div><div class="field-value">64</div><div class="field-bits">8 biți</div></div>
+                        <div class="header-field span-2"><div class="field-name">Protocol</div><div class="field-value">6 (TCP)</div><div class="field-bits">8 biți</div></div>
+                        <div class="header-field span-4"><div class="field-name">Sumă Control Antet</div><div class="field-value">0x4f3e</div><div class="field-bits">16 biți</div></div>
+                    </div>
+                    <div class="header-row"><div class="header-field span-8"><div class="field-name">Adresă IP Sursă</div><div class="field-value">192.168.1.100</div><div class="field-bits">32 biți</div></div></div>
+                    <div class="header-row"><div class="header-field span-8"><div class="field-name">Adresă IP Destinație</div><div class="field-value">93.184.216.34</div><div class="field-bits">32 biți</div></div></div>
+                </div>
+                <p class="animate-in delay-2" style="margin-top:1rem;font-size:1rem;color:var(--text-muted)"><strong>TTL (Time To Live):</strong> Decrementat de fiecare router; pachetul e abandonat când TTL=0. Previne buclele infinite de rutare.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 22: Metrici de Performanță -->
+        <div class="slide" data-slide="22">
+            <div class="slide-content">
+                <h2>📊 Metrici de Performanță în Rețea</h2>
+                <div class="grid-4">
+                    <div class="card card-accent animate-in delay-1"><div class="card-icon">📶</div><h4>Lățime de Bandă</h4><p>Rata maximă teoretică de date a unui link (biți/secundă)</p></div>
+                    <div class="card card-success animate-in delay-2"><div class="card-icon">🚀</div><h4>Throughput</h4><p>Rata efectiv atinsă (adesea mai mică decât lățimea de bandă)</p></div>
+                    <div class="card card-warning animate-in delay-3"><div class="card-icon">⏱️</div><h4>Latență</h4><p>Timpul pentru ca datele să călătorească de la sursă la destinație</p></div>
+                    <div class="card card-danger animate-in delay-4"><div class="card-icon">📉</div><h4>Pierdere de Pachete</h4><p>Procentul de pachete care nu ajung la destinație</p></div>
+                </div>
+                <div class="story-box animate-in delay-5" style="margin-top:1.5rem">
+                    <div class="story-title">🚰 Analogia Conductei de Apă</div>
+                    <p><strong>Lățimea de bandă</strong> este diametrul conductei. <strong>Throughput</strong>-ul este fluxul real de apă (limitat de presiune și obstacole). <strong>Latența</strong> este cât durează ca o picătură să parcurgă conducta.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 23: Tipuri de Întârziere -->
+        <div class="slide" data-slide="23">
+            <div class="slide-content">
+                <h2>⏱️ Cele Patru Componente ale Întârzierii End-to-End</h2>
+                <div class="diagram-container animate-in">
+                    <svg viewBox="0 0 750 160" style="max-width:750px">
+                        <rect x="45" y="60" width="660" height="24" rx="12" fill="#e2e8f0"/>
+                        <rect x="45" y="60" width="95" height="24" rx="12" fill="#ef4444"/>
+                        <rect x="140" y="60" width="160" height="24" fill="#f59e0b"/>
+                        <rect x="300" y="60" width="175" height="24" fill="#10b981"/>
+                        <rect x="475" y="60" width="230" height="24" rx="12" fill="#0ea5e9"/>
+                        <text x="92" y="48" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600">Procesare</text>
+                        <text x="220" y="48" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">Așteptare</text>
+                        <text x="387" y="48" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">Transmisie</text>
+                        <text x="590" y="48" text-anchor="middle" fill="#0ea5e9" font-size="9" font-weight="600">Propagare</text>
+                        <text x="92" y="102" text-anchor="middle" fill="#64748b" font-size="8">~μs</text>
+                        <text x="220" y="102" text-anchor="middle" fill="#64748b" font-size="8">Variabilă</text>
+                        <text x="387" y="102" text-anchor="middle" fill="#64748b" font-size="8">L/R</text>
+                        <text x="590" y="102" text-anchor="middle" fill="#64748b" font-size="8">d/s</text>
+                        <text x="375" y="140" text-anchor="middle" fill="#334155" font-size="10" font-weight="600">d_total = d_proc + d_coadă + d_trans + d_prop</text>
+                    </svg>
+                </div>
+                <div class="grid-2 animate-in delay-2">
+                    <div class="card"><h4>🔴 Întârziere de Procesare (d<sub>proc</sub>)</h4><p>Timp pentru a examina antetul pachetului, a determina linkul de ieșire. De obicei microsecunde.</p></div>
+                    <div class="card"><h4>🟠 Întârziere de Coadă (d<sub>coadă</sub>)</h4><p>Timp de așteptare în buffer-ul de ieșire. Foarte variabilă; poate fi milisecunde sub congestie.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 24: Transmisie vs Propagare -->
+        <div class="slide" data-slide="24">
+            <div class="slide-content">
+                <h2>🔬 Întârziere de Transmisie vs. Întârziere de Propagare</h2>
+                <div class="grid-2">
+                    <div class="card card-success animate-in delay-1">
+                        <h4>🟢 Întârziere de Transmisie (d<sub>trans</sub>)</h4>
+                        <p style="font-size:1.15rem">Timpul pentru a <strong>împinge toți biții</strong> pachetului pe link.</p>
+                        <div style="background:#ecfdf5;padding:1rem;border-radius:10px;margin-top:1rem;font-family:'JetBrains Mono',monospace">d<sub>trans</sub> = L / R</div>
+                        <p style="margin-top:.8rem;font-size:1rem;color:var(--text-muted)"><strong>L</strong> = dimensiune pachet (biți), <strong>R</strong> = lățime de bandă (biți/sec)</p>
+                    </div>
+                    <div class="card card-accent animate-in delay-2">
+                        <h4>🔵 Întârziere de Propagare (d<sub>prop</sub>)</h4>
+                        <p style="font-size:1.15rem">Timpul pentru ca un bit să <strong>călătorească</strong> de-a lungul linkului.</p>
+                        <div style="background:#eff6ff;padding:1rem;border-radius:10px;margin-top:1rem;font-family:'JetBrains Mono',monospace">d<sub>prop</sub> = d / s</div>
+                        <p style="margin-top:.8rem;font-size:1rem;color:var(--text-muted)"><strong>d</strong> = distanță (m), <strong>s</strong> = ~2×10⁸ m/s în fibră</p>
+                    </div>
+                </div>
+                <div class="insight-box animate-in delay-3" style="margin-top:1.5rem">
+                    <div class="insight-title">💡 Observație Critică</div>
+                    <p>Un link de 1 Gbps <strong>transmite</strong> de 10× mai repede decât 100 Mbps, dar întârzierea de <strong>propagare</strong> rămâne neschimbată — limitată de viteza luminii. Latența intercontinentală nu poate scădea sub ~50ms.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 25: Calculator Interactiv -->
+        <div class="slide" data-slide="25">
+            <div class="slide-content">
+                <h2>🧮 Interactiv: Calculator Întârziere Transmisie</h2>
+                <div class="interactive-panel animate-in">
+                    <p style="margin-bottom:1rem;font-size:1.1rem">Formula: <strong>d<sub>trans</sub> = L / R</strong></p>
+                    <div class="slider-row"><label>Dimensiune Pachet (L):</label><input type="range" id="packetSize" min="64" max="65535" value="1500" oninput="calculateDelay()"><span class="slider-value" id="packetSizeValue">1.500 bytes</span></div>
+                    <div class="slider-row"><label>Lățime Bandă Link (R):</label><input type="range" id="bandwidth" min="1" max="10000" value="100" oninput="calculateDelay()"><span class="slider-value" id="bandwidthValue">100 Mbps</span></div>
+                    <div class="result-display" id="delayResult">Întârziere Transmisie: 0,12 ms (120 μs)</div>
+                </div>
+                <div class="code-block animate-in delay-2" data-lang="python">
+<span class="comment"># Python: Calculează întârzierea de transmisie</span>
+<span class="keyword">def</span> <span class="function">intarziere_transmisie</span>(dim_bytes: <span class="builtin">int</span>, rata_mbps: <span class="builtin">float</span>) -> <span class="builtin">float</span>:
+    <span class="string">"""Returnează întârzierea de transmisie în microsecunde."""</span>
+    dim_biti = dim_bytes * <span class="number">8</span>
+    rata_bps = rata_mbps * <span class="number">1_000_000</span>
+    <span class="keyword">return</span> (dim_biti / rata_bps) * <span class="number">1_000_000</span>
+
+<span class="builtin">print</span>(<span class="string">f"1500B @ 100Mbps: </span>{intarziere_transmisie(<span class="number">1500</span>, <span class="number">100</span>):.1f}<span class="string"> μs"</span>)  <span class="comment"># 120.0 μs</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 26: RTT -->
+        <div class="slide" data-slide="26">
+            <div class="slide-content">
+                <h2>🔄 RTT (Round-Trip Time / Timp Dus-Întors)</h2>
+                <div class="diagram-container animate-in">
+                    <svg viewBox="0 0 600 180" style="max-width:600px">
+                        <rect x="45" y="60" width="70" height="45" rx="10" fill="#0ea5e9"/><text x="80" y="83" text-anchor="middle" fill="white" font-size="10" font-weight="600">Client</text><text x="80" y="97" text-anchor="middle" fill="#bae6fd" font-size="7">t=0</text>
+                        <rect x="485" y="60" width="70" height="45" rx="10" fill="#8b5cf6"/><text x="520" y="87" text-anchor="middle" fill="white" font-size="10" font-weight="600">Server</text>
+                        <line x1="115" y1="70" x2="485" y2="70" stroke="#10b981" stroke-width="2"/><polygon points="480,66 490,70 480,74" fill="#10b981"/>
+                        <text x="300" y="62" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">ICMP Echo Request</text>
+                        <line x1="485" y1="95" x2="115" y2="95" stroke="#f59e0b" stroke-width="2"/><polygon points="120,91 110,95 120,99" fill="#f59e0b"/>
+                        <text x="300" y="112" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">ICMP Echo Reply</text>
+                        <path d="M 80 120 L 80 135 L 520 135 L 520 120" stroke="#334155" stroke-width="2" fill="none"/>
+                        <text x="300" y="155" text-anchor="middle" fill="#334155" font-size="11" font-weight="700">RTT = t_dus + t_procesare + t_întors</text>
+                    </svg>
+                </div>
+                <div class="grid-3 animate-in delay-2">
+                    <div class="card" style="text-align:center"><h4>localhost</h4><p style="font-size:1.6rem;color:var(--success);font-weight:700">&lt; 0,1 ms</p></div>
+                    <div class="card" style="text-align:center"><h4>Același LAN</h4><p style="font-size:1.6rem;color:var(--secondary);font-weight:700">0,5–2 ms</p></div>
+                    <div class="card" style="text-align:center"><h4>Transatlantic</h4><p style="font-size:1.6rem;color:var(--accent);font-weight:700">70–120 ms</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 27: TCP vs UDP -->
+        <div class="slide" data-slide="27">
+            <div class="slide-content">
+                <h2>⚡ TCP vs. UDP: Compromisuri de Transport</h2>
+                <div class="table-container animate-in">
+                    <table>
+                        <thead><tr><th>Caracteristică</th><th>TCP</th><th>UDP</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Orientat Conexiune</strong></td><td>Da (handshake în 3 pași)</td><td>Nu (fără conexiune)</td></tr>
+                            <tr><td><strong>Fiabilitate</strong></td><td>Livrare garantată, în ordine</td><td>Best-effort, fără garanții</td></tr>
+                            <tr><td><strong>Control Flux</strong></td><td>Da (sliding window)</td><td>Nu</td></tr>
+                            <tr><td><strong>Control Congestie</strong></td><td>Da (slow start, AIMD)</td><td>Nu</td></tr>
+                            <tr><td><strong>Overhead</strong></td><td>Mai mare (20+ bytes antet)</td><td>Minim (8 bytes antet)</td></tr>
+                            <tr><td><strong>Cazuri de Utilizare</strong></td><td>Web, email, transfer fișiere</td><td>DNS, streaming video, gaming</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 28: TCP Handshake -->
+        <div class="slide" data-slide="28">
+            <div class="slide-content">
+                <h2>🤝 TCP Three-Way Handshake</h2>
+                <div class="diagram-container animate-in">
+                    <svg viewBox="0 0 550 220" style="max-width:550px">
+                        <rect x="60" y="20" width="80" height="35" rx="8" fill="#0ea5e9"/><text x="100" y="42" text-anchor="middle" fill="white" font-size="10" font-weight="600">Client</text>
+                        <rect x="410" y="20" width="80" height="35" rx="8" fill="#8b5cf6"/><text x="450" y="42" text-anchor="middle" fill="white" font-size="10" font-weight="600">Server</text>
+                        <line x1="100" y1="55" x2="100" y2="200" stroke="#cbd5e1" stroke-width="2"/>
+                        <line x1="450" y1="55" x2="450" y2="200" stroke="#cbd5e1" stroke-width="2"/>
+                        <line x1="100" y1="80" x2="450" y2="100" stroke="#10b981" stroke-width="2"/><polygon points="445,96 455,100 445,104" fill="#10b981"/>
+                        <text x="275" y="75" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">1. SYN (seq=x)</text>
+                        <line x1="450" y1="120" x2="100" y2="140" stroke="#f59e0b" stroke-width="2"/><polygon points="105,136 95,140 105,144" fill="#f59e0b"/>
+                        <text x="275" y="117" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">2. SYN-ACK (seq=y, ack=x+1)</text>
+                        <line x1="100" y1="160" x2="450" y2="180" stroke="#ef4444" stroke-width="2"/><polygon points="445,176 455,180 445,184" fill="#ef4444"/>
+                        <text x="275" y="157" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600">3. ACK (ack=y+1)</text>
+                        <text x="100" y="215" text-anchor="middle" fill="#64748b" font-size="8">ESTABLISHED</text>
+                        <text x="450" y="215" text-anchor="middle" fill="#64748b" font-size="8">ESTABLISHED</text>
+                    </svg>
+                </div>
+                <div class="insight-box animate-in delay-2">
+                    <div class="insight-title">💡 De Ce Trei Pași?</div>
+                    <p>Asigură că <strong>ambele părți</strong> pot trimite și primi. Sincronizează numerele de secvență. Previne conexiunile „fantomă" din pachete vechi.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 29: Exemplu Socket TCP -->
+        <div class="slide" data-slide="29">
+            <div class="slide-content">
+                <h2>🐍 Previzualizare: TCP Client-Server în Python</h2>
+                <div class="grid-2">
+                    <div class="code-block animate-in delay-1" data-lang="python" style="margin:0">
+<span class="comment"># Server TCP</span>
+<span class="keyword">import</span> socket
+
+<span class="keyword">with</span> socket.socket(socket.AF_INET, socket.SOCK_STREAM) <span class="keyword">as</span> s:
+    s.bind((<span class="string">'0.0.0.0'</span>, <span class="number">9090</span>))
+    s.listen()
+    
+    conn, addr = s.accept()
+    <span class="keyword">with</span> conn:
+        <span class="builtin">print</span>(<span class="string">f"Conectat: </span>{addr}<span class="string">"</span>)
+        data = conn.recv(<span class="number">1024</span>)
+        conn.sendall(<span class="string">b"ACK: "</span> + data)
+                    </div>
+                    <div class="code-block animate-in delay-2" data-lang="python" style="margin:0">
+<span class="comment"># Client TCP</span>
+<span class="keyword">import</span> socket
+
+<span class="keyword">with</span> socket.socket(socket.AF_INET, socket.SOCK_STREAM) <span class="keyword">as</span> s:
+    s.connect((<span class="string">'127.0.0.1'</span>, <span class="number">9090</span>))
+    s.sendall(<span class="string">b"Salut, server!"</span>)
+    
+    response = s.recv(<span class="number">1024</span>)
+    <span class="builtin">print</span>(<span class="string">f"Primit: </span>{response.decode()}<span class="string">"</span>)
+    
+<span class="comment"># Ieșire: Primit: ACK: Salut, server!</span>
+                    </div>
+                </div>
+                <p class="animate-in delay-3" style="margin-top:1rem;font-size:1rem;color:var(--text-muted)">📁 Exemplu complet: <code>WEEK1/python/exercises/ex_1_02_tcp_server_client.py</code></p>
+            </div>
+        </div>
+
+        <!-- SLIDE 30: Instrumente de Diagnosticare -->
+        <div class="slide" data-slide="30">
+            <div class="slide-content">
+                <h2>🔧 Instrumente Esențiale de Diagnosticare Rețea</h2>
+                <div class="grid-3">
+                    <div class="card animate-in delay-1"><h4><code>ip</code></h4><p>Vizualizează și configurează interfețe, adrese, rute (a înlocuit <code>ifconfig</code>)</p></div>
+                    <div class="card animate-in delay-2"><h4><code>ss</code></h4><p>Statistici socket: porturi în ascultare, conexiuni stabilite, procese</p></div>
+                    <div class="card animate-in delay-3"><h4><code>ping</code></h4><p>Testează accesibilitatea și măsoară RTT folosind ICMP echo</p></div>
+                    <div class="card animate-in delay-4"><h4><code>traceroute</code></h4><p>Descoperă calea pe care o iau pachetele; identifică unde apar întârzieri</p></div>
+                    <div class="card animate-in delay-5"><h4><code>netcat (nc)</code></h4><p>Cuțitul elvețian: creează servere TCP/UDP, clienți, scanare porturi</p></div>
+                    <div class="card animate-in delay-6"><h4><code>tcpdump / tshark</code></h4><p>Capturează și analizează pachete la nivel de fir</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 31: Comanda ip -->
+        <div class="slide" data-slide="31">
+            <div class="slide-content">
+                <h2>🔌 Comanda <code>ip</code></h2>
+                <div class="code-block animate-in" data-lang="bash">
+<span class="comment"># Vizualizează toate interfețele (format scurt)</span>
+$ ip -br link
+lo      UNKNOWN   00:00:00:00:00:00
+eth0    UP        02:42:ac:11:00:02
+
+<span class="comment"># Vizualizează adresele IP</span>
+$ ip -br addr
+lo      UNKNOWN   127.0.0.1/8
+eth0    UP        <span class="string">172.17.0.2/16</span>
+
+<span class="comment"># Vizualizează tabela de rutare</span>
+$ ip route
+default via <span class="string">172.17.0.1</span> dev eth0
+172.17.0.0/16 dev eth0 proto kernel scope link src 172.17.0.2
+
+<span class="comment"># Vizualizează cache-ul ARP (mapări MAC-către-IP)</span>
+$ ip neigh
+172.17.0.1 dev eth0 lladdr 02:42:9e:5a:1b:3c REACHABLE
+                </div>
+                <div class="insight-box animate-in delay-2" style="margin-top:1rem">
+                    <div class="insight-title">💡 Observație Cheie</div>
+                    <p><strong>Gateway-ul implicit</strong> (172.17.0.1) este router-ul care redirecționează pachetele către rețele externe.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 32: Comanda ss -->
+        <div class="slide" data-slide="32">
+            <div class="slide-content">
+                <h2>📊 Comanda <code>ss</code></h2>
+                <div class="code-block animate-in" data-lang="bash">
+<span class="comment"># Listează toate socket-urile TCP și UDP în ascultare cu info proces</span>
+$ ss -lntup
+Netid State  Recv-Q Send-Q  Local Address:Port   Peer Address:Port  Process
+tcp   LISTEN 0      128     <span class="string">0.0.0.0:22</span>          0.0.0.0:*          users:(("sshd",pid=1234))
+tcp   LISTEN 0      511     <span class="string">0.0.0.0:80</span>          0.0.0.0:*          users:(("nginx",pid=5678))
+
+<span class="comment"># Flags: -l=listening, -n=numeric, -t=TCP, -u=UDP, -p=process</span>
+
+<span class="comment"># Arată conexiunile stabilite</span>
+$ ss -tn
+State  Recv-Q Send-Q  Local Address:Port   Peer Address:Port
+ESTAB  0      0       172.17.0.2:22        93.184.216.34:54321
+                </div>
+                <div class="warning-box animate-in delay-2" style="margin-top:1rem">
+                    <div class="warn-title">⚠️ Scenariu Comun de Depanare</div>
+                    <p>„Serverul meu nu răspunde!" → Primul pas: <code>ss -lntp | grep :PORT</code></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 33: netcat -->
+        <div class="slide" data-slide="33">
+            <div class="slide-content">
+                <h2>🔪 <code>netcat (nc)</code>: Cuțitul Elvețian al Rețelei</h2>
+                <div class="grid-2">
+                    <div class="code-block animate-in delay-1" data-lang="bash" style="margin:0">
+<span class="comment"># Pornește un server TCP pe portul 9090</span>
+$ nc -l -p 9090
+
+<span class="comment"># Conectează-te ca client TCP</span>
+$ echo "Salut!" | nc 127.0.0.1 9090
+
+<span class="comment"># Mod UDP</span>
+$ nc -u -l -p 9091  <span class="comment"># Server</span>
+$ echo "ping" | nc -u 127.0.0.1 9091
+                    </div>
+                    <div class="code-block animate-in delay-2" data-lang="bash" style="margin:0">
+<span class="comment"># Scanare simplă de porturi</span>
+$ nc -zv 192.168.1.1 20-25
+Connection to 192.168.1.1 <span class="number">22</span> port [tcp/ssh] <span class="string">succeeded!</span>
+
+<span class="comment"># Transfer de fișier</span>
+<span class="comment"># Pe receptor:</span>
+$ nc -l -p 9090 > fisier.txt
+<span class="comment"># Pe expeditor:</span>
+$ nc 192.168.1.100 9090 < fisier.txt
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 34: ping -->
+        <div class="slide" data-slide="34">
+            <div class="slide-content">
+                <h2>📡 <code>ping</code>: Testarea Conectivității</h2>
+                <div class="code-block animate-in" data-lang="bash">
+<span class="comment"># Ping de bază - trimite 4 pachete ICMP echo request</span>
+$ ping -c 4 google.com
+PING google.com (142.250.185.206) 56(84) bytes of data.
+64 bytes from bud02s39-in-f14.1e100.net: icmp_seq=<span class="number">1</span> ttl=<span class="number">117</span> time=<span class="string">12.3 ms</span>
+64 bytes from bud02s39-in-f14.1e100.net: icmp_seq=<span class="number">2</span> ttl=<span class="number">117</span> time=<span class="string">11.8 ms</span>
+64 bytes from bud02s39-in-f14.1e100.net: icmp_seq=<span class="number">3</span> ttl=<span class="number">117</span> time=<span class="string">12.1 ms</span>
+64 bytes from bud02s39-in-f14.1e100.net: icmp_seq=<span class="number">4</span> ttl=<span class="number">117</span> time=<span class="string">11.9 ms</span>
+
+--- google.com ping statistics ---
+4 packets transmitted, <span class="string">4 received</span>, <span class="number">0% packet loss</span>, time 3004ms
+rtt min/avg/max/mdev = <span class="string">11.800/12.025/12.300/0.187 ms</span>
+                </div>
+                <div class="grid-2 animate-in delay-2">
+                    <div class="card"><h4>Ce Ne Spune</h4><p>Accesibilitate, RTT, pierdere de pachete, TTL (câte hop-uri)</p></div>
+                    <div class="card"><h4>Limitări</h4><p>ICMP poate fi blocat de firewall-uri; nu testează porturi specifice ale aplicațiilor</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 35: traceroute -->
+        <div class="slide" data-slide="35">
+            <div class="slide-content">
+                <h2>🛤️ <code>traceroute</code>: Maparea Căii de Rețea</h2>
+                <div class="code-block animate-in" data-lang="bash">
+<span class="comment"># Urmărește calea către destinație</span>
+$ traceroute google.com
+traceroute to google.com (142.250.185.206), 30 hops max, 60 byte packets
+ <span class="number">1</span>  gateway (192.168.1.1)      <span class="string">1.234 ms</span>  0.987 ms  0.876 ms
+ <span class="number">2</span>  10.0.0.1                   <span class="string">8.123 ms</span>  7.654 ms  7.432 ms
+ <span class="number">3</span>  isp-router.net (89.x.x.x)  <span class="string">15.234 ms</span> 14.876 ms 14.543 ms
+ <span class="number">4</span>  * * *    <span class="comment"># Router nu răspunde la probe</span>
+ <span class="number">5</span>  72.14.215.85               <span class="string">18.765 ms</span> 18.234 ms 17.987 ms
+ <span class="number">6</span>  bud02s39-in-f14.1e100.net  <span class="string">12.345 ms</span> 12.123 ms 11.987 ms
+                </div>
+                <div class="insight-box animate-in delay-2" style="margin-top:1rem">
+                    <div class="insight-title">💡 Cum Funcționează</div>
+                    <p>Trimite pachete cu valori TTL crescătoare (1, 2, 3...). Fiecare router decrementează TTL și trimite „ICMP Time Exceeded" când TTL=0, revelând adresa sa.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 36: tcpdump -->
+        <div class="slide" data-slide="36">
+            <div class="slide-content">
+                <h2>🔬 <code>tcpdump</code>: Captura de Pachete</h2>
+                <div class="code-block animate-in" data-lang="bash">
+<span class="comment"># Capturează tot traficul de pe eth0</span>
+$ sudo tcpdump -i eth0
+
+<span class="comment"># Filtrează doar traficul HTTP (portul 80)</span>
+$ sudo tcpdump -i eth0 port 80
+
+<span class="comment"># Capturează 10 pachete și arată conținutul</span>
+$ sudo tcpdump -i eth0 -c 10 -X
+
+<span class="comment"># Salvează într-un fișier pentru analiza în Wireshark</span>
+$ sudo tcpdump -i eth0 -w captura.pcap
+
+<span class="comment"># Filtrare avansată: doar trafic TCP SYN</span>
+$ sudo tcpdump -i eth0 'tcp[tcpflags] & tcp-syn != 0'
+                </div>
+                <div class="warning-box animate-in delay-2" style="margin-top:1rem">
+                    <div class="warn-title">⚠️ Necesită Privilegii Root</div>
+                    <p>Captura de pachete necesită acces privilegiat. Folosește <code>sudo</code> sau configurează capabilitățile corespunzătoare.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 37: Metodologie de Depanare -->
+        <div class="slide" data-slide="37">
+            <div class="slide-content">
+                <h2>🔍 Metodologie de Depanare: De Jos în Sus</h2>
+                <div class="timeline animate-in">
+                    <div class="timeline-item"><div class="timeline-year">Pasul 1</div><div class="timeline-title">Verifică Stratul Fizic/Legătură</div><div class="timeline-desc"><code>ip link show</code> — Este interfața UP? Cablul conectat?</div></div>
+                    <div class="timeline-item"><div class="timeline-year">Pasul 2</div><div class="timeline-title">Verifică Configurația IP</div><div class="timeline-desc"><code>ip addr show</code> — Ai adresă IP validă? Mască de rețea corectă?</div></div>
+                    <div class="timeline-item"><div class="timeline-year">Pasul 3</div><div class="timeline-title">Verifică Gateway-ul</div><div class="timeline-desc"><code>ip route</code> + <code>ping gateway</code> — Poți ajunge la router?</div></div>
+                    <div class="timeline-item"><div class="timeline-year">Pasul 4</div><div class="timeline-title">Verifică DNS</div><div class="timeline-desc"><code>ping 8.8.8.8</code> (funcționează) vs. <code>ping google.com</code> (eșuează) → problemă DNS</div></div>
+                    <div class="timeline-item"><div class="timeline-year">Pasul 5</div><div class="timeline-title">Verifică Serviciul Aplicației</div><div class="timeline-desc"><code>ss -lntp</code> — Serverul ascultă pe portul așteptat?</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 38: Quiz Întârziere de Rețea -->
+        <div class="slide" data-slide="38">
+            <div class="slide-content">
+                <h2>🎯 Verifică-ți Cunoștințele: Întârzierea de Rețea</h2>
+                <div class="quiz-container animate-in">
+                    <p class="quiz-question">Un pachet de 1500 bytes e trimis pe un link de 100 Mbps. Care este întârzierea de transmisie?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">A) 1,5 ms</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, true)">B) 0,12 ms (120 μs)</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">C) 15 μs</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">D) Depinde de distanță</div>
+                    <div class="quiz-feedback correct">✓ Corect! d = (1500 × 8) / (100 × 10⁶) = 0,00012s = 120μs. Întârzierea de transmisie depinde de dimensiunea pachetului și lățimea de bandă, nu de distanță.</div>
+                    <div class="quiz-feedback incorrect">✗ Folosește formula: d = L/R = (1500 bytes × 8 biți/byte) / (100.000.000 biți/sec)</div>
+                </div>
+                <div class="animate-in delay-2" style="margin-top:1.5rem;text-align:center">
+                    <button class="reveal-btn" onclick="toggleReveal(this)">Arată Explicația</button>
+                    <div class="reveal-content"><p>Când un server se leagă la <code>0.0.0.0:80</code>, înseamnă „ascultă pe portul 80 pe TOATE interfețele". Este deliberat, nu o eroare. Compară cu <code>127.0.0.1:80</code> care acceptă doar conexiuni locale.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 39: Referință C de Nivel Jos -->
+        <div class="slide" data-slide="39">
+            <div class="slide-content">
+                <h2>📜 Context Istoric: Programare Socket în C</h2>
+                <p style="font-size:1.15rem;margin-bottom:1rem">Modulul <code>socket</code> din Python învelește API-ul BSD sockets, scris inițial în C pentru 4.2BSD (1983). Înțelegerea apelurilor de sistem subiacente ajută la depanare:</p>
+                <div class="code-block animate-in" data-lang="c">
+<span class="comment">/* Server TCP minimal în C (referință conceptuală) */</span>
+<span class="keyword">#include</span> <span class="string">&lt;sys/socket.h&gt;</span>
+<span class="keyword">#include</span> <span class="string">&lt;netinet/in.h&gt;</span>
+
+<span class="keyword">int</span> <span class="function">main</span>() {
+    <span class="keyword">int</span> sockfd = <span class="function">socket</span>(AF_INET, SOCK_STREAM, <span class="number">0</span>);  <span class="comment">// Creează socket</span>
+    
+    <span class="keyword">struct</span> sockaddr_in addr = {
+        .sin_family = AF_INET,
+        .sin_port = <span class="function">htons</span>(<span class="number">9090</span>),       <span class="comment">// Ordinea octeților host-către-rețea</span>
+        .sin_addr.s_addr = INADDR_ANY
+    };
+    
+    <span class="function">bind</span>(sockfd, (<span class="keyword">struct</span> sockaddr*)&amp;addr, <span class="keyword">sizeof</span>(addr));
+    <span class="function">listen</span>(sockfd, <span class="number">5</span>);               <span class="comment">// Dimensiune coadă backlog</span>
+    
+    <span class="keyword">int</span> client = <span class="function">accept</span>(sockfd, NULL, NULL);  <span class="comment">// Blochează până la conexiune</span>
+    <span class="comment">// read() / write() pe fd-ul clientului...</span>
+}
+                </div>
+                <p class="animate-in delay-2" style="margin-top:1rem;font-size:1rem;color:var(--text-muted)">Python abstractizează conversia ordinii octeților (<code>htons</code>) și oferă context managers pentru curățarea resurselor.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 40: Previzualizare Mininet -->
+        <div class="slide" data-slide="40">
+            <div class="slide-content">
+                <h2>🔬 Simularea Rețelelor cu Mininet</h2>
+                <p style="font-size:1.2rem;margin-bottom:1rem">În seminariile viitoare, vei crea topologii de rețea virtuale folosind <strong>Mininet</strong>:</p>
+                <div class="code-block animate-in" data-lang="python">
+<span class="comment"># Topologie simplă: 3 gazde conectate la 1 switch</span>
+<span class="keyword">from</span> mininet.topo <span class="keyword">import</span> Topo
+<span class="keyword">from</span> mininet.net <span class="keyword">import</span> Mininet
+
+<span class="keyword">class</span> <span class="function">TopologieSimpla</span>(Topo):
+    <span class="keyword">def</span> <span class="function">build</span>(self, n=<span class="number">3</span>):
+        switch = self.addSwitch(<span class="string">'s1'</span>)
+        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="builtin">range</span>(<span class="number">1</span>, n + <span class="number">1</span>):
+            host = self.addHost(<span class="string">f'h</span>{i}<span class="string">'</span>)
+            self.addLink(host, switch, bw=<span class="number">100</span>, delay=<span class="string">'1ms'</span>)
+
+<span class="comment"># Utilizare: sudo python3 topo_simpla.py</span>
+<span class="comment"># Apoi: h1 ping h2, h1 iperf h2, etc.</span>
+                </div>
+                <div class="highlight-box animate-in delay-2">
+                    <p>💡 Mininet creează namespace-uri de rețea Linux reale — poți rula comenzi reale precum <code>ping</code>, <code>tcpdump</code> și <code>iperf3</code> în gazdele virtuale!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 41: Sumar -->
+        <div class="slide" data-slide="41">
+            <div class="slide-content">
+                <h2>📋 Concluzii Cheie din Săptămâna 1</h2>
+                <div class="grid-2">
+                    <div class="card animate-in delay-1">
+                        <h4>Fundamente Conceptuale</h4>
+                        <ul style="font-size:1rem"><li>Rețelele conectează gazde prin switch-uri (L2) și routere (L3)</li><li>Comutare de pachete: multiplexare statistică, întârziere variabilă</li><li>TCP/IP: 4 straturi cu încapsulare la fiecare</li><li>Întârziere = procesare + coadă + transmisie + propagare</li></ul>
+                    </div>
+                    <div class="card animate-in delay-2">
+                        <h4>Competențe Practice</h4>
+                        <ul style="font-size:1rem"><li><code>ip</code>: vizualizează interfețe, adrese, rute</li><li><code>ss</code>: verifică socket-uri în ascultare și conexiuni</li><li><code>ping</code>: testează accesibilitatea, măsoară RTT</li><li><code>nc</code>: creează conexiuni TCP/UDP ad-hoc</li><li><code>tcpdump</code>: capturează și analizează pachete</li></ul>
+                    </div>
+                </div>
+                <div class="highlight-box animate-in delay-3" style="margin-top:1.5rem">
+                    <p>🎯 Acum poți diagnostica probleme de bază de conectivitate și înțelegi cum datele călătoresc de la aplicația ta la un server la distanță!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 42: Previzualizare Săptămâna Viitoare -->
+        <div class="slide" data-slide="42">
+            <div class="slide-content">
+                <h2>🚀 Previzualizare: Săptămâna 2</h2>
+                <h3 style="color:var(--text-muted);font-weight:400">Modele Arhitecturale & Introducere în Programarea de Rețea</h3>
+                <div class="grid-3 animate-in delay-1">
+                    <div class="card"><div class="card-icon">📚</div><h4>Modelul de Referință OSI</h4><p>Modelul cu 7 straturi în detaliu: de ce contează pentru depanare</p></div>
+                    <div class="card"><div class="card-icon">🔌</div><h4>Programare Socket</h4><p>Construirea primilor clienți și servere TCP și UDP în Python</p></div>
+                    <div class="card"><div class="card-icon">🔄</div><h4>Servere Concurente</h4><p>Gestionarea mai multor clienți cu fire de execuție și bucle de evenimente</p></div>
+                </div>
+                <p class="animate-in delay-2" style="margin-top:2rem;font-size:1.2rem">📖 <strong>Lectură Recomandată:</strong> Kurose & Ross, Capitolul 1 (Rețele de Calculatoare și Internet)</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 43: Referințe -->
+        <div class="slide" data-slide="43">
+            <div class="slide-content">
+                <h2>📚 Referințe & Lectură Suplimentară</h2>
+                <div class="grid-2">
+                    <div class="card animate-in delay-1">
+                        <h4>📖 Manuale Principale</h4>
+                        <p style="font-size:1rem;text-align:left;line-height:1.8">• Kurose, J. & Ross, K. — <em>Computer Networking: A Top-Down Approach</em>, Ed. 8<br>• Rhodes, B. & Goerzen, J. — <em>Foundations of Python Network Programming</em>, Ed. 3<br>• Stevens, W.R. — <em>TCP/IP Illustrated, Volume 1</em></p>
+                    </div>
+                    <div class="card animate-in delay-2">
+                        <h4>🔗 Resurse Online</h4>
+                        <p style="font-size:1rem;text-align:left;line-height:1.8">• RFC Editor: <code>rfc-editor.org</code><br>• Documentație Python socket: <code>docs.python.org/3/library/socket.html</code><br>• Ghid Utilizator Wireshark: <code>wireshark.org/docs</code><br>• Comanda Linux <code>ip</code>: <code>man 8 ip</code></p>
+                    </div>
+                </div>
+                <div class="animate-in delay-3" style="margin-top:2rem">
+                    <h4>🛠️ Conținut Starterkit</h4>
+                    <p style="font-size:1.1rem"><code>WEEK1/python/exercises/</code> — Exerciții Python cu testare automată<br><code>WEEK1/mininet/topologies/</code> — Scripturi topologie Mininet<br><code>WEEK1/docs/cli_cheatsheet.md</code> — Referință comenzi</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 44: Quiz Final -->
+        <div class="slide" data-slide="44">
+            <div class="slide-content">
+                <h2>🎯 Verificare Finală: RTT</h2>
+                <div class="quiz-container animate-in">
+                    <p class="quiz-question">Ce măsoară RTT (Round-Trip Time / Timpul Dus-Întors)?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">A) Timpul pentru ca un pachet să călătorească de la sursă la destinație</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, true)">B) Timpul total pentru ca un pachet să ajungă la destinație și pentru ca un răspuns să se întoarcă</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">C) Lățimea maximă de bandă a rețelei</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false)">D) Numărul de routere parcurse</div>
+                    <div class="quiz-feedback correct">✓ Corect! RTT = timp_dus + timp_procesare + timp_întors. Aceasta este ceea ce măsoară <code>ping</code>.</div>
+                    <div class="quiz-feedback incorrect">✗ RTT include ambele direcții ale comunicării. Întârzierea într-un sens este aproximativ jumătate din RTT.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 45: Încheiere -->
+        <div class="slide" data-slide="45">
+            <div class="slide-content">
+                <h2>🎓 Sfârșitul Săptămânii 1</h2>
+                <p style="font-size:1.5rem;margin-bottom:2rem;color:var(--text-muted)">Fundamente ale Rețelelor de Calculatoare</p>
+                <div class="highlight-box animate-in">
+                    <p style="font-size:1.4rem">🚀 La sesiunile de seminar și laborator, vei pune aceste concepte în practică: construirea de servere TCP/UDP, capturarea traficului cu Wireshark și analiza comportamentului real al rețelei!</p>
+                </div>
+                <div style="margin-top:3rem;font-size:1rem;color:var(--text-muted)">
+                    <p>Facultatea de Cibernetică, Statistică și Informatică Economică</p>
+                    <p>Academia de Studii Economice din București</p>
+                    <p style="margin-top:1rem;font-size:.9rem;color:#a0aec0">by Revolvix</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cuprins -->
+    <div class="toc-modal" id="tocModal">
+        <div class="toc-content">
+            <button class="toc-close" onclick="closeToc()">×</button>
+            <h3>📑 Cuprins</h3>
+            <div class="toc-section">
+                <div class="toc-section-title">Introducere</div>
+                <div class="toc-item" onclick="goToSlide(1)">1. Slide Titlu</div>
+                <div class="toc-item" onclick="goToSlide(2)">2. Nașterea Erei Rețelelor</div>
+                <div class="toc-item" onclick="goToSlide(3)">3. De Ce Contează Rețelele</div>
+                <div class="toc-item" onclick="goToSlide(4)">4. Obiectivele Învățării</div>
+                <div class="toc-item" onclick="goToSlide(5)">5. Harta Cursului</div>
+            </div>
+            <div class="toc-section">
+                <div class="toc-section-title">Concepte Fundamentale</div>
+                <div class="toc-item" onclick="goToSlide(6)">6. Ce Este o Rețea?</div>
+                <div class="toc-item" onclick="goToSlide(7)">7. Anatomia Rețelei</div>
+                <div class="toc-item" onclick="goToSlide(8)">8. Componente</div>
+                <div class="toc-item" onclick="goToSlide(9)">9. Adresare MAC vs IP</div>
+                <div class="toc-item" onclick="goToSlide(10)">10. Porturi</div>
+                <div class="toc-item" onclick="goToSlide(11)">11. Clasificări</div>
+                <div class="toc-item" onclick="goToSlide(12)">12. Topologii</div>
+            </div>
+            <div class="toc-section">
+                <div class="toc-section-title">Comutare & Stiva de Protocoale</div>
+                <div class="toc-item" onclick="goToSlide(13)">13-15. Comutare Circuit vs. Pachet</div>
+                <div class="toc-item" onclick="goToSlide(16)">16-21. Stiva TCP/IP & Încapsulare</div>
+            </div>
+            <div class="toc-section">
+                <div class="toc-section-title">Performanță & Transport</div>
+                <div class="toc-item" onclick="goToSlide(22)">22-26. Metrici de Performanță & Întârziere</div>
+                <div class="toc-item" onclick="goToSlide(27)">27-29. TCP vs UDP, Handshake</div>
+            </div>
+            <div class="toc-section">
+                <div class="toc-section-title">Instrumente Practice</div>
+                <div class="toc-item" onclick="goToSlide(30)">30-36. Instrumente de Diagnosticare</div>
+                <div class="toc-item" onclick="goToSlide(37)">37-38. Depanare</div>
+            </div>
+            <div class="toc-section">
+                <div class="toc-section-title">Încheiere</div>
+                <div class="toc-item" onclick="goToSlide(41)">41. Concluzii Cheie</div>
+                <div class="toc-item" onclick="goToSlide(42)">42. Previzualizare Săptămâna Viitoare</div>
+                <div class="toc-item" onclick="goToSlide(43)">43. Referințe</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigare -->
+    <div class="nav-container">
+        <button class="nav-btn prev" id="prevBtn" onclick="changeSlide(-1)" title="Anterior (←)">←</button>
+        <button class="nav-btn toc" onclick="openToc()" title="Cuprins (T)">☰</button>
+        <button class="nav-btn fullscreen" onclick="toggleFullscreen()" title="Ecran Complet (F)">⛶</button>
+        <button class="nav-btn next" id="nextBtn" onclick="changeSlide(1)" title="Următor (→)">→</button>
+    </div>
+
+    <div class="footer-info">by Revolvix</div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 45;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            if (n > totalSlides) currentSlide = 1;
+            if (n < 1) currentSlide = totalSlides;
+
+            slides.forEach(slide => slide.classList.remove('active'));
+            if (slides[currentSlide - 1]) {
+                slides[currentSlide - 1].classList.add('active');
+            }
+
+            document.getElementById('slideCounter').textContent = currentSlide + ' / ' + totalSlides;
+            document.getElementById('progressBar').style.width = ((currentSlide / totalSlides) * 100) + '%';
+
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+        }
+
+        function changeSlide(direction) {
+            currentSlide += direction;
+            showSlide(currentSlide);
+        }
+
+        function goToSlide(n) {
+            currentSlide = n;
+            showSlide(currentSlide);
+            closeToc();
+        }
+
+        function openToc() {
+            document.getElementById('tocModal').classList.add('show');
+        }
+
+        function closeToc() {
+            document.getElementById('tocModal').classList.remove('show');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+            if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+            if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+            if (e.key === 't' || e.key === 'T') openToc();
+            if (e.key === 'Escape') closeToc();
+            if (e.key === 'Home') { currentSlide = 1; showSlide(currentSlide); }
+            if (e.key === 'End') { currentSlide = totalSlides; showSlide(currentSlide); }
+        });
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function checkQuiz(element, isCorrect) {
+            const container = element.closest('.quiz-container');
+            const options = container.querySelectorAll('.quiz-option');
+            const feedbacks = container.querySelectorAll('.quiz-feedback');
+
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                opt.classList.remove('correct', 'incorrect');
+            });
+
+            element.classList.add(isCorrect ? 'correct' : 'incorrect');
+            feedbacks.forEach(fb => fb.classList.remove('show'));
+            feedbacks[isCorrect ? 0 : 1].classList.add('show');
+        }
+
+        function toggleReveal(btn) {
+            const content = btn.nextElementSibling;
+            content.classList.toggle('show');
+            btn.textContent = content.classList.contains('show') ? 'Ascunde' : 'Arată Explicația';
+        }
+
+        function calculateDelay() {
+            const L = parseInt(document.getElementById('packetSize').value);
+            const R = parseInt(document.getElementById('bandwidth').value);
+
+            document.getElementById('packetSizeValue').textContent = L.toLocaleString('ro-RO') + ' bytes';
+            document.getElementById('bandwidthValue').textContent = R + ' Mbps';
+
+            const delayMs = (L * 8) / (R * 1000);
+            const delayUs = delayMs * 1000;
+
+            document.getElementById('delayResult').innerHTML =
+                'Întârziere Transmisie: <strong>' + delayMs.toFixed(3).replace('.', ',') + ' ms</strong> (' + delayUs.toFixed(1).replace('.', ',') + ' μs)';
+        }
+
+        // Inițializare
+        showSlide(currentSlide);
+        calculateDelay();
+
+        // Închide TOC când se dă click în afară
+        document.getElementById('tocModal').addEventListener('click', function(e) {
+            if (e.target === this) closeToc();
+        });
+    </script>
+</body>
+</html>
