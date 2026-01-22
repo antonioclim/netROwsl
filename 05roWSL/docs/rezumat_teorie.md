@@ -7,7 +7,7 @@
 
 ## Nivelul Rețea în Modelul OSI/TCP-IP
 
-Nivelul Rețea (Network Layer) ocupă poziția 3 în modelul OSI și are patru funcții principale:
+Nivelul Rețea (Network Layer, OSI Layer 3) rezolvă patru probleme:
 
 1. **Adresarea logică** — Identificarea unică a dispozitivelor prin adrese IP
 2. **Rutarea** — Determinarea căii optime pentru pachete între rețele
@@ -163,6 +163,25 @@ Wildcard:  0.0.0.63         →  00000000.00000000.00000000.00111111
 
 ---
 
+## ✓ Checkpoint: Verifică-ți Înțelegerea CIDR
+
+Înainte de a continua, asigură-te că poți răspunde:
+
+1. Care e formula pentru gazde utilizabile dintr-un prefix?
+2. Cum calculezi adresa de broadcast pentru 10.20.30.40/27?
+3. Ce prefix ai nevoie pentru 100 de gazde?
+
+<details>
+<summary>Verifică răspunsurile</summary>
+
+1. `Gazde = 2^(32-prefix) - 2`
+2. Rețea = 10.20.30.32, Broadcast = 10.20.30.63 (salt = 32)
+3. Prefix /25 (126 gazde disponibile, /26 ar oferi doar 62)
+
+</details>
+
+---
+
 ## Subnetarea FLSM
 
 FLSM (Fixed Length Subnet Mask) împarte o rețea în subrețele de dimensiuni egale.
@@ -268,6 +287,25 @@ P2P (2 gazde):
 | Eficiență | Scăzută (risipă) | Ridicată |
 | Flexibilitate | Limitată | Mare |
 | Utilizare | Rețele mici, uniforme | Rețele enterprise |
+
+---
+
+## ✓ Checkpoint: Verifică-ți Înțelegerea VLSM
+
+Înainte de a trece la IPv6, verifică:
+
+1. De ce VLSM necesită sortare descrescătoare a cerințelor?
+2. Dacă ai cerințele [30, 30, 30, 30], VLSM e mai eficient ca FLSM?
+3. Ce se întâmplă dacă aloci o subrețea mică înainte de una mare?
+
+<details>
+<summary>Verifică răspunsurile</summary>
+
+1. Subrețelele mari necesită aliniere la granițe specifice (multipli de dimensiunea blocului). Alocarea lor prima evită fragmentarea spațiului de adrese.
+2. Nu — pentru cerințe identice, FLSM și VLSM produc același rezultat.
+3. Poți "bloca" spațiu care ar fi necesar pentru subrețeaua mare, rezultând în fragmentare sau imposibilitatea alocării.
+
+</details>
 
 ---
 
@@ -414,6 +452,12 @@ Salt = 2^(32 - prefix) = Total adrese în subrețea
 ```
 
 ---
+
+## Navigare Rapidă
+
+| ← Anterior | Document | Următor → |
+|------------|----------|-----------|
+| [Glosar](GLOSSARY.md) | **Rezumat Teoretic** | [Fișa de Comenzi](fisa_comenzi.md) |
 
 ## Documente Înrudite
 

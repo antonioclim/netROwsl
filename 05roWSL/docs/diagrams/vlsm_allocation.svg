@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 320" width="650" height="320">
+  <defs>
+    <style>
+      .title { font: bold 16px sans-serif; fill: #333; }
+      .subtitle { font: 12px sans-serif; fill: #666; }
+      .label { font: 11px sans-serif; fill: #333; }
+      .label-white { font: 11px sans-serif; fill: #fff; }
+      .small { font: 9px sans-serif; fill: #555; }
+      .block-dev { fill: #4CAF50; }
+      .block-sales { fill: #2196F3; }
+      .block-hr { fill: #FF9800; }
+      .block-p2p { fill: #9C27B0; }
+      .block-free { fill: #E0E0E0; stroke: #999; stroke-dasharray: 4,2; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="650" height="320" fill="#fafafa"/>
+  
+  <!-- Title -->
+  <text x="325" y="25" class="title" text-anchor="middle">Alocare VLSM pentru 10.0.0.0/24</text>
+  <text x="325" y="42" class="subtitle" text-anchor="middle">Cerințe: DEV(50), SALES(25), HR(10), P2P(2)</text>
+  
+  <!-- Address space bar - total 512px for /24 (256 addresses, 2px per address) -->
+  <!-- Scale: 2px = 1 address -->
+  
+  <!-- DEV: /26 = 64 addresses = 128px -->
+  <rect x="50" y="70" width="128" height="50" class="block-dev" rx="3"/>
+  <text x="114" y="92" class="label-white" text-anchor="middle">DEV</text>
+  <text x="114" y="107" class="label-white" text-anchor="middle">/26 (62h)</text>
+  
+  <!-- SALES: /27 = 32 addresses = 64px -->
+  <rect x="178" y="70" width="64" height="50" class="block-sales" rx="3"/>
+  <text x="210" y="92" class="label-white" text-anchor="middle">SALES</text>
+  <text x="210" y="107" class="label-white" text-anchor="middle">/27</text>
+  
+  <!-- HR: /28 = 16 addresses = 32px -->
+  <rect x="242" y="70" width="32" height="50" class="block-hr" rx="3"/>
+  <text x="258" y="92" class="label-white" text-anchor="middle">HR</text>
+  <text x="258" y="107" class="label-white" text-anchor="middle">/28</text>
+  
+  <!-- P2P: /30 = 4 addresses = 8px -->
+  <rect x="274" y="70" width="8" height="50" class="block-p2p" rx="1"/>
+  
+  <!-- Free space: 140 addresses = 280px -->
+  <rect x="282" y="70" width="280" height="50" class="block-free" rx="3"/>
+  <text x="422" y="100" class="label" text-anchor="middle">Spațiu liber (140 adrese)</text>
+  
+  <!-- Address markers -->
+  <text x="50" y="140" class="small">.0</text>
+  <text x="178" y="140" class="small">.64</text>
+  <text x="242" y="140" class="small">.96</text>
+  <text x="274" y="140" class="small">.112</text>
+  <text x="282" y="140" class="small">.116</text>
+  <text x="555" y="140" class="small">.255</text>
+  
+  <!-- Legend -->
+  <text x="50" y="175" class="label" font-weight="bold">Legendă:</text>
+  
+  <rect x="50" y="185" width="20" height="15" class="block-dev"/>
+  <text x="75" y="197" class="label">DEV: 50 gazde → /26 (62 disponibile)</text>
+  
+  <rect x="50" y="205" width="20" height="15" class="block-sales"/>
+  <text x="75" y="217" class="label">SALES: 25 gazde → /27 (30 disponibile)</text>
+  
+  <rect x="50" y="225" width="20" height="15" class="block-hr"/>
+  <text x="75" y="237" class="label">HR: 10 gazde → /28 (14 disponibile)</text>
+  
+  <rect x="50" y="245" width="20" height="15" class="block-p2p"/>
+  <text x="75" y="257" class="label">P2P: 2 gazde → /30 (2 disponibile)</text>
+  
+  <!-- Summary table -->
+  <rect x="350" y="165" width="260" height="110" fill="#fff" stroke="#ddd" rx="5"/>
+  <text x="360" y="185" class="label" font-weight="bold">Rezumat Alocare:</text>
+  
+  <text x="360" y="205" class="small">Subrețea</text>
+  <text x="450" y="205" class="small">Adrese</text>
+  <text x="520" y="205" class="small">Eficiență</text>
+  
+  <line x1="360" y1="210" x2="600" y2="210" stroke="#eee"/>
+  
+  <text x="360" y="225" class="small">10.0.0.0/26</text>
+  <text x="450" y="225" class="small">64</text>
+  <text x="520" y="225" class="small">50/62 = 81%</text>
+  
+  <text x="360" y="240" class="small">10.0.0.64/27</text>
+  <text x="450" y="240" class="small">32</text>
+  <text x="520" y="240" class="small">25/30 = 83%</text>
+  
+  <text x="360" y="255" class="small">10.0.0.96/28</text>
+  <text x="450" y="255" class="small">16</text>
+  <text x="520" y="255" class="small">10/14 = 71%</text>
+  
+  <text x="360" y="270" class="small">10.0.0.112/30</text>
+  <text x="450" y="270" class="small">4</text>
+  <text x="520" y="270" class="small">2/2 = 100%</text>
+  
+  <!-- Efficiency note -->
+  <text x="325" y="305" class="subtitle" text-anchor="middle">Eficiență totală VLSM: 87/108 = 81% | Spațiu rămas: 140 adrese pentru extindere</text>
+</svg>

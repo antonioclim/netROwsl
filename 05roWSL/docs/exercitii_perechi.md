@@ -24,7 +24,10 @@
 
 ## Exercițiul P1: Debug Subrețea Greșită
 
-**Timp:** 15 minute  
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 15 min | ★★☆☆☆ | ANALYZE | Formula prefix |
+
 **Roluri:** Navigator calculează, Driver verifică
 
 ### Scenariu
@@ -70,13 +73,22 @@ Calcul corect:
 
 </details>
 
+### ✓ Checkpoint
+
+Înainte de a trece mai departe, verificați:
+- [ ] Ambii înțelegeți de ce /26 e insuficient
+- [ ] Ambii puteți calcula prefixul pentru orice număr de gazde
+
 ### Schimb Roluri → Exercițiul P2
 
 ---
 
 ## Exercițiul P2: Design VLSM de la Zero
 
-**Timp:** 25 minute  
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 25 min | ★★★☆☆ | CREATE | Algoritm VLSM |
+
 **Roluri:** Navigator planifică, Driver implementează
 
 ### Scenariu
@@ -149,7 +161,10 @@ Eficiență: 79/114 = **69%**
 
 ## Exercițiul P3: Comparație FLSM vs VLSM
 
-**Timp:** 20 minute  
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 20 min | ★★★☆☆ | EVALUATE | FLSM, VLSM |
+
 **Roluri:** Fiecare calculează o metodă, apoi comparați
 
 ### Scenariu
@@ -196,11 +211,19 @@ Pentru cerințe identice, **FLSM și VLSM dau același rezultat**:
 
 </details>
 
+### ✓ Checkpoint
+
+- [ ] Ambii înțelegeți când VLSM e mai eficient
+- [ ] Ambii puteți explica de ce rezultatele sunt identice aici
+
 ---
 
 ## Exercițiul P4: Troubleshooting Docker Network
 
-**Timp:** 15 minute  
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 15 min | ★★★☆☆ | ANALYZE | Docker basics |
+
 **Roluri:** Navigator diagnostichează, Driver execută
 
 ### Scenariu
@@ -240,11 +263,23 @@ Trebuie să diagnosticați problema.
 
 5. **Dacă ping eșuează:** Navigator propune soluții, Driver le implementează.
 
+### Checklist Diagnosticare
+
+| Verificare | OK? | Acțiune dacă NU |
+|------------|-----|-----------------|
+| Containere pornite | ☐ | `docker compose up -d` |
+| Aceeași rețea | ☐ | Verifică docker-compose.yml |
+| IP-uri corecte | ☐ | Repornește containerele |
+| Ping funcționează | ☐ | Verifică firewall |
+
 ---
 
 ## Exercițiul P5: IPv6 Hands-On
 
-**Timp:** 15 minute  
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 15 min | ★★☆☆☆ | APPLY | Comprimare IPv6 |
+
 **Roluri:** Alternativ la fiecare pas
 
 ### Scenariu
@@ -282,7 +317,7 @@ Firma primește prefixul IPv6 `2001:db8:acad::/48` și trebuie să creeze subre�
 
 ---
 
-## Checklist de Evaluare
+## ✓ Checklist de Evaluare
 
 După fiecare exercițiu, ambii parteneri completează:
 
@@ -293,7 +328,20 @@ După fiecare exercițiu, ambii parteneri completează:
 | Am învățat ceva nou | ☐ | ☐ |
 | Am contribuit la soluție | ☐ | ☐ |
 
+### Reflecție Finală
+
+Discutați:
+1. Care exercițiu a fost cel mai dificil? De ce?
+2. Ce ați face diferit data viitoare?
+3. Ce concept a devenit mai clar după lucrul în pereche?
+
 ---
+
+## Navigare Rapidă
+
+| ← Anterior | Document | Următor → |
+|------------|----------|-----------|
+| [Peer Instruction](peer_instruction.md) | **Exerciții Perechi** | [Exerciții Trace](exercitii_trace.md) |
 
 ## Documente Înrudite
 

@@ -16,6 +16,15 @@ Funcții principale:
     aloca_vlsm() - Alocă subrețele cu mască variabilă
     comprima_ipv6() - Comprimă o adresă IPv6
     expandeaza_ipv6() - Expandează o adresă IPv6
+
+Exemple:
+    >>> info = analizeaza_interfata_ipv4("192.168.10.14/26")
+    >>> print(info.gazde_utilizabile)
+    62
+    
+    >>> subretele = imparte_flsm("192.168.0.0/24", 4)
+    >>> len(subretele)
+    4
 """
 
 from __future__ import annotations
@@ -24,7 +33,7 @@ import ipaddress
 import math
 import re
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Dict, Any
 
 # Tipuri pentru adrese IP
 AdresaIPv4 = Union[str, ipaddress.IPv4Address]
@@ -73,10 +82,18 @@ def analizeaza_interfata_ipv4(cidr: str) -> InfoRetea:
     Raises:
         ValueError: Dacă formatul CIDR este invalid
     
-    Exemplu:
+    Examples:
         >>> info = analizeaza_interfata_ipv4("192.168.10.14/26")
-        >>> print(info.gazde_utilizabile)
+        >>> info.gazde_utilizabile
         62
+        
+        >>> info = analizeaza_interfata_ipv4("10.0.0.1/8")
+        >>> str(info.retea.network_address)
+        '10.0.0.0'
+        
+        >>> info = analizeaza_interfata_ipv4("192.168.1.0/30")
+        >>> info.gazde_utilizabile
+        2
     """
     try:
         # Parsează interfața (adresă cu prefix)
@@ -141,6 +158,17 @@ def interval_gazde_ipv4(retea: ipaddress.IPv4Network) -> Tuple[Optional[ipaddres
     
     Returns:
         Tuple (prima_gazda, ultima_gazda, numar_gazde)
+    
+    Examples:
+        >>> import ipaddress
+        >>> retea = ipaddress.ip_network("192.168.1.0/24")
+        >>> prima, ultima, nr = interval_gazde_ipv4(retea)
+        >>> str(prima)
+        '192.168.1.1'
+        >>> str(ultima)
+        '192.168.1.254'
+        >>> nr
+        254
     """
     gazde = list(retea.hosts())
     if not gazde:
@@ -156,21 +184,36 @@ ipv4_host_range = interval_gazde_ipv4
 # Funcții de conversie binară
 # =============================================================================
 
-def ip_la_binar(ip: str) -> str:
+def ip_la_binar(ip: str, cu_puncte: bool = False) -> str:
     """
-    Convertește o adresă IPv4 la reprezentare binară (32 de biți).
+    Convertește o adresă IPv4 la reprezentare binară.
     
     Args:
         ip: Adresă IPv4 în format zecimal punctat
+        cu_puncte: Dacă True, adaugă puncte între octeți
     
     Returns:
-        Șir de 32 de caractere binare (0 și 1)
+        Șir binar (32 caractere fără puncte, 35 cu puncte)
     
-    Exemplu:
+    Examples:
         >>> ip_la_binar("192.168.1.1")
         '11000000101010000000000100000001'
+        
+        >>> ip_la_binar("192.168.1.1", cu_puncte=True)
+        '11000000.10101000.00000001.00000001'
+        
+        >>> ip_la_binar("0.0.0.0")
+        '00000000000000000000000000000000'
+        
+        >>> ip_la_binar("255.255.255.255")
+        '11111111111111111111111111111111'
+        
+        >>> len(ip_la_binar("10.0.0.1"))
+        32
     """
     octeti = ip.split('.')
+    if cu_puncte:
+        return '.'.join(format(int(octet), '08b') for octet in octeti)
     return ''.join(format(int(octet), '08b') for octet in octeti)
 
 
@@ -188,12 +231,14 @@ def ip_la_binar_punctat(ip: str) -> str:
     Returns:
         Șir binar cu puncte între octeți
     
-    Exemplu:
+    Examples:
         >>> ip_la_binar_punctat("192.168.1.1")
         '11000000.10101000.00000001.00000001'
+        
+        >>> ip_la_binar_punctat("10.0.0.1")
+        '00001010.00000000.00000000.00000001'
     """
-    octeti = ip.split('.')
-    return '.'.join(format(int(octet), '08b') for octet in octeti)
+    return ip_la_binar(ip, cu_puncte=True)
 
 
 # Alias pentru compatibilitate
@@ -205,10 +250,20 @@ def binar_la_ip(binar: str) -> str:
     Convertește un șir binar de 32 de biți la adresă IPv4.
     
     Args:
-        binar: Șir de 32 de caractere binare
+        binar: Șir de 32 de caractere binare (poate conține puncte)
     
     Returns:
         Adresă IPv4 în format zecimal punctat
+    
+    Examples:
+        >>> binar_la_ip("11000000101010000000000100000001")
+        '192.168.1.1'
+        
+        >>> binar_la_ip("11000000.10101000.00000001.00000001")
+        '192.168.1.1'
+        
+        >>> binar_la_ip("00000000000000000000000000000000")
+        '0.0.0.0'
     """
     # Elimină punctele dacă există
     binar = binar.replace('.', '')
@@ -238,9 +293,21 @@ def prefix_la_masca(prefix: int) -> str:
     Returns:
         Masca de rețea în format zecimal punctat
     
-    Exemplu:
+    Examples:
         >>> prefix_la_masca(24)
         '255.255.255.0'
+        
+        >>> prefix_la_masca(26)
+        '255.255.255.192'
+        
+        >>> prefix_la_masca(8)
+        '255.0.0.0'
+        
+        >>> prefix_la_masca(0)
+        '0.0.0.0'
+        
+        >>> prefix_la_masca(32)
+        '255.255.255.255'
     """
     if not 0 <= prefix <= 32:
         raise ValueError(f"Prefixul trebuie să fie între 0 și 32, nu {prefix}")
@@ -257,19 +324,47 @@ def masca_la_prefix(masca: str) -> int:
     """
     Convertește o mască de rețea la lungimea prefixului CIDR.
     
+    Validează că masca are biți de 1 contigui (forma 111...000).
+    
     Args:
         masca: Masca de rețea în format zecimal punctat
     
     Returns:
         Lungimea prefixului
     
-    Exemplu:
+    Raises:
+        ValueError: Dacă masca nu e validă (biți non-contigui)
+    
+    Examples:
         >>> masca_la_prefix("255.255.255.0")
         24
+        
+        >>> masca_la_prefix("255.255.255.192")
+        26
+        
+        >>> masca_la_prefix("255.0.0.0")
+        8
+        
+        >>> masca_la_prefix("0.0.0.0")
+        0
+        
+        >>> masca_la_prefix("255.255.255.255")
+        32
     """
     binar = ip_la_binar(masca)
-    # Numără biții de 1 consecutivi de la început
-    return len(binar) - len(binar.lstrip('1'))
+    
+    # Validare: trebuie să fie forma 1111...0000 (fără 1 după 0)
+    gasit_zero = False
+    for bit in binar:
+        if bit == '0':
+            gasit_zero = True
+        elif gasit_zero and bit == '1':
+            raise ValueError(
+                f"Mască invalidă '{masca}': biții de 1 nu sunt contigui. "
+                f"O mască validă are forma 111...000, nu biți de 1 intercalați."
+            )
+    
+    return binar.count('1')
 
 
 # Alias pentru compatibilitate
@@ -286,20 +381,41 @@ def prefix_pentru_gazde(numar_gazde: int) -> int:
     Returns:
         Lungimea prefixului CIDR
     
-    Exemplu:
+    Examples:
+        >>> prefix_pentru_gazde(1)
+        30
+        
+        >>> prefix_pentru_gazde(2)
+        30
+        
         >>> prefix_pentru_gazde(100)
-        25  # 126 gazde disponibile
+        25
+        
+        >>> prefix_pentru_gazde(254)
+        24
+        
+        >>> prefix_pentru_gazde(0)
+        30
+        
+        >>> prefix_pentru_gazde(500)
+        23
     """
     if numar_gazde <= 0:
-        return 32
+        return 30  # Minim /30 pentru 2 gazde
     
     # Adaugă 2 pentru adresa de rețea și broadcast
     adrese_necesare = numar_gazde + 2
     
     # Calculează puterea de 2 necesară
-    biti_gazda = math.ceil(math.log2(adrese_necesare))
+    if adrese_necesare <= 1:
+        biti_gazda = 1
+    else:
+        biti_gazda = math.ceil(math.log2(adrese_necesare))
     
-    return 32 - biti_gazda
+    prefix = 32 - biti_gazda
+    
+    # Asigură că prefixul e valid
+    return max(0, min(30, prefix))
 
 
 # Alias pentru compatibilitate
@@ -327,14 +443,14 @@ def imparte_flsm(baza: str, numar_subretele: int) -> List[ipaddress.IPv4Network]
     Raises:
         ValueError: Dacă numărul nu este putere de 2 sau rețeaua este invalidă
     
-    Exemplu:
+    Examples:
         >>> subretele = imparte_flsm("192.168.100.0/24", 4)
-        >>> for s in subretele:
-        ...     print(s)
-        192.168.100.0/26
-        192.168.100.64/26
-        192.168.100.128/26
-        192.168.100.192/26
+        >>> len(subretele)
+        4
+        >>> subretele[0].prefixlen
+        26
+        >>> str(subretele[0])
+        '192.168.100.0/26'
     """
     # Validare: numărul trebuie să fie putere de 2
     if numar_subretele <= 0 or (numar_subretele & (numar_subretele - 1)) != 0:
@@ -367,7 +483,7 @@ flsm_split = imparte_flsm
 # Funcții de subnetare VLSM
 # =============================================================================
 
-def aloca_vlsm(baza: str, cerinte: List[int]) -> List[dict]:
+def aloca_vlsm(baza: str, cerinte: List[int]) -> List[Dict[str, Any]]:
     """
     Alocă subrețele folosind VLSM pentru cerințele date.
     
@@ -384,10 +500,12 @@ def aloca_vlsm(baza: str, cerinte: List[int]) -> List[dict]:
     Raises:
         ValueError: Dacă spațiul de adrese este insuficient
     
-    Exemplu:
-        >>> alocari = aloca_vlsm("172.16.0.0/16", [500, 120, 60, 30, 2])
-        >>> for a in alocari:
-        ...     print(f"{a['cerinta']} gazde -> {a['subretea']}")
+    Examples:
+        >>> alocari = aloca_vlsm("192.168.0.0/24", [60, 20, 10, 2])
+        >>> len(alocari)
+        4
+        >>> alocari[0]['cerinta']
+        60
     """
     try:
         retea = ipaddress.ip_network(baza, strict=True)
@@ -464,9 +582,15 @@ def comprima_ipv6(adresa: str) -> str:
     Returns:
         Adresa IPv6 comprimată
     
-    Exemplu:
+    Examples:
         >>> comprima_ipv6("2001:0db8:0000:0000:0000:0000:0000:0001")
         '2001:db8::1'
+        
+        >>> comprima_ipv6("0000:0000:0000:0000:0000:0000:0000:0001")
+        '::1'
+        
+        >>> comprima_ipv6("fe80:0000:0000:0000:0000:0000:0000:0001")
+        'fe80::1'
     """
     try:
         # Folosește biblioteca standard pentru validare și comprimare
@@ -490,9 +614,15 @@ def expandeaza_ipv6(adresa: str) -> str:
     Returns:
         Adresa IPv6 în format complet (8 grupuri de 4 cifre hexazecimale)
     
-    Exemplu:
+    Examples:
         >>> expandeaza_ipv6("2001:db8::1")
         '2001:0db8:0000:0000:0000:0000:0000:0001'
+        
+        >>> expandeaza_ipv6("::1")
+        '0000:0000:0000:0000:0000:0000:0000:0001'
+        
+        >>> expandeaza_ipv6("fe80::1")
+        'fe80:0000:0000:0000:0000:0000:0000:0001'
     """
     try:
         addr = ipaddress.IPv6Address(adresa)
@@ -518,10 +648,10 @@ def subretele_ipv6_din_prefix(prefix_baza: str, numar: int, prefix_tinta: int = 
     Returns:
         Lista de subrețele IPv6Network
     
-    Exemplu:
-        >>> subretele = subretele_ipv6_din_prefix("2001:db8:abcd::/48", 4)
-        >>> for s in subretele:
-        ...     print(s)
+    Examples:
+        >>> subretele = subretele_ipv6_din_prefix("2001:db8::/32", 4)
+        >>> len(subretele)
+        4
     """
     try:
         retea = ipaddress.ip_network(prefix_baza, strict=False)
@@ -559,6 +689,13 @@ def valideaza_ipv6(adresa: str) -> bool:
     
     Returns:
         True dacă adresa este validă
+    
+    Examples:
+        >>> valideaza_ipv6("2001:db8::1")
+        True
+        
+        >>> valideaza_ipv6("invalid")
+        False
     """
     try:
         ipaddress.IPv6Address(adresa)
@@ -580,12 +717,70 @@ def valideaza_cidr(cidr: str) -> bool:
     
     Returns:
         True dacă notația este validă
+    
+    Examples:
+        >>> valideaza_cidr("192.168.1.0/24")
+        True
+        
+        >>> valideaza_cidr("invalid")
+        False
     """
     try:
         ipaddress.ip_network(cidr, strict=False)
         return True
     except ValueError:
         return False
+
+
+def valideaza_adresa_ipv4(ip: str) -> bool:
+    """
+    Validează o adresă IPv4.
+    
+    Args:
+        ip: Șirul de validat
+    
+    Returns:
+        True dacă adresa este validă
+    
+    Raises:
+        ValueError: Dacă adresa este invalidă (pentru compatibilitate cu testele)
+    
+    Examples:
+        >>> valideaza_adresa_ipv4("192.168.1.1")
+        True
+        
+        >>> valideaza_adresa_ipv4("10.0.0.1")
+        True
+    """
+    try:
+        ipaddress.IPv4Address(ip)
+        return True
+    except ValueError as e:
+        raise ValueError(f"Adresă IPv4 invalidă '{ip}': {e}")
+
+
+def valideaza_cidr_ipv4(cidr: str) -> bool:
+    """
+    Validează o notație CIDR IPv4.
+    
+    Args:
+        cidr: Șirul de validat
+    
+    Returns:
+        True dacă notația este validă
+    
+    Raises:
+        ValueError: Dacă notația este invalidă (pentru compatibilitate cu testele)
+    
+    Examples:
+        >>> valideaza_cidr_ipv4("192.168.1.0/24")
+        True
+    """
+    try:
+        ipaddress.IPv4Network(cidr, strict=False)
+        return True
+    except ValueError as e:
+        raise ValueError(f"CIDR invalid '{cidr}': {e}")
 
 
 def este_in_retea(ip: str, retea: str) -> bool:
@@ -598,6 +793,13 @@ def este_in_retea(ip: str, retea: str) -> bool:
     
     Returns:
         True dacă IP-ul este în rețea
+    
+    Examples:
+        >>> este_in_retea("192.168.1.50", "192.168.1.0/24")
+        True
+        
+        >>> este_in_retea("192.168.2.1", "192.168.1.0/24")
+        False
     """
     try:
         adresa = ipaddress.ip_address(ip)
@@ -617,6 +819,13 @@ def distanta_intre_ip(ip1: str, ip2: str) -> int:
     
     Returns:
         Numărul de adrese între cele două IP-uri
+    
+    Examples:
+        >>> distanta_intre_ip("192.168.1.1", "192.168.1.10")
+        9
+        
+        >>> distanta_intre_ip("10.0.0.0", "10.0.0.255")
+        255
     """
     addr1 = ipaddress.ip_address(ip1)
     addr2 = ipaddress.ip_address(ip2)
@@ -648,6 +857,8 @@ __all__ = [
     'subretele_ipv6_din_prefix',
     'valideaza_ipv6',
     'valideaza_cidr',
+    'valideaza_adresa_ipv4',
+    'valideaza_cidr_ipv4',
     'este_in_retea',
     'distanta_intre_ip',
     
@@ -666,3 +877,17 @@ __all__ = [
     'ipv6_expand',
     'ipv6_subnets_from_prefix',
 ]
+
+
+# =============================================================================
+# Doctest runner
+# =============================================================================
+
+if __name__ == "__main__":
+    import doctest
+    rezultate = doctest.testmod(verbose=True)
+    print(f"\n{'='*50}")
+    if rezultate.failed == 0:
+        print(f"✓ Toate {rezultate.attempted} doctest-uri au trecut!")
+    else:
+        print(f"✗ {rezultate.failed}/{rezultate.attempted} doctest-uri au eșuat.")

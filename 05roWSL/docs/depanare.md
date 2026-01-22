@@ -55,10 +55,10 @@ docker compose build --no-cache
 docker compose up  # fără -d pentru a vedea erorile
 ```
 
-**Cauze comune:**
-- Port deja ocupat → Schimbă portul în docker-compose.yml
-- Eroare în Dockerfile → Verifică sintaxa
-- Lipsă dependențe → Verifică requirements.txt
+**Verifică întâi:**
+- Port deja ocupat? → Schimbă portul în docker-compose.yml
+- Eroare în Dockerfile? → Verifică sintaxa
+- Lipsă dependențe? → Verifică requirements.txt
 
 ---
 
@@ -237,9 +237,9 @@ find . -name "*.py" -exec chmod +x {} \;
 
 ### WSL foarte lent
 
-**Cauze posibile:**
-- Antivirus scanează fișierele
-- Operații pe /mnt/ sunt lente
+**Verifică întâi:**
+- Antivirus scanează fișierele?
+- Operații pe /mnt/ sunt lente?
 
 **Soluție:**
 ```bash
@@ -267,9 +267,9 @@ cd ~/laborator
 
 ### Nu capturez trafic Docker
 
-**Cauze:**
-- Interfața greșită selectată
-- Traficul e doar local în WSL
+**Verifică întâi:**
+- Interfața greșită selectată?
+- Traficul e doar local în WSL?
 
 **Soluție:**
 - Selectează **vEthernet (WSL)** pentru trafic între containere
@@ -377,6 +377,12 @@ echo "=== Verificare Containere ===" && docker ps | grep week5
 ```
 
 ---
+
+## Navigare Rapidă
+
+| ← Anterior | Document | Următor → |
+|------------|----------|-----------|
+| [Rezumat Teoretic](rezumat_teorie.md) | **Depanare** | [Referință API](api_reference.md) |
 
 ## Documente Înrudite
 

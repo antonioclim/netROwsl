@@ -18,7 +18,9 @@ Aceste exerciții te ajută să înțelegi algoritmii **fără a scrie cod**:
 
 ## Exercițiul T1: Trace Algoritm VLSM
 
-**Timp:** 20 minute
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 20 min | ★★★☆☆ | APPLY | Formula prefix, sortare |
 
 ### Input
 
@@ -101,7 +103,9 @@ python3 src/exercises/ex_5_02_vlsm_ipv6.py vlsm 10.0.0.0/24 --cerinte 50,25,10,2
 
 ## Exercițiul T2: Trace Operație AND pentru Adresa de Rețea
 
-**Timp:** 15 minute
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 15 min | ★★☆☆☆ | APPLY | Conversie binară |
 
 ### Input
 
@@ -178,7 +182,9 @@ AND:   10101100.00010000.10010000.00000000
 
 ## Exercițiul T3: Trace FLSM
 
-**Timp:** 10 minute
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 10 min | ★★☆☆☆ | APPLY | log2, puteri ale lui 2 |
 
 ### Input
 
@@ -220,11 +226,35 @@ Salt = 2^(32 - prefix_nou) = 2^____ = ____
 python3 src/exercises/ex_5_01_cidr_flsm.py flsm 192.168.100.0/24 8
 ```
 
+<details>
+<summary>Click pentru soluție</summary>
+
+**Calcule:**
+- Biți împrumutați: log2(8) = 3
+- Prefix nou: 24 + 3 = /27
+- Salt: 2^(32-27) = 2^5 = 32
+
+**Subrețele:**
+| # | Adresa | Broadcast | Prima | Ultima |
+|---|--------|-----------|-------|--------|
+| 1 | .0 | .31 | .1 | .30 |
+| 2 | .32 | .63 | .33 | .62 |
+| 3 | .64 | .95 | .65 | .94 |
+| 4 | .96 | .127 | .97 | .126 |
+| 5 | .128 | .159 | .129 | .158 |
+| 6 | .160 | .191 | .161 | .190 |
+| 7 | .192 | .223 | .193 | .222 |
+| 8 | .224 | .255 | .225 | .254 |
+
+</details>
+
 ---
 
 ## Exercițiul T4: Analiză Captură Wireshark
 
-**Timp:** 15 minute
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 15 min | ★★★☆☆ | ANALYZE | Wireshark instalat |
 
 ### Pregătire
 
@@ -265,11 +295,22 @@ Pentru primul pachet ICMP Echo Request, completează:
 
 3. **Care e diferența între Echo Request și Echo Reply în câmpul Type?**
 
+<details>
+<summary>Click pentru răspunsuri</summary>
+
+1. TTL-ul scade cu 1 la fiecare router traversat
+2. Destinatarul devine sursa răspunsului (și invers)
+3. Echo Request = Type 8, Echo Reply = Type 0
+
+</details>
+
 ---
 
 ## Exercițiul T5: Trace Comprimare IPv6
 
-**Timp:** 10 minute
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 10 min | ★★☆☆☆ | APPLY | Reguli comprimare IPv6 |
 
 ### Input
 
@@ -314,11 +355,26 @@ Expandează `fe80::1` la forma completă:
 fe80::1 = ____:____:____:____:____:____:____:____
 ```
 
+<details>
+<summary>Click pentru soluție</summary>
+
+**Comprimare:**
+- Pas 1: 2001:db8:0:0:0:0:0:1
+- Pas 2: Grupuri 3-7 sunt zero (5 grupuri consecutive)
+- Pas 3: 2001:db8::1
+
+**Expandare fe80::1:**
+- fe80:0000:0000:0000:0000:0000:0000:0001
+
+</details>
+
 ---
 
 ## Exercițiul T6: Diagrama de Adresare
 
-**Timp:** 20 minute
+| ⏱️ Timp | 🧠 Complexitate | 📚 Nivel Bloom | 🔧 Prerequisite |
+|---------|-----------------|----------------|-----------------|
+| 20 min | ★★★★☆ | CREATE | VLSM, diagrame rețea |
 
 ### Scenariu
 
@@ -355,9 +411,20 @@ Rețea de bază: `10.0.0.0/24`
 | 20 | 25 | | |
 | 30 | 10 | | |
 
+<details>
+<summary>Click pentru soluție</summary>
+
+| VLAN | Gazde | Subrețea | Gateway |
+|------|-------|----------|---------|
+| 10 | 50 | 10.0.0.0/26 | 10.0.0.1 |
+| 20 | 25 | 10.0.0.64/27 | 10.0.0.65 |
+| 30 | 10 | 10.0.0.96/28 | 10.0.0.97 |
+
+</details>
+
 ---
 
-## Auto-Evaluare
+## ✓ Auto-Evaluare
 
 După completarea exercițiilor, verifică:
 
@@ -370,7 +437,21 @@ După completarea exercițiilor, verifică:
 | T5: IPv6 | ☐ | ☐ | ☐ |
 | T6: Diagramă | ☐ | ☐ | ☐ |
 
+### Checkpoint Final
+
+Dacă ai completat toate exercițiile, ar trebui să poți:
+- Calcula manual prefixul pentru orice număr de gazde
+- Aplica operația AND pentru a găsi adresa de rețea
+- Comprima și expanda adrese IPv6
+- Analiza pachete în Wireshark
+
 ---
+
+## Navigare Rapidă
+
+| ← Anterior | Document | Următor → |
+|------------|----------|-----------|
+| [Exerciții Perechi](exercitii_perechi.md) | **Exerciții Trace** | [Exemple Utilizare](exemple_utilizare.md) |
 
 ## Documente Înrudite
 

@@ -267,18 +267,31 @@ Start-Process "http://localhost:9000"
 # Verifică mediul
 python3 setup/verifica_mediu.py
 
+# Verifică calitatea materialelor
+python3 scripts/verifica_calitate.py
+
 # Rulează teste exerciții
 python3 -m pytest tests/test_exercitii.py -v
 
 # Teste pentru exercițiul 1
 python3 tests/test_exercitii.py --exercitiu 1
+
+# Rulează doctest-uri
+python3 tests/test_doctest.py
 ```
 
 ---
 
+## Navigare Rapidă
+
+| ← Anterior | Document | Următor → |
+|------------|----------|-----------|
+| [Rezumat Teoretic](rezumat_teorie.md) | **Fișa de Comenzi** | [Peer Instruction](peer_instruction.md) |
+
 ## Documente Înrudite
 
 - [README Principal](../README.md) — Ghid de pornire
+- [Glosar](GLOSSARY.md) — Termeni și definiții
 - [Rezumat Teoretic](rezumat_teorie.md) — Concepte și formule
 - [Depanare](depanare.md) — Soluții probleme
 - [Referință API](api_reference.md) — Documentație funcții

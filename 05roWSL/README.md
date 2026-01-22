@@ -67,6 +67,7 @@ D:\RETELE\
         │   ├── exercitii_perechi.md
         │   ├── exercitii_trace.md
         │   ├── fisa_comenzi.md
+        │   ├── GLOSSARY.md
         │   ├── peer_instruction.md
         │   └── rezumat_teorie.md
         ├── homework/        # Teme pentru acasă
@@ -127,11 +128,11 @@ ls -la
 
 Laboratorul 5 acoperă **Nivelul Rețea** din modelul TCP/IP: cum funcționează adresele IP, cum împarți o rețea în subrețele și când alegi FLSM vs VLSM.
 
-**În practică vei:**
-- Calcula adrese de rețea, broadcast și intervale de gazde
+**Ce faci concret în laborator:**
+- Calculezi adrese de rețea, broadcast și intervale de gazde
 - Împărți blocuri de adrese pentru departamente cu cerințe diferite
-- Compara eficiența FLSM vs VLSM pe scenarii reale
-- Observa pachete IP în Wireshark pe containere Docker
+- Compari eficiența FLSM vs VLSM pe scenarii reale
+- Observi pachete IP în Wireshark pe containere Docker
 
 **Mediul:** 3 containere pe rețeaua `week5_labnet` (10.5.0.0/24), gestionate prin Portainer la http://localhost:9000.
 
@@ -195,13 +196,67 @@ python3 scripts/porneste_laborator.py --status
 
 ---
 
+## ✓ Checkpoint: Verifică Configurarea
+
+Înainte de a continua cu exercițiile, asigură-te că:
+
+1. Docker rulează (`docker ps` funcționează)
+2. Portainer e accesibil la http://localhost:9000
+3. Containerele laboratorului pornesc fără erori
+
+<details>
+<summary>Probleme? Click aici</summary>
+
+```bash
+# Docker nu pornește?
+sudo service docker start
+
+# Portainer nu răspunde?
+docker start portainer
+
+# Containerele nu pornesc?
+cd /mnt/d/RETELE/SAPT5/05roWSL/docker
+docker compose up -d
+docker compose logs
+```
+
+Vezi [docs/depanare.md](docs/depanare.md) pentru mai multe soluții.
+
+</details>
+
+---
+
+## Mod Învățare (Recomandat pentru Începători)
+
+Toate exercițiile au un **mod interactiv** care te ghidează cu predicții pas-cu-pas:
+
+```bash
+# În loc de:
+python3 src/exercises/ex_5_01_cidr_flsm.py analizeaza 192.168.10.14/26
+
+# Folosește modul învățare:
+python3 src/exercises/ex_5_01_cidr_flsm.py invata 192.168.10.14/26
+```
+
+**De ce predicții?** Cercetările arată că a face o predicție înainte de a vedea răspunsul îmbunătățește retenția cu 30-50%.
+
+Modul învățare:
+- Te întreabă "Câte gazde utilizabile are această rețea?"
+- Aștepți să răspunzi
+- Îți arată răspunsul corect cu explicație
+- Continuă cu următoarea întrebare
+
+---
+
 ## Exerciții de Laborator
 
 ### Exercițiul 1: Analiză CIDR și Subnetare FLSM
 
-**Obiectiv:** Analizezi blocuri CIDR și aplici FLSM pentru subrețele egale.
+| ⏱️ Durată | 🧠 Complexitate | 📚 Nivel Bloom |
+|-----------|-----------------|----------------|
+| 25-30 min | ★★☆☆☆ | APPLY |
 
-**Durată:** 25-30 minute
+**Obiectiv:** Analizezi blocuri CIDR și aplici FLSM pentru subrețele egale.
 
 ```bash
 cd /mnt/d/RETELE/SAPT5/05roWSL
@@ -225,9 +280,11 @@ python3 tests/test_exercitii.py --exercitiu 1
 
 ### Exercițiul 2: Alocare VLSM și Operații IPv6
 
-**Obiectiv:** Implementezi VLSM pentru cerințe variabile și operații IPv6.
+| ⏱️ Durată | 🧠 Complexitate | 📚 Nivel Bloom |
+|-----------|-----------------|----------------|
+| 30-35 min | ★★★☆☆ | APPLY/ANALYZE |
 
-**Durată:** 30-35 minute
+**Obiectiv:** Implementezi VLSM pentru cerințe variabile și operații IPv6.
 
 ```bash
 # VLSM standard
@@ -245,9 +302,11 @@ python3 src/exercises/ex_5_02_vlsm_ipv6.py ipv6-expandare "2001:db8::1"
 
 ### Exercițiul 3: Quiz Interactiv
 
-**Obiectiv:** Testezi cunoștințele de adresare IP și subnetare.
+| ⏱️ Durată | 🧠 Complexitate | 📚 Nivel Bloom |
+|-----------|-----------------|----------------|
+| 15-20 min | ★★☆☆☆ | REMEMBER/UNDERSTAND |
 
-**Durată:** 15-20 minute
+**Obiectiv:** Testezi cunoștințele de adresare IP și subnetare.
 
 ```bash
 # Quiz standard
@@ -262,10 +321,30 @@ python3 src/exercises/ex_5_03_generator_quiz.py --intrebari 20 --dificultate gre
 
 ---
 
+## ✓ Checkpoint: După Exerciții
+
+Verifică că poți răspunde la:
+
+1. Care e formula pentru gazde utilizabile dintr-un prefix?
+2. De ce VLSM necesită sortare descrescătoare?
+3. Câte adrese are o rețea /26?
+
+<details>
+<summary>Verifică răspunsurile</summary>
+
+1. `Gazde = 2^(32-prefix) - 2`
+2. Subrețelele mari necesită aliniere la granițe mai mari; alocarea lor prima evită fragmentarea
+3. 64 adrese totale, 62 utilizabile pentru gazde
+
+</details>
+
+---
+
 ## Documentație
 
 | Document | Descriere |
 |----------|-----------|
+| [Glosar](docs/GLOSSARY.md) | Termeni tehnici și definiții |
 | [Rezumat Teoretic](docs/rezumat_teorie.md) | Concepte IPv4, IPv6, CIDR, VLSM |
 | [Fișa de Comenzi](docs/fisa_comenzi.md) | Referință rapidă pentru laborator |
 | [Depanare](docs/depanare.md) | Soluții pentru probleme comune |
