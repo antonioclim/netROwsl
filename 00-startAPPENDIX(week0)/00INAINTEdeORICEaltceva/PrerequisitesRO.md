@@ -28,7 +28,7 @@
 
 ### 1.1 Scopul Acestui Ghid
 
-Acest ghid comprehensiv vă conduce prin configurarea unui mediu complet de laborator pentru rețele pe Windows. La final, veți avea un mediu containerizat complet funcțional capabil de:
+Acest ghid complet vă conduce prin configurarea unui mediu complet de laborator pentru rețele pe Windows. La final, veți avea un mediu containerizat complet funcțional capabil de:
 
 - **Rularea experimentelor de rețea izolate** folosind containere Docker
 - **Capturarea și analiza traficului de rețea** cu Wireshark

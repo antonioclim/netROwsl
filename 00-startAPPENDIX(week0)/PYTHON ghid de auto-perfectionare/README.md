@@ -1,33 +1,42 @@
-# 🐍 Ghid Python pentru Rețele de Calculatoare
+# 🐍 Python pentru Rețele de Calculatoare
 
-Material complementar opțional pentru cursul de Rețele de Calculatoare.
+Material complementar pentru cursul de Rețele de Calculatoare.
 
-## 📁 Conținut
+## Structură
 
 ```
-PYTHON_NETWORKING_GUIDE_RO/
-├── GHID_PYTHON_NETWORKING_RO.md    # Ghidul principal elaborat
+PYTHON ghid de auto-perfectionare/
+├── GHID_PYTHON_NETWORKING_RO.md    # Ghidul principal (citește asta!)
 ├── cheatsheets/
-│   └── PYTHON_RAPID.md             # Referință rapidă pentru C/JS programatori
+│   └── PYTHON_RAPID.md             # Referință rapidă
 ├── examples/
-│   ├── 01_socket_tcp.py            # Server/Client TCP de bază
-│   ├── 02_bytes_vs_str.py          # Conversie bytes ↔ str
-│   └── 03_struct_parsing.py        # Parsing binar cu struct
-└── README.md                       # Acest fișier
+│   ├── 01_socket_tcp.py            # Server/Client TCP
+│   ├── 02_bytes_vs_str.py          # Bytes vs Strings
+│   └── 03_struct_parsing.py        # Parsing binar
+└── PRESENTATIONS_RO/
+    ├── 01_introducere_setup.html   # Slide-uri interactive
+    └── ...
 ```
 
-## 🚀 Utilizare
+## Cum să Folosești
 
-1. Citește ghidul principal (`GHID_PYTHON_NETWORKING_RO.md`)
-2. Parcurge pasul corespunzător săptămânii tale de laborator
-3. Rulează exemplele pentru practică
+1. **Citește ghidul** — `GHID_PYTHON_NETWORKING_RO.md`
+2. **Rulează exemplele** — în folderul `examples/`
+3. **Parcurge prezentările** — deschide fișierele HTML în browser
 
-## 🔗 Resurse
+## Cerințe
 
-- Repository curs: https://github.com/antonioclim/netROwsl
-- Documentație Python: https://docs.python.org/3/
+- Python 3.11+
+- WSL2 cu Ubuntu 22.04 (recomandat)
+- Docker (pentru exercițiile avansate)
 
-## 📝 Note
+## Note
 
-Acest material este **opțional** și nu are impact asupra notării.
-Este destinat studenților care doresc să înțeleagă mai bine codul Python din laboratoare.
+- Acest material este **opțional**
+- Nu afectează nota la laborator
+- Scopul e înțelegerea conceptelor Python din spatele exercițiilor
+
+---
+
+*Versiune: 2.0 — Ianuarie 2025*
+*Cu îmbunătățiri pedagogice CPA și Peer Instruction*

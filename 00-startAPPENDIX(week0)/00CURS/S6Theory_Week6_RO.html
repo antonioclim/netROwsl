@@ -879,13 +879,13 @@
 </head>
 <body>
     <!-- Progress Bar -->
-    <div class="progress-bar" id="progressBar"></div>
+    <div class="progress-bar" role="progressbar" aria-valuemin="1" id="progressBar"></div>
     
     <!-- Course Identifier -->
     <div class="course-id">CSIE · Rețele de Calculatoare</div>
     
     <!-- Slide Counter -->
-    <div class="slide-counter" id="slideCounter">1 / 55</div>
+    <div class="slide-counter" aria-live="polite" id="slideCounter">1 / 55</div>
     
     <!-- Main Presentation -->
     <div class="presentation" id="presentation">
@@ -2495,7 +2495,7 @@ INTERFACES="eth0"</pre>
                         <li><strong>Trusted ports</strong> — Connect to legitimate DHCP servers only</li>
                         <li><strong>Untrusted ports</strong> — Block DHCP OFFER/ACK from clients</li>
                         <li><strong>Limitare de rată</strong> — Prevent DISCOVER floods</li>
-                        <li>Works with <strong>Dinamică ARP Inspection</strong> for comprehensive protection</li>
+                        <li>Works with <strong>Dinamică ARP Inspection</strong> for complete protection</li>
                     </ul>
                 </div>
             </div>
@@ -3403,7 +3403,7 @@ iptables -t nat -L POSTROUTING -v -n
             </div>
         </div>
         
-        <!-- Slide 54: Final Comprehensive Quiz -->
+        <!-- Slide 54: Final complete Quiz -->
         <div class="slide" data-slide="54">
             <div class="slide-header">
                 <h2>🏆 Quiz Final Cuprinzător</h2>

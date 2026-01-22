@@ -1,61 +1,382 @@
 #!/usr/bin/env python3
 """
 Exemplu 3: Parsing binar cu struct
+==================================
 Demonstrează extragerea datelor din headere de protocol.
+
+Curs: Rețele de Calculatoare - ASE București, CSIE
+Autor: ing. dr. Antonio Clim
+
+💡 ANALOGIE: Pachetele de Rețea ca Scrisori Poștale
+---------------------------------------------------
+| Element Pachet | Element Scrisoare                    |
+|----------------|--------------------------------------|
+| Header IP      | Plicul cu adrese (expeditor, dest.)  |
+| Header TCP     | Ștampila și numărul de înregistrare  |
+| Payload        | Conținutul scrisorii din plic        |
+| Checksum       | Sigiliul de ceară (verifică integr.) |
+| TTL            | "Returnează după 30 zile dacă nu..."  |
+
+struct.unpack() = deschizi plicul și citești adresele în format standard
+
+Obiective de învățare:
+- Înțelegerea formatului binar al headerelor de protocol
+- Folosirea modului struct pentru parsing
+- Interpretarea câmpurilor unui header IP
 """
 import struct
 import socket
+import logging
+from typing import Optional
+from dataclasses import dataclass
 
-def parseaza_header_ip(data: bytes) -> dict:
-    """Parsează un header IP (primii 20 bytes)."""
+# Configurare logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%H:%M:%S'
+)
+logger = logging.getLogger(__name__)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STRUCTURI DE DATE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class HeaderIP:
+    """Reprezentare structurată a unui header IPv4.
+    
+    Attributes:
+        version: Versiunea IP (4 pentru IPv4)
+        header_length: Lungimea headerului în bytes
+        tos: Type of Service / DSCP
+        total_length: Lungimea totală a pachetului
+        identification: ID pentru fragmentare
+        flags: Flags pentru fragmentare (DF, MF)
+        fragment_offset: Offset-ul fragmentului
+        ttl: Time To Live
+        protocol: Protocolul încapsulat (6=TCP, 17=UDP, 1=ICMP)
+        checksum: Checksum header (hex)
+        src_ip: Adresa IP sursă
+        dst_ip: Adresa IP destinație
+    """
+    version: int
+    header_length: int
+    tos: int
+    total_length: int
+    identification: int
+    flags: int
+    fragment_offset: int
+    ttl: int
+    protocol: int
+    checksum: str
+    src_ip: str
+    dst_ip: str
+
+
+# Mapare numere protocol la nume
+PROTOCOL_NAMES: dict[int, str] = {
+    1: "ICMP",
+    6: "TCP",
+    17: "UDP",
+    47: "GRE",
+    50: "ESP",
+    51: "AH",
+    89: "OSPF",
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCȚII DE PARSING
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def parseaza_header_ip(data: bytes) -> HeaderIP:
+    """Parsează un header IPv4 din date binare.
+    
+    Extrage toate câmpurile standard dintr-un header IPv4 de 20 bytes.
+    
+    Args:
+        data: Minimum 20 bytes reprezentând headerul IP
+        
+    Returns:
+        HeaderIP cu toate câmpurile populate
+        
+    Raises:
+        TypeError: Dacă data nu este de tip bytes
+        ValueError: Dacă data are mai puțin de 20 bytes sau format invalid
+        
+    Example:
+        >>> header = parseaza_header_ip(raw_packet[:20])
+        >>> print(header.src_ip)
+        '192.168.1.1'
+        
+    Note:
+        Format struct: !BBHHHBBHII
+        - ! = network byte order (big-endian)
+        - B = unsigned char (1 byte)
+        - H = unsigned short (2 bytes)
+        - I = unsigned int (4 bytes)
+    """
+    # ─────────────────────────────────────────────────────────────
+    # VALIDARE INPUT
+    # ─────────────────────────────────────────────────────────────
+    if not isinstance(data, bytes):
+        raise TypeError(
+            f"Se așteaptă bytes, primit {type(data).__name__}. "
+            f"Folosește data.encode() dacă ai un string."
+        )
+    
     if len(data) < 20:
-        raise ValueError("Date insuficiente pentru header IP")
+        raise ValueError(
+            f"Date insuficiente: {len(data)} bytes (minim 20 pentru header IP). "
+            f"Verifică dacă ai capturat headerul complet."
+        )
     
-    # Format: !BBHHHBBHII
-    # B = unsigned char (1 byte)
-    # H = unsigned short (2 bytes)
-    # I = unsigned int (4 bytes)
-    fields = struct.unpack('!BBHHHBBHII', data[:20])
+    # ─────────────────────────────────────────────────────────────
+    # PARSING CU STRUCT
+    # ─────────────────────────────────────────────────────────────
+    try:
+        # Format: Version+IHL, TOS, TotalLen, ID, Flags+FragOff, TTL, Proto, Checksum, SrcIP, DstIP
+        fields = struct.unpack('!BBHHHBBHII', data[:20])
+        logger.debug(f"Câmpuri raw: {fields}")
+        
+    except struct.error as e:
+        raise ValueError(
+            f"Format binar invalid: {e}. "
+            f"Bytes-ii nu corespund formatului header IP."
+        ) from e
     
-    version_ihl = fields[0]
-    version = version_ihl >> 4
-    ihl = (version_ihl & 0x0F) * 4
+    # ─────────────────────────────────────────────────────────────
+    # EXTRAGERE CÂMPURI
+    # ─────────────────────────────────────────────────────────────
     
-    return {
-        'version': version,
-        'header_length': ihl,
-        'tos': fields[1],
-        'total_length': fields[2],
-        'identification': fields[3],
-        'ttl': fields[5],
-        'protocol': fields[6],
-        'checksum': hex(fields[7]),
-        'src_ip': socket.inet_ntoa(struct.pack('!I', fields[8])),
-        'dst_ip': socket.inet_ntoa(struct.pack('!I', fields[9])),
-    }
+    # Primul byte conține Version (4 biți) și IHL (4 biți)
+    version_ihl: int = fields[0]
+    version: int = version_ihl >> 4  # Primii 4 biți
+    ihl: int = (version_ihl & 0x0F)  # Ultimii 4 biți
+    header_length: int = ihl * 4     # IHL e în unități de 4 bytes
+    
+    # Validare versiune
+    if version != 4:
+        logger.warning(f"Versiune IP neașteptată: {version} (așteptat 4)")
+    
+    # Flags și Fragment Offset (bytes 6-7)
+    flags_frag: int = fields[4]
+    flags: int = flags_frag >> 13           # Primii 3 biți
+    fragment_offset: int = flags_frag & 0x1FFF  # Ultimii 13 biți
+    
+    # Conversie adrese IP din format binar în string
+    try:
+        src_ip: str = socket.inet_ntoa(struct.pack('!I', fields[8]))
+        dst_ip: str = socket.inet_ntoa(struct.pack('!I', fields[9]))
+    except (socket.error, struct.error) as e:
+        logger.error(f"Eroare la conversia adreselor IP: {e}")
+        src_ip = f"invalid:{fields[8]:08x}"
+        dst_ip = f"invalid:{fields[9]:08x}"
+    
+    return HeaderIP(
+        version=version,
+        header_length=header_length,
+        tos=fields[1],
+        total_length=fields[2],
+        identification=fields[3],
+        flags=flags,
+        fragment_offset=fragment_offset,
+        ttl=fields[5],
+        protocol=fields[6],
+        checksum=f"0x{fields[7]:04x}",
+        src_ip=src_ip,
+        dst_ip=dst_ip,
+    )
 
-def demo():
-    # Simulăm un header IP
-    header = struct.pack('!BBHHHBBHII',
-        0x45,           # Version (4) + IHL (5) = 20 bytes
-        0x00,           # TOS
-        40,             # Total length
+
+def get_protocol_name(protocol_num: int) -> str:
+    """Returnează numele protocolului pentru un număr dat.
+    
+    Args:
+        protocol_num: Numărul protocolului din header IP
+        
+    Returns:
+        Numele protocolului sau "Unknown (N)" dacă nu e cunoscut
+        
+    Example:
+        >>> get_protocol_name(6)
+        'TCP'
+    """
+    return PROTOCOL_NAMES.get(protocol_num, f"Unknown ({protocol_num})")
+
+
+def afiseaza_header(header: HeaderIP) -> None:
+    """Afișează un header IP într-un format citibil.
+    
+    Args:
+        header: Obiect HeaderIP de afișat
+        
+    Returns:
+        None. Afișează la consolă.
+    """
+    protocol_name: str = get_protocol_name(header.protocol)
+    
+    # Interpretare flags
+    flags_str: list[str] = []
+    if header.flags & 0x4:
+        flags_str.append("Reserved")
+    if header.flags & 0x2:
+        flags_str.append("DF (Don't Fragment)")
+    if header.flags & 0x1:
+        flags_str.append("MF (More Fragments)")
+    flags_display: str = ", ".join(flags_str) if flags_str else "None"
+    
+    print(f"""
+╔═══════════════════════════════════════════════════════════════════════╗
+║                         HEADER IPv4 PARSAT                            ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  Versiune:         {header.version:<10} (IPv{header.version})                          ║
+║  Header Length:    {header.header_length:<10} bytes                                ║
+║  Type of Service:  {header.tos:<10} (0x{header.tos:02x})                            ║
+║  Total Length:     {header.total_length:<10} bytes                                ║
+║  Identification:   {header.identification:<10} (0x{header.identification:04x})                          ║
+║  Flags:            {flags_display:<45}║
+║  Fragment Offset:  {header.fragment_offset:<10}                                    ║
+║  TTL:              {header.ttl:<10} hops                                ║
+║  Protocol:         {header.protocol:<10} ({protocol_name})                          ║
+║  Header Checksum:  {header.checksum:<10}                                    ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  Source IP:        {header.src_ip:<20}                         ║
+║  Destination IP:   {header.dst_ip:<20}                         ║
+╚═══════════════════════════════════════════════════════════════════════╝
+""")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEMONSTRAȚIE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def demo() -> None:
+    """Demonstrație completă a parsing-ului de header IP.
+    
+    Generează un header IP valid, îl parsează și afișează rezultatul.
+    Include și demonstrații de gestionare a erorilor.
+    
+    Returns:
+        None. Afișează output la consolă.
+    """
+    print("=" * 70)
+    print("DEMONSTRAȚIE: Parsing Header IP cu struct")
+    print("=" * 70)
+    
+    # ─────────────────────────────────────────────────────────────
+    # PARTEA 1: Generare header de test
+    # ─────────────────────────────────────────────────────────────
+    print("\n📦 PARTEA 1: Generare header IP de test")
+    print("-" * 50)
+    
+    # Construim un header IP valid
+    header_bytes: bytes = struct.pack('!BBHHHBBHII',
+        0x45,           # Version (4) + IHL (5) = 20 bytes header
+        0x00,           # TOS (0 = normal)
+        40,             # Total length (20 header + 20 TCP)
         0x1234,         # Identification
-        0x4000,         # Flags + Fragment offset
-        64,             # TTL
-        6,              # Protocol (TCP)
-        0x0000,         # Checksum
+        0x4000,         # Flags (Don't Fragment) + Frag offset (0)
+        64,             # TTL (64 hops - standard Linux)
+        6,              # Protocol (6 = TCP)
+        0x0000,         # Checksum (0 = nu calculăm)
         0xC0A80101,     # Source: 192.168.1.1
-        0x08080808,     # Dest: 8.8.8.8
+        0x08080808,     # Dest: 8.8.8.8 (Google DNS)
     )
     
-    print("Header IP generat:")
-    print(f"Hex: {header.hex()}")
-    print(f"\nParsare:")
+    print(f"Header generat ({len(header_bytes)} bytes):")
+    print(f"  Raw bytes: {header_bytes}")
+    print(f"  Hex: {header_bytes.hex()}")
     
-    result = parseaza_header_ip(header)
-    for key, value in result.items():
-        print(f"  {key}: {value}")
+    # Afișare hex formatată (ca în Wireshark)
+    print(f"  Wireshark view:")
+    hex_str: str = header_bytes.hex()
+    for i in range(0, len(hex_str), 4):
+        chunk: str = hex_str[i:i+4]
+        if i > 0 and i % 32 == 0:
+            print()
+        print(f"  {chunk}", end=" ")
+    print()
+    
+    # ─────────────────────────────────────────────────────────────
+    # PARTEA 2: Parsing
+    # ─────────────────────────────────────────────────────────────
+    print("\n🔍 PARTEA 2: Parsing header")
+    print("-" * 50)
+    
+    try:
+        header: HeaderIP = parseaza_header_ip(header_bytes)
+        afiseaza_header(header)
+        logger.info(f"Header parsat cu succes: {header.src_ip} → {header.dst_ip}")
+        
+    except (TypeError, ValueError) as e:
+        logger.error(f"Eroare la parsing: {e}")
+        print(f"❌ Eroare: {e}")
+        return
+    
+    # ─────────────────────────────────────────────────────────────
+    # PARTEA 3: Demonstrație erori
+    # ─────────────────────────────────────────────────────────────
+    print("\n⚠️  PARTEA 3: Gestionare erori")
+    print("-" * 50)
+    
+    # Test 1: Date insuficiente
+    print("\nTest 1: Date insuficiente (10 bytes în loc de 20)")
+    try:
+        parseaza_header_ip(b'\x45\x00\x00\x28\x12\x34\x40\x00\x40\x06')
+    except ValueError as e:
+        print(f"  ✅ Eroare așteptată: {e}")
+    
+    # Test 2: Tip greșit
+    print("\nTest 2: Tip greșit (string în loc de bytes)")
+    try:
+        parseaza_header_ip("not bytes")  # type: ignore
+    except TypeError as e:
+        print(f"  ✅ Eroare așteptată: {e}")
+    
+    print("\n✅ Demonstrație completată!")
+
+
+def quiz_struct() -> None:
+    """Quiz pentru verificarea înțelegerii struct."""
+    print("""
+╔═══════════════════════════════════════════════════════════════════════╗
+║  🗳️  QUIZ: struct.unpack                                              ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║                                                                       ║
+║  🔮 PREDICȚIE: Ce returnează acest cod?                               ║
+║                                                                       ║
+║      data = b'\\x00\\x50'  # 2 bytes                                    ║
+║      port, = struct.unpack('!H', data)                                ║
+║      print(port)                                                      ║
+║                                                                       ║
+║  Opțiuni:                                                             ║
+║    A) 80                                                              ║
+║    B) 20480                                                           ║
+║    C) "\\x00\\x50"                                                      ║
+║    D) (80,)                                                           ║
+║                                                                       ║
+║  Răspuns: A                                                           ║
+║                                                                       ║
+║  Explicație:                                                          ║
+║  - '!H' = network byte order, unsigned short (2 bytes)                ║
+║  - 0x0050 în big-endian = 80 în decimal                               ║
+║  - Virgula după 'port' extrage valoarea din tuplu                     ║
+║  - B ar fi corect dacă era '!h' (little-endian pe Windows)            ║
+║                                                                       ║
+╚═══════════════════════════════════════════════════════════════════════╝
+""")
+
 
 if __name__ == "__main__":
-    demo()
+    try:
+        demo()
+        quiz_struct()
+        
+    except KeyboardInterrupt:
+        print("\n\n👋 Întrerupt de utilizator")
+    except Exception as e:
+        logger.exception(f"Eroare neașteptată: {e}")
+        print(f"\n❌ Eroare neașteptată: {e}")

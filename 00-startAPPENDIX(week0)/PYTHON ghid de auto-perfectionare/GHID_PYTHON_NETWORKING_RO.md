@@ -4,7 +4,8 @@
 > **Material complementar** pentru cursul de Rețele de Calculatoare  
 > **Repository:** [github.com/antonioclim/netROwsl](https://github.com/antonioclim/netROwsl)  
 > **Status:** Opțional, fără evaluare  
-> **Mediu:** WSL2 + Ubuntu 22.04 + Docker + Portainer
+> **Mediu:** WSL2 + Ubuntu 22.04 + Docker + Portainer  
+> **Versiune:** 2.0 — Ianuarie 2025
 
 ---
 
@@ -22,9 +23,10 @@
    - [Pas 7: Concurență](#pas-7-concurență)
    - [Pas 8: HTTP și Protocoale Aplicație](#pas-8-http-și-protocoale-aplicație)
    - [Pas 9: Practici și Debugging](#pas-9-practici-și-debugging)
-4. [Exerciții de Explorare pe Săptămâni](#exerciții-de-explorare-pe-săptămâni)
-5. [Referință Rapidă Python-Networking](#referință-rapidă-python-networking)
-6. [Resurse Suplimentare](#resurse-suplimentare)
+4. [Verificare Înțelegere (Peer Instruction)](#verificare-înțelegere-peer-instruction)
+5. [Exerciții de Explorare pe Săptămâni](#exerciții-de-explorare-pe-săptămâni)
+6. [Referință Rapidă Python-Networking](#referință-rapidă-python-networking)
+7. [Resurse Suplimentare](#resurse-suplimentare)
 
 ---
 
@@ -70,37 +72,15 @@ netROwsl/
 │   │   ├── exercises/                # ← EXERCIȚIILE PRINCIPALE
 │   │   │   ├── ex_1_01_latenta_ping.py
 │   │   │   ├── ex_1_02_tcp_server_client.py
-│   │   │   ├── ex_1_03_parsare_csv.py
-│   │   │   ├── ex_1_04_statistici_pcap.py
-│   │   │   └── ex_1_05_intarziere_transmisie.py
+│   │   │   └── ...
 │   │   ├── apps/                     # Aplicații demonstrative complete
 │   │   └── utils/                    # Funcții helper reutilizabile
-│   │       └── net_utils.py
 │   ├── scripts/                      # Scripturi de orchestrare
-│   │   ├── porneste_lab.py
-│   │   ├── opreste_lab.py
-│   │   ├── captura_trafic.py
-│   │   └── utils/
-│   │       ├── docker_utils.py
-│   │       ├── logger.py
-│   │       └── network_utils.py
 │   ├── docker/                       # Configurări Docker
-│   │   ├── Dockerfile.lab
-│   │   └── docker-compose.yml
 │   ├── docs/                         # Documentație
-│   │   ├── rezumat_teoretic.md
-│   │   ├── fisa_comenzi.md
-│   │   ├── depanare.md
-│   │   └── lecturi_suplimentare.md
 │   ├── tests/                        # Teste automate
-│   │   ├── test_exercitii.py
-│   │   ├── test_mediu.py
-│   │   └── test_rapid.py
-│   ├── homework/                     # Teme pentru acasă
 │   └── README.md
-├── 02roWSL/                          # Săptămâna 2
-├── ...
-└── 14roWSL/                          # Săptămâna 14
+├── 02roWSL/ ... 14roWSL/
 ```
 
 ### Tabel de Corespondență Săptămâni
@@ -108,7 +88,7 @@ netROwsl/
 | Folder | Săptămână | Temă Networking | Pas Python Corelat |
 |--------|-----------|-----------------|-------------------|
 | `01roWSL` | S1-2 | Fundamentele rețelelor | Pas 1: Citirea codului |
-| `02roWSL` | S2-3 | Socket programming TCP/UDP | Pas 2 + Pas 3: Tipuri + Sockets |
+| `02roWSL` | S2-3 | Socket programming TCP/UDP | Pas 2 + Pas 3 |
 | `03roWSL` | S3 | Broadcast, Multicast, Tunnel | Pas 3: Sockets avansate |
 | `04roWSL` | S4 | Physical/Data Link Layer | Pas 4: Organizare cod |
 | `05roWSL` | S5 | Network Layer, IP, Subnetting | Pas 5: CLI argparse |
@@ -128,6 +108,20 @@ netROwsl/
 
 ### Pas 1: Citirea Codului Python
 **📅 Corelat cu:** Săptămânile 1-2 (`01roWSL`, `02roWSL`)
+
+#### 💡 Analogie: Codul Python ca Rețetă de Bucătărie
+
+Citirea codului Python e ca citirea unei rețete înainte să gătești:
+
+| Element Cod | Echivalent Rețetă |
+|-------------|-------------------|
+| **Importurile** (`import socket`) | Lista de ingrediente — ce ai nevoie înainte să începi |
+| **Funcțiile** (`def server():`) | Pașii rețetei — instrucțiuni de urmat în ordine |
+| **Variabilele** (`port = 8080`) | Bolurile și castroanele — unde ții ingredientele temporar |
+| **Returnul** (`return rezultat`) | Farfuria servită — rezultatul final |
+| **Comentariile** (`# explicație`) | Notițele bucătarului — sfaturi pentru următoarea încercare |
+
+**De ce contează:** Nimeni nu gătește citind rețeta cuvânt cu cuvânt în timp ce lucrează. Mai întâi o parcurgi să înțelegi fluxul, apoi execuți.
 
 #### De Ce Contează
 
@@ -167,6 +161,7 @@ class RezultatPing:
     reusit: bool
     mesaj: str = ""
 ```
+
 Compară cu `struct` din C:
 ```c
 // Echivalent C
@@ -200,25 +195,54 @@ def masoara_latenta(gazda: str, numar: int = 3) -> float:
 | Array | `int arr[] = {1,2,3}` | `let arr = [1,2,3]` | `arr = [1, 2, 3]` |
 | Dicționar | `HashMap<>` | `{key: value}` | `{key: value}` |
 
-#### Explorare Practică
+#### 🔍 De Ce Funcționează Așa?
 
-1. **Rulează** `ex_1_01_latenta_ping.py`:
-   ```bash
-   cd /mnt/d/NETWORKING/netROwsl/01roWSL
-   python3 src/exercises/ex_1_01_latenta_ping.py --gazda 127.0.0.1 --numar 5
-   ```
+**Întrebare:** De ce Python nu are `{` și `}` ca C sau Java?
 
-2. **Identifică** în cod:
-   - Ce face decoratorul `@dataclass`?
-   - Ce înseamnă `Optional[float]`?
-   - Cum funcționează `subprocess.run()`?
+**Explicație:** Python folosește **indentarea** (spații sau tab-uri) pentru a defini blocurile de cod. Asta forțează codul să fie citibil — nu poți scrie totul pe o linie. E o decizie de design a limbajului.
 
-3. **Modifică** parametrul implicit pentru `--numar` de la 3 la 10 și rulează din nou.
+**Consecință practică:** Dacă amesteci tab-uri cu spații, vei primi `IndentationError`. Configurează editorul să folosească 4 spații.
+
+#### 🔮 PREDICȚIE: Explorare Practică
+
+Înainte să rulezi comanda de mai jos, răspunde:
+1. Ce output te aștepți să vezi?
+2. Ce se întâmplă dacă gazda nu există?
+
+```bash
+cd /mnt/d/NETWORKING/netROwsl/01roWSL
+python3 src/exercises/ex_1_01_latenta_ping.py --gazda 127.0.0.1 --numar 5
+```
+
+<details>
+<summary>✅ Verifică predicția</summary>
+
+**Output așteptat:** 5 rezultate ping cu RTT în milisecunde către localhost.
+
+**Dacă gazda nu există:** Ping-urile vor eșua cu timeout sau "Host unreachable".
+
+</details>
+
+**Identifică** în cod:
+- Ce face decoratorul `@dataclass`?
+- Ce înseamnă `Optional[float]`?
+- Cum funcționează `subprocess.run()`?
 
 ---
 
 ### Pas 2: Tipuri de Date pentru Networking
 **📅 Corelat cu:** Săptămânile 2-3 (`02roWSL`, `03roWSL`)
+
+#### 💡 Analogie: Bytes și Strings ca Scrisori și Telegrame
+
+| Concept | Echivalent din Viața Reală |
+|---------|---------------------------|
+| **String** (`str`) | Scrisoare în română pe care o citești direct |
+| **Bytes** (`bytes`) | Telegramă codificată în Morse — trebuie decodată |
+| **encode()** | A traduce scrisoarea în Morse pentru transmisie |
+| **decode()** | A traduce Morse-ul înapoi în text lizibil |
+
+**De ce contează:** Rețeaua "vorbește" doar în Morse (bytes). Calculatorul tău "gândește" în text (strings). Trebuie mereu să traduci.
 
 #### De Ce Contează
 
@@ -244,7 +268,13 @@ mesaj_bytes = mesaj_text.encode('utf-8')
 mesaj_text = mesaj_bytes.decode('utf-8')
 ```
 
-**De ce contează?** Socket-urile trimit și primesc `bytes`. Consolă afișează `str`. Trebuie să convertești mereu.
+#### 🔍 De Ce Funcționează Așa?
+
+**Întrebare:** De ce Python 3 a separat strict `bytes` de `str`?
+
+**Explicație:** În Python 2, strings erau bytes implicit, ceea ce cauza bug-uri subtile cu caractere non-ASCII (românești, chinezești, emoji). Python 3 forțează programatorul să fie explicit despre encoding, prevenind coruperea datelor.
+
+**Consecință practică:** Dacă trimiți `str` pe un socket în loc de `bytes`, primești `TypeError`. E un reminder că rețeaua nu înțelege text direct.
 
 **2. Dataclasses pentru Structuri Protocol**
 ```python
@@ -286,17 +316,42 @@ headers = {
 # Rezultat: {'Host': 'localhost', 'Content-Type': 'text/html'}
 ```
 
-#### Explorare Practică
+#### 🔮 PREDICȚIE: Explorare Practică
 
 În `02roWSL/src/exercises/ex_2_01_tcp.py`:
-1. Găsește unde se face conversia `encode()`/`decode()`
-2. Observă cum se folosește `sendall()` vs `send()`
-3. Ce se întâmplă dacă trimiți `str` în loc de `bytes`?
+
+**Înainte să te uiți la cod, prezice:**
+1. Unde se face conversia `encode()`?
+2. Ce eroare apare dacă trimiți `str` în loc de `bytes`?
+
+<details>
+<summary>✅ Verifică</summary>
+
+1. La `send()` sau `sendall()` — datele trebuie să fie bytes
+2. `TypeError: a bytes-like object is required, not 'str'`
+
+</details>
 
 ---
 
 ### Pas 3: Socket Programming
 **📅 Corelat cu:** Săptămânile 2-4 (`02roWSL`, `03roWSL`, `04roWSL`)
+
+#### 💡 Analogie: Socket-ul ca Telefon Fix
+
+| Operație Socket | Echivalent Telefon |
+|-----------------|-------------------|
+| `socket()` | Cumperi un telefon nou |
+| `bind()` | Îți aloci un număr de telefon (port) |
+| `listen()` | Pui telefonul în priză, aștepți apeluri |
+| `accept()` | Ridici receptorul când sună |
+| `connect()` | Formezi numărul cuiva |
+| `send()/recv()` | Vorbești / Asculți |
+| `close()` | Închizi telefonul |
+
+**TCP vs UDP:**
+- **TCP** = convorbire telefonică (confirmi că celălalt e pe fir, vorbești pe rând)
+- **UDP** = mesaj vocal pe robot (trimiți și speri că ajunge, fără confirmare)
 
 #### De Ce Contează
 
@@ -307,8 +362,6 @@ Socket-urile sunt fundamentul comunicării în rețea. Exercițiile implementeaz
 - `02roWSL/src/exercises/ex_2_01_tcp.py` — Server/Client TCP
 - `02roWSL/src/exercises/ex_2_02_udp.py` — Server/Client UDP
 - `03roWSL/src/exercises/ex_3_01_udp_broadcast.py` — UDP Broadcast
-- `03roWSL/src/exercises/ex_3_02_udp_multicast.py` — UDP Multicast
-- `03roWSL/src/exercises/ex_3_03_tcp_tunnel.py` — TCP Tunnel
 
 #### Comparație C vs. Python
 
@@ -337,17 +390,28 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 # Socket-ul se închide automat la ieșirea din 'with'
 ```
 
+#### 🔍 De Ce Funcționează Așa?
+
+**Întrebare:** De ce avem nevoie de `SO_REUSEADDR`?
+
+**Explicație:** Când un server se oprește, sistemul de operare ține portul "rezervat" ~60 secunde (TIME_WAIT). Fără `SO_REUSEADDR`, nu poți reporni serverul imediat — primești "Address already in use".
+
+**Consecință practică:** Mereu adaugă această linie înainte de `bind()`:
+```python
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+```
+
 #### Context Managers (`with`)
 
 `with` garantează că resursa se închide chiar dacă apare o excepție:
 ```python
-# Fără with (risc de leak)
+# Fără with (risc de resource leak)
 sock = socket.socket(...)
 sock.connect(...)
 data = sock.recv(1024)  # Dacă aici apare eroare?
 sock.close()  # Nu se mai execută!
 
-# Cu with (safe)
+# Cu with (sigur)
 with socket.socket(...) as sock:
     sock.connect(...)
     data = sock.recv(1024)
@@ -356,7 +420,6 @@ with socket.socket(...) as sock:
 
 #### Server TCP Minimal
 
-Din `02roWSL/src/exercises/ex_2_01_tcp.py`:
 ```python
 def run_server(host: str, port: int):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
@@ -382,35 +445,49 @@ def run_server(host: str, port: int):
 | Garantii | Ordonat, fără pierderi | Fără garantii |
 | Overhead | Mai mare | Mai mic |
 
-#### Explorare Practică
+#### 🔮 PREDICȚIE: Explorare Practică
 
-1. Rulează serverul și clientul TCP:
-   ```bash
-   # Terminal 1 - Server
-   python3 02roWSL/src/exercises/ex_2_01_tcp.py server --port 9090
-   
-   # Terminal 2 - Client
-   python3 02roWSL/src/exercises/ex_2_01_tcp.py client --host 127.0.0.1 --port 9090 -m "test"
-   ```
+**Înainte să rulezi:**
+```bash
+# Terminal 1 - Server
+python3 02roWSL/src/exercises/ex_2_01_tcp.py server --port 9090
+```
 
-2. Compară `ex_2_01_tcp.py` și `ex_2_02_udp.py`:
-   - Ce metode diferă?
-   - Ce se întâmplă când serverul UDP nu rulează?
+**Prezice:**
+1. Ce mesaj va apărea?
+2. Ce se întâmplă dacă portul 9090 e deja ocupat?
+3. Ce se întâmplă dacă rulezi comanda a doua oară în alt terminal?
+
+<details>
+<summary>✅ Verifică</summary>
+
+1. "Server pornit pe 0.0.0.0:9090" sau similar
+2. `OSError: Address already in use`
+3. Același lucru — un singur proces poate asculta pe un port
+
+</details>
 
 ---
 
 ### Pas 4: Organizarea Codului
 **📅 Corelat cu:** Săptămâna 4 (`04roWSL`)
 
+#### 💡 Analogie: Module Python ca Sertare într-un Dulap
+
+| Element Cod | Echivalent Dulap |
+|-------------|------------------|
+| **Fișierul `.py`** | Un sertar cu un scop specific |
+| **`import`** | Deschizi sertarul și iei ce ai nevoie |
+| **`from X import Y`** | Deschizi sertarul X și iei doar obiectul Y |
+| **`utils/`** | Sertarul cu unelte generale (șurubelnițe, bandă) |
+| **`exercises/`** | Sertarul cu proiectele în lucru |
+| **`__init__.py`** | Eticheta de pe sertar care spune ce conține |
+
+**De ce contează:** Un dulap bine organizat = un proiect ușor de navigat. Găsești rapid ce cauți.
+
 #### De Ce Contează
 
 Kit-urile au o structură consistentă: `src/`, `scripts/`, `utils/`. Înțelegerea organizării te ajută să navighezi și să reutilizezi codul.
-
-#### Fișiere de Referință
-
-- `04roWSL/src/utils/protocol_utils.py`
-- `04roWSL/src/apps/binary_proto_server.py`
-- `04roWSL/src/apps/text_proto_client.py`
 
 #### Structura Modulară
 
@@ -420,17 +497,9 @@ Kit-urile au o structură consistentă: `src/`, `scripts/`, `utils/`. Înțelege
 ├── exercises/
 │   ├── __init__.py
 │   ├── ex1_text_client.py
-│   ├── ex2_binary_client.py
-│   ├── ex3_udp_sensor.py
-│   └── ex4_crc_detection.py
+│   └── ...
 ├── apps/                # Aplicații complete demonstrative
-│   ├── __init__.py
-│   ├── binary_proto_client.py
-│   ├── binary_proto_server.py
-│   ├── text_proto_client.py
-│   ├── text_proto_server.py
-│   ├── udp_sensor_client.py
-│   └── udp_sensor_server.py
+│   └── ...
 └── utils/               # Funcții helper reutilizabile
     ├── __init__.py
     └── protocol_utils.py
@@ -452,38 +521,34 @@ Apoi poți importa:
 from src.utils import calculeaza_crc
 ```
 
-#### Pattern de Import
+#### 🔍 De Ce Funcționează Așa?
 
-```python
-# Import din biblioteca standard
-import socket
-from dataclasses import dataclass
+**Întrebare:** De ce avem nevoie de `__init__.py` gol în fiecare folder?
 
-# Import din pachetele proiectului
-from src.utils.protocol_utils import calculeaza_crc
-from scripts.utils.logger import setup_logger
-```
+**Explicație:** Fără el, Python nu recunoaște folderul ca pachet și nu poți face `import` din el. În Python 3.3+ poți folosi "namespace packages" fără `__init__.py`, dar explicit e mai clar.
 
-#### Explorare Practică
-
-1. Deschide `04roWSL/src/utils/protocol_utils.py` și vezi funcțiile disponibile
-2. Găsește unde sunt importate în exerciții
-3. Adaugă o funcție nouă și importeaz-o într-un exercițiu
+**Consecință practică:** Când creezi un folder nou pentru module, adaugă mereu un `__init__.py` (poate fi gol).
 
 ---
 
 ### Pas 5: Interfețe CLI
 **📅 Corelat cu:** Săptămâna 5 (`05roWSL`)
 
+#### 💡 Analogie: argparse ca Meniu de Restaurant
+
+| Element CLI | Echivalent Restaurant |
+|-------------|----------------------|
+| **Comanda** (`python script.py`) | Intri în restaurant |
+| **Argumente poziționale** (`192.168.1.0`) | Comanda principală (obligatorie) |
+| **Opțiuni** (`--verbose`) | Preferințe (cu/fără ardei) |
+| **Valori default** (`port=8080`) | Porția standard dacă nu specifici |
+| **`--help`** | Meniul cu explicații |
+
+**De ce contează:** Ca la restaurant — comenzile clare evită confuzia. `--help` e mereu disponibil.
+
 #### De Ce Contează
 
 Toate exercițiile acceptă parametri din linia de comandă (`--host`, `--port`, etc.). Modulul `argparse` gestionează acest lucru.
-
-#### Fișiere de Referință
-
-- `05roWSL/src/exercises/ex_5_01_cidr_flsm.py`
-- `05roWSL/src/exercises/ex_5_02_vlsm_ipv6.py`
-- `05roWSL/src/exercises/ex_5_03_generator_quiz.py`
 
 #### CLI Simplu
 
@@ -507,66 +572,47 @@ Utilizare:
 python calculator.py 192.168.1.0/24 --subrerete 8 -v
 ```
 
-#### Subcomandă (Stil Git)
+#### 🔮 PREDICȚIE
 
-```python
-parser = argparse.ArgumentParser(prog="netutil")
-subparsers = parser.add_subparsers(dest="comanda", required=True)
-
-# netutil scan ...
-scan_parser = subparsers.add_parser("scan", help="Scanare porturi")
-scan_parser.add_argument("target", help="IP țintă")
-scan_parser.add_argument("--ports", default="1-1024")
-
-# netutil calc ...
-calc_parser = subparsers.add_parser("calc", help="Calculator subrețele")
-calc_parser.add_argument("cidr", help="Rețea CIDR")
-
-args = parser.parse_args()
-
-if args.comanda == "scan":
-    scaneaza(args.target, args.ports)
-elif args.comanda == "calc":
-    calculeaza(args.cidr)
+**Înainte să rulezi:**
+```bash
+python3 ex_5_01_cidr_flsm.py --help
 ```
 
-#### Validare Personalizată
+**Prezice:** Ce secțiuni va avea output-ul?
 
-```python
-import ipaddress
+<details>
+<summary>✅ Verifică</summary>
 
-def valid_ip(value):
-    """Validează că valoarea este o adresă IP validă."""
-    try:
-        ipaddress.ip_address(value)
-        return value
-    except ValueError:
-        raise argparse.ArgumentTypeError(f"'{value}' nu este o adresă IP validă")
+- usage: linia de utilizare
+- description: descrierea programului
+- positional arguments: argumente obligatorii
+- options: argumente opționale cu explicații
 
-parser.add_argument("--ip", type=valid_ip, required=True)
-```
-
-#### Explorare Practică
-
-1. Rulează `python3 ex_5_01_cidr_flsm.py --help` și examinează argumentele
-2. Adaugă un argument nou `--output-format` cu opțiuni `text` sau `json`
-3. Modifică output-ul să respecte formatul ales
+</details>
 
 ---
 
 ### Pas 6: Analiza Pachetelor
 **📅 Corelat cu:** Săptămânile 6-7 (`06roWSL`, `07roWSL`)
 
+#### 💡 Analogie: Pachetele de Rețea ca Scrisori Poștale
+
+| Element Pachet | Element Scrisoare |
+|----------------|-------------------|
+| **Header IP** | Plicul cu adrese (expeditor, destinatar) |
+| **Header TCP** | Ștampila și numărul de înregistrare |
+| **Payload** | Conținutul scrisorii din plic |
+| **Checksum** | Sigiliul de ceară (verifică integritatea) |
+| **TTL** | "Returnează după 30 zile dacă nu ajunge" |
+
+**Wireshark** = camera de supraveghere de la oficiul poștal — vezi tot ce trece.
+
+**struct.unpack()** = deschizi plicul și citești adresele în format standard.
+
 #### De Ce Contează
 
-Laboratoarele de captură trafic și analiză pachete folosesc `struct` pentru parsing binar și topologii Mininet pentru simulare.
-
-#### Fișiere de Referință
-
-- `06roWSL/src/exercises/topo_nat.py` — Topologie NAT cu Mininet
-- `06roWSL/src/exercises/topo_sdn.py` — Topologie SDN
-- `07roWSL/src/exercises/ex_7_01_captura_referinta.py` — Captură baseline
-- `07roWSL/src/apps/filtru_pachete.py` — Filtru de pachete
+Laboratoarele de captură trafic și analiză pachete folosesc `struct` pentru parsing binar.
 
 #### Modulul `struct` — Parsing Binar
 
@@ -589,6 +635,14 @@ print(f"Port sursă: {src_port}, Port dest: {dst_port}")
 header = struct.pack('!HH', 8080, 443)
 ```
 
+#### 🔍 De Ce Funcționează Așa?
+
+**Întrebare:** De ce folosim `!` (network byte order) și nu formatul nativ?
+
+**Explicație:** Diferite procesoare stochează numerele diferit (little-endian vs big-endian). Rețelele folosesc mereu big-endian (standardizat în RFC-uri). `!` garantează că datele tale vor fi citite corect de orice mașină.
+
+**Consecință practică:** Fără `!`, un pachet creat pe Windows (little-endian) ar fi citit greșit pe o mașină big-endian.
+
 #### Tabel Formate struct
 
 | Format | Tip C | Bytes | Python |
@@ -600,63 +654,29 @@ header = struct.pack('!HH', 8080, 443)
 | `!` | network order | - | big-endian |
 | `s` | char[] | n | bytes |
 
-#### Parsare Header IP
-
-```python
-import struct
-import socket
-
-def parseaza_header_ip(raw: bytes) -> dict:
-    """Extrage informații din header IP (20 bytes minim)."""
-    if len(raw) < 20:
-        raise ValueError("Header prea scurt")
-    
-    # Primii 20 bytes ai header-ului IP
-    fields = struct.unpack('!BBHHHBBHII', raw[:20])
-    
-    version_ihl = fields[0]
-    version = version_ihl >> 4      # Primii 4 biți
-    ihl = (version_ihl & 0x0F) * 4  # Lungime header în bytes
-    
-    return {
-        'version': version,
-        'header_length': ihl,
-        'total_length': fields[2],
-        'ttl': fields[5],
-        'protocol': fields[6],
-        'src_ip': socket.inet_ntoa(struct.pack('!I', fields[8])),
-        'dst_ip': socket.inet_ntoa(struct.pack('!I', fields[9])),
-    }
-```
-
-#### Explorare Practică
-
-1. În `07roWSL/src/apps/filtru_pachete.py`, vezi cum se filtrează pachetele
-2. Extinde parserul să extragă și câmpul "Type of Service"
-3. Testează cu capturi din directorul `pcap/`
-
 ---
 
 ### Pas 7: Concurență
-**📅 Corelat cu:** Săptămânile 7-9 și 13 (`07roWSL`, `08roWSL`, `13roWSL`)
+**📅 Corelat cu:** Săptămânile 7-9 și 13
+
+#### 💡 Analogie: Threading ca Bucătari într-o Bucătărie
+
+| Element Concurență | Echivalent Bucătărie |
+|--------------------|---------------------|
+| **Thread** | Un bucătar individual |
+| **ThreadPool** | Echipa de bucătari |
+| **Task/Future** | O comandă de la o masă |
+| **Lock** | Un singur cuțit mare — doar unul îl poate folosi |
+| **as_completed()** | Farfuriile gata, în ordinea în care sunt finalizate |
+
+**De ce threading pentru rețele:** Când un bucătar așteaptă să fiarbă apa, altul poate tăia legume. Similar, când un thread așteaptă răspuns de la server, altele pot lucra.
 
 #### De Ce Contează
 
 Scanarea porturilor, serverele multi-client și testele de load folosesc threading pentru paralelism.
 
-#### Fișiere de Referință
-
-- `13roWSL/src/exercises/ex_13_01_scanner_porturi.py` — Scanner cu ThreadPoolExecutor
-- `08roWSL/src/exercises/ex_8_01_server_http.py` — Server HTTP
-- `08roWSL/src/exercises/ex_8_02_proxy_invers.py` — Reverse Proxy
-
-#### De Ce Threading pentru Rețele?
-
-Operațiile de rețea sunt "I/O bound" — CPU-ul așteaptă răspunsuri. Threading permite procesarea simultană.
-
 #### ThreadPoolExecutor
 
-Din `13roWSL/src/exercises/ex_13_01_scanner_porturi.py`:
 ```python
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import socket
@@ -676,10 +696,8 @@ def scaneaza_porturi(host: str, porturi: list[int], workers: int = 100) -> list[
     porturi_deschise = []
     
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        # Lansează toate verificările simultan
         futures = {executor.submit(verifica_port, host, p): p for p in porturi}
         
-        # Colectează rezultatele pe măsură ce sosesc
         for future in as_completed(futures):
             port, is_open = future.result()
             if is_open:
@@ -689,238 +707,268 @@ def scaneaza_porturi(host: str, porturi: list[int], workers: int = 100) -> list[
     return sorted(porturi_deschise)
 ```
 
-#### Server cu Threading
+#### 🔍 De Ce Funcționează Așa?
 
-```python
-import threading
+**Întrebare:** De ce `max_workers=100` și nu 1000?
 
-def gestioneaza_client(conn, addr):
-    """Handler pentru un client."""
-    try:
-        data = conn.recv(1024)
-        conn.sendall(b"OK: " + data.upper())
-    finally:
-        conn.close()
-
-# În bucla principală:
-while True:
-    conn, addr = server.accept()
-    thread = threading.Thread(target=gestioneaza_client, args=(conn, addr))
-    thread.daemon = True  # Se oprește când main se oprește
-    thread.start()
-```
-
-#### Explorare Practică
-
-1. Rulează scanner-ul pe un target local:
-   ```bash
-   python3 13roWSL/src/exercises/ex_13_01_scanner_porturi.py \
-       --target 127.0.0.1 --ports 1-1024 --workers 50
-   ```
-
-2. Experimentează cu diferite valori pentru `--workers` și măsoară timpul
-3. Adaugă o bară de progres folosind `tqdm`
+**Explicație:** Fiecare thread consumă memorie (~8MB stack). 1000 de thread-uri = 8GB RAM doar pentru stack-uri. 100 e un compromis bun între viteză și resurse. Pentru I/O-bound tasks (rețea), threading e eficient; pentru CPU-bound, folosești `ProcessPoolExecutor`.
 
 ---
 
 ### Pas 8: HTTP și Protocoale Aplicație
-**📅 Corelat cu:** Săptămânile 8-12 (`08roWSL` - `12roWSL`)
+**📅 Corelat cu:** Săptămânile 8-12
 
-#### De Ce Contează
+#### 💡 Analogie: HTTP ca Conversație la Bancă
 
-Multe exerciții implementează servere HTTP sau clienți REST. Înțelegerea protocolului la nivel de socket ajută la debugging.
+| Element HTTP | Echivalent Bancă |
+|--------------|------------------|
+| **Request** | Completezi un formular de cerere |
+| **GET** | "Vreau să văd soldul" (doar citești) |
+| **POST** | "Vreau să depun bani" (trimiți date) |
+| **PUT** | "Vreau să actualizez adresa" (înlocuiești complet) |
+| **DELETE** | "Vreau să închid contul" |
+| **Headers** | Antetul formularului (nume, data, semnătura) |
+| **Body** | Conținutul cererii (suma, detalii) |
+| **Response 200** | "Cerere aprobată" |
+| **Response 404** | "Nu găsim acest cont" |
+| **Response 500** | "Sistemul nostru are probleme" |
 
-#### Fișiere de Referință
-
-- `08roWSL/src/exercises/ex_8_01_server_http.py` — Server HTTP minimal
-- `08roWSL/src/exercises/ex_8_02_proxy_invers.py` — Reverse Proxy
-- `10roWSL/src/exercises/ex_10_01_https.py` — HTTPS
-- `10roWSL/src/exercises/ex_10_02_rest_levels.py` — Nivele REST
-- `11roWSL/src/exercises/ex_11_01_backend.py` — Backend server
-- `11roWSL/src/exercises/ex_11_02_loadbalancer.py` — Load Balancer
-- `12roWSL/src/exercises/ex_01_smtp.py` — SMTP
-- `12roWSL/src/exercises/ex_02_rpc.py` — RPC
-
-#### Anatomia HTTP
-
-```
-GET /index.html HTTP/1.1\r\n
-Host: localhost\r\n
-Connection: close\r\n
-\r\n
-```
-- Linia de request: `METHOD PATH VERSION`
-- Headers: `Key: Value`
-- Linie goală (`\r\n\r\n`) separă headers de body
-
-#### Parsare Request (din `ex_8_01_server_http.py`)
-
-```python
-def parseaza_request(raw: bytes) -> tuple[str, str, str, dict[str, str]]:
-    """
-    Parsează un request HTTP.
-    
-    Returns:
-        (method, path, version, headers_dict)
-    """
-    text = raw.decode('utf-8')
-    linii = text.split('\r\n')
-    
-    # Prima linie: GET /path HTTP/1.1
-    method, path, version = linii[0].split(' ')
-    
-    # Headers
-    headers = {}
-    for linie in linii[1:]:
-        if ': ' in linie:
-            cheie, valoare = linie.split(': ', 1)
-            headers[cheie.lower()] = valoare
-    
-    return method, path, headers
-```
-
-#### Construcție Response
-
-```python
-def construieste_response(status: int, body: bytes, content_type: str = 'text/html') -> bytes:
-    """Construiește un response HTTP."""
-    status_text = {200: 'OK', 404: 'Not Found', 500: 'Internal Server Error'}
-    
-    headers = f"""HTTP/1.1 {status} {status_text.get(status, 'Unknown')}
-Content-Type: {content_type}
-Content-Length: {len(body)}
-Connection: close
-
-"""
-    return headers.replace('\n', '\r\n').encode() + body
-```
-
-#### Biblioteca requests
-
-```python
-import requests
-
-# GET simplu
-response = requests.get('http://httpbin.org/get')
-print(response.status_code)
-print(response.json())
-
-# POST cu JSON
-response = requests.post(
-    'http://httpbin.org/post',
-    json={'cheie': 'valoare'},
-    timeout=5.0
-)
-```
-
-#### Explorare Practică
-
-1. Completează TODO-urile din `ex_8_01_server_http.py`
-2. Testează serverul cu `curl`:
-   ```bash
-   curl -v http://localhost:8080/index.html
-   ```
-3. Implementează metoda HEAD (returnează doar headers)
-
----
-
-### Pas 9: Practici și Debugging
-**📅 Corelat cu:** Săptămânile 11-14 (`11roWSL` - `14roWSL`)
-
-#### De Ce Contează
-
-Când extinzi exercițiile sau creezi propriile tool-uri, trebuie să scrii cod care funcționează și este ușor de depanat.
-
-#### Fișiere de Referință
-
-- `14roWSL/src/exercises/ex_14_01.py` — Exercițiu integrat
-- `14roWSL/src/exercises/ex_14_02.py` — Load balancer avansat
-- `14roWSL/src/exercises/ex_14_03.py` — Analizator PCAP
-- Orice `tests/test_exercitii.py`
-
-#### Logging în loc de print
-
-```python
-import logging
-
-# Configurare
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-# Utilizare
-logger.info(f"Conectare la {host}:{port}")
-logger.debug(f"Date primite: {data!r}")  # debug nu apare implicit
-logger.warning(f"Timeout la {host}")
-logger.error(f"Conexiune eșuată: {e}")
-```
-
-#### Tratarea Excepțiilor de Rețea
+#### HTTP de la Zero
 
 ```python
 import socket
 
-try:
-    sock.connect((host, port))
-    data = sock.recv(1024)
-except socket.timeout:
-    logger.warning(f"Timeout la {host}:{port}")
-except ConnectionRefusedError:
-    logger.warning(f"Conexiune refuzată de {host}:{port}")
-except ConnectionResetError:
-    logger.error(f"Conexiune resetată de {host}")
-except OSError as e:
-    logger.error(f"Eroare OS: {e}")
-finally:
-    sock.close()
-```
-
-#### Debugging Rapid
-
-```python
-# Afișare variabile cu context (Python 3.8+)
-x = calcul_complex()
-print(f"{x=}")  # Afișează: x=valoarea
-
-# Breakpoint interactiv
-import pdb; pdb.set_trace()  # Oprește execuția aici
-# sau în Python 3.7+:
-breakpoint()
-```
-
-#### Teste cu pytest
-
-Din `tests/test_exercitii.py`:
-```python
-import pytest
-from src.exercises.ex_8_01_server_http import parseaza_request
-
-def test_parseaza_request_get():
-    raw = b"GET /index.html HTTP/1.1\r\nHost: localhost\r\n\r\n"
-    method, path, headers = parseaza_request(raw)
+def http_get(host: str, path: str, port: int = 80) -> str:
+    """Execută un GET HTTP manual."""
+    request = f"GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n"
     
-    assert method == "GET"
-    assert path == "/index.html"
-    assert headers["host"] == "localhost"
-
-def test_parseaza_request_invalid():
-    with pytest.raises(ValueError):
-        parseaza_request(b"invalid request")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((host, port))
+        s.sendall(request.encode())
+        
+        response = b""
+        while True:
+            chunk = s.recv(4096)
+            if not chunk:
+                break
+            response += chunk
+    
+    return response.decode('utf-8', errors='replace')
 ```
 
-Rulare:
-```bash
-cd 08roWSL
-python3 -m pytest tests/test_exercitii.py -v
+---
+
+### Pas 9: Practici și Debugging
+**📅 Corelat cu:** Săptămâna 14 (`14roWSL`)
+
+#### 💡 Analogie: Debugging ca Detectiv
+
+| Tehnică Debug | Echivalent Detectiv |
+|---------------|---------------------|
+| **print()** | Lași notițe în locuri cheie |
+| **logging** | Cameră de filmat care înregistrează tot |
+| **breakpoint()** | Oprești timpul și examinezi scena |
+| **Stack trace** | Cronologia evenimentelor |
+| **Unit tests** | Verifici alibiul fiecărui suspect |
+
+#### Logging vs Print
+
+```python
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# În loc de print(), folosește:
+logger.debug("Detalii pentru debugging")
+logger.info("Informații generale")
+logger.warning("Ceva suspect")
+logger.error("Problemă!")
 ```
 
-#### Explorare Practică
+#### Debugger Integrat
 
-1. Adaugă logging în `ex_14_01.py` pentru a urmări fluxul execuției
-2. Scrie un test pentru o funcție existentă
-3. Folosește `breakpoint()` pentru a inspecta starea în timpul execuției
+```python
+def functie_complexa(data):
+    rezultat = proceseaza(data)
+    breakpoint()  # Oprește aici — poți inspecta 'rezultat'
+    return rezultat
+```
+
+---
+
+## Verificare Înțelegere (Peer Instruction)
+
+### 🗳️ PI #1: Bytes vs Strings
+
+**Scenariu:**
+```python
+import socket
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect(('127.0.0.1', 8080))
+s.send("Hello")
+```
+
+**Întrebare:** Ce se întâmplă când rulezi acest cod?
+
+**Opțiuni:**
+- A) Mesajul "Hello" este trimis cu succes
+- B) `TypeError: a bytes-like object is required, not 'str'`
+- C) Mesajul este trimis dar corupt
+- D) Socket-ul se blochează în așteptare
+
+<details>
+<summary>🔑 Răspuns și Explicație</summary>
+
+**Corect: B**
+
+Socket-urile Python 3 acceptă DOAR bytes, nu strings.
+
+**De ce nu A:** Python 3 a separat strict bytes de str  
+**De ce nu C:** Nu se trimite nimic, eroarea apare înainte  
+**De ce nu D:** Eroarea e imediată, nu blocaj
+
+**Cod corect:** `s.send(b"Hello")` sau `s.send("Hello".encode())`
+
+</details>
+
+---
+
+### 🗳️ PI #2: Port Binding
+
+**Scenariu:**
+- Terminal 1: `python server.py` (ascultă pe 8080)
+- Terminal 2: `python server.py` (același script)
+
+**Întrebare:** Ce se întâmplă în Terminal 2?
+
+**Opțiuni:**
+- A) Al doilea server pornește și ambele funcționează
+- B) `OSError: Address already in use`
+- C) Al doilea server îl înlocuiește pe primul
+- D) Sistemul alege automat alt port (8081)
+
+<details>
+<summary>🔑 Răspuns și Explicație</summary>
+
+**Corect: B**
+
+Un port poate avea UN SINGUR listener la un moment dat.
+
+**De ce nu A:** Două procese nu pot asculta pe același port  
+**De ce nu C:** OS-ul protejează porturile ocupate  
+**De ce nu D:** Nu există auto-alocare (cu excepția portului 0)
+
+**Soluție:** `SO_REUSEADDR` pentru restart rapid, sau port diferit.
+
+</details>
+
+---
+
+### 🗳️ PI #3: struct.unpack
+
+**Scenariu:**
+```python
+import struct
+data = b'\x00\x50'
+port, = struct.unpack('!H', data)
+print(port)
+```
+
+**Întrebare:** Ce afișează?
+
+**Opțiuni:**
+- A) 80
+- B) 20480
+- C) `b'\x00\x50'`
+- D) `(80,)`
+
+<details>
+<summary>🔑 Răspuns și Explicație</summary>
+
+**Corect: A**
+
+`!H` = network byte order (big-endian), unsigned short (2 bytes)
+`0x0050` în big-endian = 80 în decimal
+
+**De ce nu B:** Ar fi 20480 dacă era little-endian (`<H`)  
+**De ce nu C:** `unpack` returnează numere, nu bytes  
+**De ce nu D:** Virgula după `port` extrage valoarea din tuplu
+
+</details>
+
+---
+
+### 🗳️ PI #4: Docker Port Mapping
+
+**Scenariu:**
+```yaml
+services:
+  web:
+    image: nginx
+    ports:
+      - "8080:80"
+```
+
+**Întrebare:** Ce URL folosești din Windows pentru a accesa nginx?
+
+**Opțiuni:**
+- A) `http://localhost:80`
+- B) `http://localhost:8080`
+- C) `http://172.17.0.2:80`
+- D) `http://nginx:80`
+
+<details>
+<summary>🔑 Răspuns și Explicație</summary>
+
+**Corect: B**
+
+`8080:80` = portul 8080 de pe host se mapează la portul 80 din container.
+
+**De ce nu A:** 80 e portul din container, nu de pe host  
+**De ce nu C:** IP-ul intern Docker nu e accesibil direct din Windows  
+**De ce nu D:** Numele serviciului se rezolvă doar în rețeaua Docker
+
+</details>
+
+---
+
+### 🗳️ PI #5: Context Managers
+
+**Scenariu:**
+```python
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect(('google.com', 80))
+sock.send(b'GET / HTTP/1.0\r\n\r\n')
+raise Exception("Eroare!")
+sock.close()
+```
+
+**Întrebare:** Ce se întâmplă cu socket-ul?
+
+**Opțiuni:**
+- A) Se închide normal înainte de excepție
+- B) Rămâne deschis (resource leak)
+- C) Python îl închide automat
+- D) OS-ul îl închide imediat
+
+<details>
+<summary>🔑 Răspuns și Explicație</summary>
+
+**Corect: B**
+
+`sock.close()` nu se execută niciodată din cauza excepției.
+
+**De ce nu A:** Excepția apare înainte de close()  
+**De ce nu C:** Python nu are garbage collection pentru sockets  
+**De ce nu D:** OS-ul îl închide eventual, dar nu imediat
+
+**Soluție:** Folosește `with socket.socket(...) as sock:`
+
+</details>
 
 ---
 
@@ -933,8 +981,6 @@ python3 -m pytest tests/test_exercitii.py -v
 | `ex_1_01_latenta_ping.py` | `@dataclass`, `subprocess.run()` | Dataclasses, subprocese |
 | `ex_1_02_tcp_server_client.py` | `socket`, `threading` | Sockets de bază |
 | `ex_1_03_parsare_csv.py` | `csv` module, comprehensions | Procesare date |
-| `ex_1_04_statistici_pcap.py` | Citire fișiere binare | I/O fișiere |
-| `ex_1_05_intarziere_transmisie.py` | Calcule timing | Funcții matematice |
 
 ### Săptămâna 2-3: Sockets
 
@@ -943,41 +989,10 @@ python3 -m pytest tests/test_exercitii.py -v
 | `ex_2_01_tcp.py` | `SOCK_STREAM`, `accept()` | TCP sockets |
 | `ex_2_02_udp.py` | `SOCK_DGRAM`, `sendto()` | UDP sockets |
 | `ex_3_01_udp_broadcast.py` | `SO_BROADCAST` | Socket options |
-| `ex_3_02_udp_multicast.py` | `IP_ADD_MEMBERSHIP` | Multicast |
-| `ex_3_03_tcp_tunnel.py` | Port forwarding | Threading + sockets |
 
-### Săptămâna 4-5: Protocoale și CLI
+### Săptămâna 4-14: Avansate
 
-| Fișier | Ce să explorezi | Concept Python |
-|--------|-----------------|----------------|
-| `ex_4_*.py` | Protocoale text/binare | `struct`, protocol design |
-| `ex_5_01_cidr_flsm.py` | `ipaddress` module | IP manipulation |
-| `ex_5_02_vlsm_ipv6.py` | IPv6 handling | Network calculations |
-| `ex_5_03_generator_quiz.py` | CLI interactiv | `argparse` avansat |
-
-### Săptămâna 6-9: NAT, Firewall, HTTP
-
-| Fișier | Ce să explorezi | Concept Python |
-|--------|-----------------|----------------|
-| `topo_nat.py`, `topo_sdn.py` | Mininet integration | Network simulation |
-| `ex_7_01_captura_referinta.py` | Packet capture | Binary parsing |
-| `ex_8_01_server_http.py` | HTTP from scratch | Protocol implementation |
-| `ex_8_02_proxy_invers.py` | Request forwarding | Proxy pattern |
-| `ex_9_01_endianness.py` | Byte order | `struct` packing |
-| `ex_9_02_pseudo_ftp.py` | FTP protocol | State machine |
-
-### Săptămâna 10-14: Aplicații
-
-| Fișier | Ce să explorezi | Concept Python |
-|--------|-----------------|----------------|
-| `ex_10_01_https.py` | TLS/SSL | `ssl` module |
-| `ex_10_02_rest_levels.py` | REST architecture | HTTP methods |
-| `ex_11_02_loadbalancer.py` | Round-robin | Load balancing |
-| `ex_11_03_dns_client.py` | DNS queries | UDP protocol |
-| `ex_12_*` | SMTP, RPC | Application protocols |
-| `ex_13_01_scanner_porturi.py` | Parallel scanning | `concurrent.futures` |
-| `ex_13_02_client_mqtt.py` | MQTT protocol | IoT messaging |
-| `ex_14_*` | Integration | Toate conceptele |
+Consultă tabelul complet din secțiunea [Structura Repository-ului](#structura-repository-ului).
 
 ---
 
@@ -1054,7 +1069,7 @@ struct.pack('!H', 8080)         # unsigned short (2 bytes)
 struct.pack('!I', 0xC0A80101)   # unsigned int (4 bytes)
 struct.pack('!4s', b'\xC0\xA8\x01\x01')  # 4 bytes string
 
-# Unpack
+# Extragere
 port, = struct.unpack('!H', data[:2])
 ip_int, = struct.unpack('!I', data[2:6])
 ```
@@ -1097,4 +1112,4 @@ R: Încearcă să modifici un exercițiu existent sau să adaugi o funcționalit
 
 *Material realizat ca suport opțional pentru cursul de Rețele de Calculatoare.*  
 *Repository: [github.com/antonioclim/netROwsl](https://github.com/antonioclim/netROwsl)*  
-*Versiune: Ianuarie 2025*
+*Versiune: 2.0 — Ianuarie 2025 (cu îmbunătățiri pedagogice CPA și PI)*

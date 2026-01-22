@@ -144,8 +144,8 @@
     </style>
 </head>
 <body>
-    <div class="progress-bar" id="progressBar"></div>
-    <div class="slide-counter" id="slideCounter">1 / 41</div>
+    <div class="progress-bar" role="progressbar" aria-valuemin="1" id="progressBar"></div>
+    <div class="slide-counter" aria-live="polite" id="slideCounter">1 / 41</div>
     <div class="course-id">Rețele de Calculatoare • Săptămâna 12</div>
     <div class="footer-attr">by Revolvix</div>
 
@@ -1108,7 +1108,7 @@ openssl s_client -starttls smtp -connect mail.example.com:587</div>
             <div class="toc-section">
                 <div class="toc-section-title">Section 1: Architecture</div>
                 <div class="toc-item" onclick="goToSlide(5)"><span class="toc-num">05</span> Arhitectura Email</div>
-                <div class="toc-item" onclick="goToSlide(6)"><span class="toc-num">06</span> Email Ecosystem</div>
+                <div class="toc-item" onclick="goToSlide(6)"><span class="toc-num">06</span> Email mediu</div>
                 <div class="toc-item" onclick="goToSlide(7)"><span class="toc-num">07</span> Journey of an Email</div>
                 <div class="toc-item" onclick="goToSlide(8)"><span class="toc-num">08</span> Envelope vs Headers</div>
             </div>

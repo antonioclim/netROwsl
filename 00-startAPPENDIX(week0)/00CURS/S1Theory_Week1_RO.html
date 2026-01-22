@@ -153,8 +153,8 @@
     </style>
 </head>
 <body>
-    <div class="progress-bar" id="progressBar"></div>
-    <div class="slide-counter" id="slideCounter">1 / 45</div>
+    <div class="progress-bar" role="progressbar" aria-valuemin="1" aria-valuemax="45" id="progressBar"></div>
+    <div class="slide-counter" aria-live="polite" id="slideCounter">1 / 45</div>
     <div class="logo-corner">ASE-CSIE • Rețele de Calculatoare</div>
     <div class="presentation" id="presentation">
         <!-- SLIDE 1: Titlu -->
@@ -526,7 +526,7 @@ tcp    LISTEN  0       511      0.0.0.0:<span class="number">80</span>          
                             <tr><td><strong>Alocare Resurse</strong></td><td>Rezervare dedicată</td><td>La cerere (statistică)</td></tr>
                             <tr><td><strong>Eficiență</strong></td><td>Scăzută (risipă în pauze)</td><td>Ridicată (partajare)</td></tr>
                             <tr><td><strong>Întârziere</strong></td><td>Fixă, previzibilă</td><td>Variabilă (cozi)</td></tr>
-                            <tr><td><strong>Fiabilitate</strong></td><td>Cale unică (risc)</td><td>Căi multiple (robustețe)</td></tr>
+                            <tr><td><strong>Fiabilitate</strong></td><td>Cale unică (risc)</td><td>Căi multiple (solidețe)</td></tr>
                             <tr><td><strong>Exemple</strong></td><td>PSTN, ISDN</td><td>Internet, Ethernet</td></tr>
                         </tbody>
                     </table>
