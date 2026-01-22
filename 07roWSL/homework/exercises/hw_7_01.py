@@ -206,6 +206,87 @@ def afiseaza_cerinte_analiza():
     print("=" * 60)
 
 
+def afiseaza_rubrica():
+    """Afișează rubrica detaliată de evaluare."""
+    print("""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    RUBRICA DE EVALUARE - Tema 7.01                           ║
+║              Proiectare Profil Firewall Personalizat                         ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                                                                              ║
+║  1. CORECTITUDINEA SINTAXEI JSON                              20 puncte     ║
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Excelent (18-20)  │ JSON valid, parsabil, toate câmpurile prezente     │
+║  │  Bun (14-17)       │ JSON valid, lipsesc câmpuri opționale              │
+║  │  Satisfăcător (10-13) │ Erori minore de sintaxă, structură corectă      │
+║  │  Insuficient (<10) │ JSON invalid sau structură incorectă               │
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Verificare:                                                            │
+║  │  □ Fișier parsabil fără erori                                          │
+║  │  □ Câmpuri obligatorii: name, description, rules                       │
+║  │  □ Minim 3 reguli definite                                             │
+║  │  □ Include cel puțin o regulă REJECT și una DROP                       │
+║                                                                              ║
+║  2. CREATIVITATE ȘI RELEVANȚĂ REGULI                          30 puncte     ║
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Excelent (27-30)  │ Scenarii realiste, reguli variate și justificate   │
+║  │  Bun (21-26)       │ Reguli corecte, scenarii plauzibile               │
+║  │  Satisfăcător (15-20) │ Reguli funcționale, lipsă justificare          │
+║  │  Insuficient (<15) │ Reguli generice sau copiate                       │
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Verificare:                                                            │
+║  │  □ Reguli 3+ distincte (nu doar porturi diferite)                      │
+║  │  □ Utilizare corectă REJECT pentru servicii interne                    │
+║  │  □ Utilizare corectă DROP pentru securitate perimetrală                │
+║  │  □ Comentarii explicative pentru fiecare regulă                        │
+║                                                                              ║
+║  3. CALITATEA ANALIZEI SCRISE                                 40 puncte     ║
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Excelent (36-40)  │ Analiză tehnică profundă, argumente solide        │
+║  │  Bun (28-35)       │ Explicații clare, acoperă toate secțiunile        │
+║  │  Satisfăcător (20-27) │ Explicații de bază, lipsesc detalii            │
+║  │  Insuficient (<20) │ Superficial, sub 500 cuvinte, lipsă secțiuni      │
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Verificare:                                                            │
+║  │  □ 500-750 cuvinte                                                     │
+║  │  □ Secțiunea Introducere prezentă                                      │
+║  │  □ Secțiunea Descriere Reguli prezentă                                 │
+║  │  □ Secțiunea Comportament Observabil prezentă                          │
+║  │  □ Secțiunea Compromisuri Securitate prezentă                          │
+║  │  □ Explicație corectă diferență REJECT vs DROP                         │
+║                                                                              ║
+║  4. DEMONSTRAȚIE PRACTICĂ                                     10 puncte     ║
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Excelent (9-10)   │ Capturi Wireshark adnotate, RST/timeout vizibile  │
+║  │  Bun (7-8)         │ Capturi relevante, descrieri adecvate             │
+║  │  Satisfăcător (5-6) │ Capturi prezente dar neadnotate                   │
+║  │  Bonus             │ +2 puncte pentru video demonstrativ               │
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Verificare:                                                            │
+║  │  □ Captură care arată RST pentru REJECT                                │
+║  │  □ Captură care arată timeout/retransmisii pentru DROP                 │
+║  │  □ Adnotări care indică pachetele relevante                            │
+║                                                                              ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  TOTAL                                                       100 puncte     ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                                                                              ║
+║  PENALIZĂRI:                                                                 ║
+║  • Plagiat sau copiere: -100% (notă 1)                                      ║
+║  • Lipsă analiză scrisă: -40 puncte                                         ║
+║  • JSON invalid/neparsabil: -20 puncte                                      ║
+║  • Sub 500 cuvinte în analiză: -10 puncte                                   ║
+║  • Predare cu întârziere: -10% pe zi                                        ║
+║                                                                              ║
+║  BONUSURI:                                                                   ║
+║  • Video demonstrativ (max 3 min): +5 puncte                                ║
+║  • Profil complex (5+ reguli justificate): +5 puncte                        ║
+║  • Comparație practică timing REJECT vs DROP: +5 puncte                     ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+""")
+
+
 def main():
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -226,6 +307,11 @@ def main():
         "--cerinte", "-c",
         action="store_true",
         help="Afișează cerințele pentru analiză"
+    )
+    parser.add_argument(
+        "--rubrica", "-r",
+        action="store_true",
+        help="Afișează rubrica detaliată de evaluare"
     )
     args = parser.parse_args()
 
@@ -260,12 +346,16 @@ def main():
     elif args.cerinte:
         afiseaza_cerinte_analiza()
     
+    elif args.rubrica:
+        afiseaza_rubrica()
+    
     else:
         parser.print_help()
         print()
         print("Exemplu de utilizare:")
         print("  python hw_7_01.py --sablon          # Afișează șablon")
         print("  python hw_7_01.py --cerinte         # Afișează cerințe analiză")
+        print("  python hw_7_01.py --rubrica         # Afișează rubrica de evaluare")
         print("  python hw_7_01.py --valideaza profil.json  # Validează fișier")
 
     return 0

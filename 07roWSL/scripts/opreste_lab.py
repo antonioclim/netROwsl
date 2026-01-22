@@ -9,6 +9,10 @@ păstrând artefactele și datele colectate.
 IMPORTANT: Portainer NU este oprit - rulează global pe portul 9000!
 """
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU — Importuri și configurare căi
+# ═══════════════════════════════════════════════════════════════════════════════
+
 from __future__ import annotations
 
 import argparse
@@ -26,6 +30,10 @@ from scripts.utils.logger import configureaza_logger
 
 logger = configureaza_logger("opreste_lab")
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEFINIRE_CONFIGURATIE — Servicii excluse, credențiale
+# ═══════════════════════════════════════════════════════════════════════════════
+
 # Credențiale standard
 PORTAINER_PORT = 9000
 PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
@@ -34,8 +42,17 @@ PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
 CONTAINERE_EXCLUSE = ["portainer"]
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICA_PREREQUISITE — Status Portainer
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def verifica_portainer_status() -> bool:
-    """Verifică dacă Portainer rulează pe portul 9000."""
+    """
+    Verifică dacă Portainer rulează pe portul 9000.
+    
+    Returns:
+        True dacă Portainer este accesibil, False altfel
+    """
     try:
         rezultat = subprocess.run(
             ["docker", "ps", "--filter", "name=portainer", "--format", "{{.Status}}"],
@@ -58,6 +75,89 @@ def verifica_portainer_status() -> bool:
     except Exception:
         return False
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIRMARE_UTILIZATOR — Cerere confirmare înainte de oprire
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def cere_confirmare(args) -> bool:
+    """
+    Solicită confirmare de la utilizator pentru oprirea containerelor.
+    
+    Args:
+        args: Argumente linie de comandă
+        
+    Returns:
+        True dacă utilizatorul confirmă sau --force este activ, False altfel
+    """
+    if args.force:
+        return True
+        
+    print()
+    if args.volume:
+        print("ATENȚIE: Această operațiune va elimina și volumele Docker!")
+        print("         Toate datele salvate în volume vor fi pierdute.")
+        print()
+    
+    raspuns = input("Doriți să continuați? (da/nu): ").strip().lower()
+    return raspuns in ("da", "d", "yes", "y")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# OPRESTE_SERVICII — Compose down, cleanup
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def opreste_containere(docker: ManagerDocker, elimina_volume: bool) -> bool:
+    """
+    Oprește containerele de laborator.
+    
+    Args:
+        docker: Instanță ManagerDocker
+        elimina_volume: True pentru a elimina și volumele
+        
+    Returns:
+        True dacă oprirea a reușit, False altfel
+    """
+    logger.info("Oprire containere de laborator...")
+    logger.info("(Portainer va rămâne activ)")
+    return docker.compose_down(volumes=elimina_volume)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AFISEAZA_REZULTATE — Status final
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def afiseaza_rezultat_oprire(succes: bool, volume_eliminate: bool) -> None:
+    """
+    Afișează rezultatul operațiunii de oprire.
+    
+    Args:
+        succes: True dacă oprirea a reușit
+        volume_eliminate: True dacă volumele au fost eliminate
+    """
+    if succes:
+        logger.info("")
+        logger.info("=" * 60)
+        logger.info("✓ Containerele de laborator au fost oprite cu succes")
+        
+        # Verifică și afișează status Portainer
+        if verifica_portainer_status():
+            logger.info(f"✓ Portainer continuă să ruleze pe {PORTAINER_URL}")
+        else:
+            logger.warning(f"⚠ Portainer nu rulează pe {PORTAINER_URL}")
+        
+        if not volume_eliminate:
+            logger.info("")
+            logger.info("Notă: Volumele au fost păstrate")
+            logger.info("      Pentru curățare completă: python3 scripts/curata.py --complet")
+        logger.info("=" * 60)
+    else:
+        logger.error("Eroare la oprirea containerelor")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN — Punct de intrare, parsare argumente
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     """Funcția principală."""
@@ -84,43 +184,14 @@ def main():
     docker = ManagerDocker(RADACINA_PROIECT / "docker")
 
     # Confirmare dacă nu e forțată
-    if not args.force:
-        print()
-        if args.volume:
-            print("ATENȚIE: Această operațiune va elimina și volumele Docker!")
-            print("         Toate datele salvate în volume vor fi pierdute.")
-            print()
-        
-        raspuns = input("Doriți să continuați? (da/nu): ").strip().lower()
-        if raspuns not in ("da", "d", "yes", "y"):
-            logger.info("Operațiune anulată de utilizator")
-            return 0
+    if not cere_confirmare(args):
+        logger.info("Operațiune anulată de utilizator")
+        return 0
 
     try:
-        logger.info("Oprire containere de laborator...")
-        logger.info("(Portainer va rămâne activ)")
-        ok = docker.compose_down(volumes=args.volume)
-
-        if ok:
-            logger.info("")
-            logger.info("=" * 60)
-            logger.info("✓ Containerele de laborator au fost oprite cu succes")
-            
-            # Verifică și afișează status Portainer
-            if verifica_portainer_status():
-                logger.info(f"✓ Portainer continuă să ruleze pe {PORTAINER_URL}")
-            else:
-                logger.warning(f"⚠ Portainer nu rulează pe {PORTAINER_URL}")
-            
-            if not args.volume:
-                logger.info("")
-                logger.info("Notă: Volumele au fost păstrate")
-                logger.info("      Pentru curățare completă: python3 scripts/curata.py --complet")
-            logger.info("=" * 60)
-            return 0
-        else:
-            logger.error("Eroare la oprirea containerelor")
-            return 1
+        ok = opreste_containere(docker, args.volume)
+        afiseaza_rezultat_oprire(ok, args.volume)
+        return 0 if ok else 1
 
     except Exception as e:
         logger.error(f"Eroare la oprirea laboratorului: {e}")

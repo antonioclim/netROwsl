@@ -67,6 +67,7 @@ D:\RETELE\
         ├── docs/            # Documentație suplimentară
         │   ├── comenzi_rapide.md
         │   ├── depanare.md
+        │   ├── glosar.md         # NOU: Glosar termeni
         │   ├── lecturi_suplimentare.md
         │   └── rezumat_teorie.md
         ├── homework/        # Teme pentru acasă
@@ -77,6 +78,7 @@ D:\RETELE\
         ├── setup/           # Configurare mediu
         ├── src/             # Cod sursă
         │   ├── apps/        # Aplicații (server_tcp, receptor_udp, filtru_pachete, etc.)
+        │   ├── constants.py # NOU: Constante centralizate
         │   └── exercises/   # Exerciții de laborator
         ├── tests/           # Teste automatizate
         └── README.md        # Acest fișier
@@ -363,6 +365,156 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 5. **Proiectați** profile de firewall personalizate care echilibrează cerințele de securitate cu nevoile operaționale
 6. **Evaluați** compromisurile dintre acțiunile REJECT și DROP în diferite scenarii de securitate
 
+---
+
+## 🗳️ Întrebări de Verificare (Peer Instruction)
+
+Înainte de a începe exercițiile, discutați cu colegul de bancă următoarele întrebări.
+Votați individual, apoi discutați 2 minute, apoi votați din nou.
+
+### Întrebarea 1: Comportament REJECT vs DROP
+
+Un firewall primește un pachet TCP SYN pe portul 443.
+Regula aplicabilă este: `iptables -A INPUT -p tcp --dport 443 -j DROP`
+
+**Ce va observa un atacator care scanează acest port?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | RST imediat — portul este închis |
+| B | SYN-ACK — portul este deschis |
+| C | ICMP Port Unreachable — portul este filtrat explicit |
+| D | Niciun răspuns, timeout după câteva secunde |
+
+<details>
+<summary>🔍 Click pentru explicație (după vot!)</summary>
+
+**Răspuns corect: D**
+
+- **A** ar indica REJECT sau un port închis fără firewall
+- **B** ar indica un serviciu care ascultă
+- **C** ar indica REJECT cu răspuns ICMP
+- **D** este comportamentul DROP — pachetul dispare silențios
+
+**Implicație practică:** DROP face portul să pară inexistent, dar atacatorul trebuie să aștepte timeout pentru fiecare port scanat.
+</details>
+
+---
+
+### Întrebarea 2: Filtrare Nivel Rețea vs Aplicație
+
+Ai configurat un filtru de pachete la nivel aplicație pe portul 8888.
+Un client trimite: `GET /download?file=malware.exe HTTP/1.1`
+
+**Ce vei vedea în Wireshark?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | Doar SYN, apoi RST — conexiunea refuzată |
+| B | Handshake complet, date trimise, răspuns 403 Forbidden |
+| C | Handshake complet, apoi timeout — niciun răspuns |
+| D | Niciun pachet — DROP la nivel kernel |
+
+<details>
+<summary>🔍 Click pentru explicație (după vot!)</summary>
+
+**Răspuns corect: B**
+
+Filtrarea la nivel aplicație (Layer 7) inspectează **conținutul** cererilor:
+1. Conexiunea TCP se stabilește complet (SYN → SYN-ACK → ACK)
+2. Cererea HTTP este transmisă
+3. Aplicația analizează URL-ul, detectează "malware"
+4. Returnează 403 Forbidden
+5. Conexiunea se închide normal (FIN)
+
+**Diferența cheie:** Filtrarea la nivel rețea (iptables) ar bloca ÎNAINTE de handshake.
+</details>
+
+---
+
+### Întrebarea 3: Interpretarea Capturilor
+
+În Wireshark vezi următoarea secvență pentru o conexiune pe portul 9090:
+```
+1. 10.0.7.10 → 10.0.7.100  TCP  SYN
+2. 10.0.7.10 → 10.0.7.100  TCP  SYN  [Retransmission]
+3. 10.0.7.10 → 10.0.7.100  TCP  SYN  [Retransmission]
+4. (timeout)
+```
+
+**Ce indică această captură?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | Serverul e oprit |
+| B | Regulă DROP activă |
+| C | Regulă REJECT activă |
+| D | Problemă de rețea (cablul deconectat) |
+
+<details>
+<summary>🔍 Click pentru explicație (după vot!)</summary>
+
+**Răspunsuri posibile: A, B sau D** — toate produc același pattern!
+
+Aceasta este **problema fundamentală cu DROP**: nu poți distinge între:
+- Server oprit (nu trimite răspuns)
+- Firewall DROP (elimină silențios)
+- Problemă fizică (pachetele nu ajung)
+
+**De aceea DROP e considerat "stealth"** — nu oferă informații atacatorului.
+**De aceea e greu de depanat** — administratorul nu știe ce e defect.
+
+REJECT ar produce: SYN → RST (imediat, fără retransmisii)
+</details>
+
+---
+
+### Întrebarea 4: Sondare Porturi
+
+Rulezi `sonda_porturi.py` pe intervalul 9080-9100 și obții:
+
+| Port | Stare |
+|------|-------|
+| 9088 | ÎNCHIS |
+| 9089 | FILTRAT |
+| 9090 | DESCHIS |
+| 9091 | FILTRAT |
+
+**Care porturi au servicii active și care au reguli firewall?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | 9090 are serviciu; 9089, 9091 au DROP; 9088 nu are nimic |
+| B | 9090 are serviciu; 9088, 9089, 9091 au REJECT |
+| C | Toate au servicii, dar 9088, 9089, 9091 sunt protejate |
+| D | Doar 9090 există; restul sunt porturi inexistente |
+
+<details>
+<summary>🔍 Click pentru explicație (după vot!)</summary>
+
+**Răspuns corect: A**
+
+- **DESCHIS** (9090): SYN-ACK primit → serviciu activ
+- **ÎNCHIS** (9088): RST primit → niciun serviciu, niciun firewall
+- **FILTRAT** (9089, 9091): Timeout → regulă DROP activă
+
+**Insight:** ÎNCHIS ≠ FILTRAT!
+- ÎNCHIS = portul răspunde "nu ascultă nimeni aici"
+- FILTRAT = niciun răspuns (DROP) sau ICMP (REJECT)
+</details>
+
+---
+
+**📋 Instrucțiuni pentru instructor:**
+1. Afișați fiecare întrebare 1 minut
+2. Studenții votează individual (A/B/C/D)
+3. Discuție în perechi 2-3 minute
+4. Re-vot
+5. Explicație și dezvăluire răspuns
+6. Țintă: ~50% corecte la primul vot, ~80% după discuție
+
+---
+
 ## Cerințe Preliminare
 
 ### Cunoștințe Necesare
@@ -448,12 +600,16 @@ python3 scripts/porneste_lab.py --status
    python3 src/exercises/ex_7_01_captura_referinta.py
    ```
 
-5. Observați în Wireshark:
+5. **🔮 PREDICȚIE:** Înainte de a te uita în Wireshark, răspunde:
+   - Câte pachete crezi că vor fi pentru un singur mesaj TCP echo? (hint: handshake + date + confirmare)
+   - Ce diferență vei vedea între traficul TCP și cel UDP?
+
+6. Observați în Wireshark:
    - Handshake-ul în trei pași TCP (SYN, SYN-ACK, ACK)
    - Transmisia datelor și răspunsul echo
    - Datagramele UDP trimise către receptor
 
-6. Salvați captura ca: `pcap/saptamana7_ex1_referinta.pcap`
+7. Salvați captura ca: `pcap/saptamana7_ex1_referinta.pcap`
 
 **Verificare:**
 ```bash
@@ -475,16 +631,20 @@ python3 tests/test_exercitii.py --exercitiu 1
    python3 scripts/ruleaza_demo.py --demo tcp
    ```
 
-3. Observați în captură:
+3. **🔮 PREDICȚIE:** Compară cu Exercițiul 1 — ce crezi că vei vedea diferit?
+   - Câte pachete vor apărea pentru o conexiune respinsă?
+   - Cât timp va dura până când clientul primește eroare?
+
+4. Observați în captură:
    - Pachetul SYN trimis de client
    - Răspunsul RST imediat (sau ICMP Port Unreachable)
    - **Nici o retransmisie** - conexiunea eșuează instantaneu
 
-4. Comparați cu comportamentul de bază:
+5. Comparați cu comportamentul de bază:
    - Timpul de răspuns: milisecunde vs. timeout
    - Tipul răspunsului: RST vs. SYN-ACK
 
-5. Salvați captura ca: `pcap/saptamana7_ex2_tcp_reject.pcap`
+6. Salvați captura ca: `pcap/saptamana7_ex2_tcp_reject.pcap`
 
 **Verificare:**
 ```bash
@@ -511,16 +671,21 @@ python3 tests/test_exercitii.py --exercitiu 2
    python3 scripts/ruleaza_demo.py --demo udp
    ```
 
-4. Observați în captură:
+4. **🔮 PREDICȚIE:** Compară cu REJECT din Exercițiul 2:
+   - Vei vedea vreun răspuns de la firewall în Wireshark?
+   - Cum va ști aplicația client că mesajul nu a ajuns?
+   - Cât timp va trebui să aștepte clientul?
+
+5. Observați în captură:
    - Datagrama UDP trimisă
    - **Niciun răspuns** - nici ICMP, nici nimic
    - Acest comportament este indistinct de pierderea pachetelor
 
-5. Discutați implicațiile:
+6. Discutați implicațiile:
    - De ce DROP este considerat mai „stealth"?
    - Cum afectează acest lucru aplicațiile care așteaptă răspuns?
 
-6. Salvați captura ca: `pcap/saptamana7_ex3_udp_drop.pcap`
+7. Salvați captura ca: `pcap/saptamana7_ex3_udp_drop.pcap`
 
 **Verificare:**
 ```bash
@@ -552,11 +717,16 @@ python3 tests/test_exercitii.py --exercitiu 3
    python3 src/apps/client_tcp.py --host localhost --port 8888 --mesaj "malware test"
    ```
 
-5. Observați diferența:
+5. **🔮 PREDICȚIE:** Spre deosebire de filtrarea iptables:
+   - Se va stabili conexiunea TCP cu succes?
+   - La ce pas din comunicare va fi blocat conținutul?
+   - Ce cod HTTP vei vedea pentru cererea blocată?
+
+6. Observați diferența:
    - Ambele conexiuni TCP se stabilesc cu succes
    - Doar cererile cu cuvinte cheie blocate sunt refuzate la nivel aplicație
 
-6. Salvați captura ca: `pcap/saptamana7_ex4_filtru_aplicatie.pcap`
+7. Salvați captura ca: `pcap/saptamana7_ex4_filtru_aplicatie.pcap`
 
 **Verificare:**
 ```bash
@@ -578,12 +748,17 @@ python3 tests/test_exercitii.py --exercitiu 4
    python3 src/apps/sonda_porturi.py --tinta localhost --interval 9080-9100
    ```
 
-3. Analizați rezultatele:
+3. **🔮 PREDICȚIE:** Pentru intervalul 9080-9100:
+   - Câte porturi crezi că vor fi DESCHISE? (hint: vezi docker-compose.yml)
+   - Câte vor fi FILTRATE vs ÎNCHISE?
+   - Care e diferența dintre ÎNCHIS și FILTRAT?
+
+4. Analizați rezultatele:
    - **DESCHIS**: SYN → SYN-ACK (serviciu activ)
    - **ÎNCHIS**: SYN → RST (niciun serviciu, niciun filtru)
    - **FILTRAT**: SYN → (timeout) (regulă DROP activă)
 
-4. Documentați descoperirile într-un raport de securitate simplu
+5. Documentați descoperirile într-un raport de securitate simplu
 
 **Verificare:**
 ```bash

@@ -341,6 +341,94 @@ def afiseaza_sablon_raport():
     print("=" * 60)
 
 
+def afiseaza_rubrica():
+    """Afișează rubrica detaliată de evaluare."""
+    print("""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    RUBRICA DE EVALUARE - Tema 7.02                           ║
+║              Raport de Analiză a Eșecurilor de Rețea                         ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                                                                              ║
+║  1. CAPTURI PCAP COMPLETE ȘI CORECTE                          25 puncte     ║
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Excelent (23-25)  │ 3 fișiere PCAP, filtre corecte, pachete relevante  │
+║  │  Bun (18-22)       │ 3 fișiere, unele pachete irelevante incluse        │
+║  │  Satisfăcător (13-17) │ 2 fișiere complete sau 3 incomplete             │
+║  │  Insuficient (<13) │ Fișiere lipsă sau corupte                          │
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Verificare pentru fiecare captură:                                     │
+║  │  □ captura_scenariu_1.pcap - conține SYN și RST/ICMP                   │
+║  │  □ captura_scenariu_2.pcap - conține UDP fără răspuns                  │
+║  │  □ captura_scenariu_3.pcap - conține handshake + HTTP 403               │
+║  │  □ Fișiere deschidibile în Wireshark fără erori                        │
+║                                                                              ║
+║  2. IDENTIFICAREA CAUZELOR FUNDAMENTALE                       35 puncte     ║
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Excelent (32-35)  │ Cauze corecte, explicații tehnice detaliate        │
+║  │  Bun (25-31)       │ Cauze corecte, explicații de bază                  │
+║  │  Satisfăcător (18-24) │ Cauze parțial corecte, confuzii minore          │
+║  │  Insuficient (<18) │ Cauze incorecte sau lipsă                          │
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Verificare:                                                            │
+║  │  □ Scenariu 1: Identificat RST ca semn de REJECT                       │
+║  │  □ Scenariu 1: Menționat timp de răspuns rapid                         │
+║  │  □ Scenariu 2: Identificat absența răspunsului ca semn de DROP         │
+║  │  □ Scenariu 2: Explicat de ce e greu de depanat                        │
+║  │  □ Scenariu 3: Diferențiat de filtrarea nivel rețea                    │
+║  │  □ Scenariu 3: Explicat că handshake-ul TCP reușește                   │
+║                                                                              ║
+║  3. CALITATEA RAPORTULUI                                      30 puncte     ║
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Excelent (27-30)  │ Profesional, 1000-1500 cuvinte, toate secțiunile  │
+║  │  Bun (21-26)       │ Clar structurat, acoperă cerințele                │
+║  │  Satisfăcător (15-20) │ Structură de bază, lipsesc detalii             │
+║  │  Insuficient (<15) │ Sub 800 cuvinte, secțiuni lipsă                   │
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Verificare:                                                            │
+║  │  □ Lungime 1000-1500 cuvinte                                           │
+║  │  □ Sumar executiv prezent                                              │
+║  │  □ Metodologie descrisă                                                │
+║  │  □ Toate cele 3 incidente analizate individual                         │
+║  │  □ Tabel comparativ REJECT vs DROP vs Aplicație                        │
+║  │  □ Concluzii și recomandări                                            │
+║  │  □ Limbaj profesional, fără greșeli majore                             │
+║                                                                              ║
+║  4. CAPTURI DE ECRAN EXPLICATIVE                              10 puncte     ║
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Excelent (9-10)   │ 3+ capturi adnotate, pachete evidențiate          │
+║  │  Bun (7-8)         │ 3 capturi relevante, descrieri adecvate           │
+║  │  Satisfăcător (5-6) │ Capturi prezente dar neadnotate                   │
+║  │  Insuficient (<5)  │ Capturi lipsă sau irelevante                      │
+║  ├─────────────────────────────────────────────────────────────────────────┤
+║  │  Verificare:                                                            │
+║  │  □ Captură care arată RST pentru Scenariu 1                            │
+║  │  □ Captură care arată UDP singur pentru Scenariu 2                     │
+║  │  □ Captură care arată handshake + 403 pentru Scenariu 3                │
+║  │  □ Pachete relevante evidențiate/încercuite                            │
+║  │  □ Adnotări text care explică ce se vede                               │
+║                                                                              ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  TOTAL                                                       100 puncte     ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                                                                              ║
+║  PENALIZĂRI:                                                                 ║
+║  • Plagiat sau copiere: -100% (notă 1)                                      ║
+║  • Lipsă fișiere PCAP: -25 puncte                                           ║
+║  • Lipsă raport scris: -30 puncte                                           ║
+║  • Sub 800 cuvinte: -10 puncte                                              ║
+║  • Fără capturi de ecran: -10 puncte                                        ║
+║  • Predare cu întârziere: -10% pe zi                                        ║
+║                                                                              ║
+║  BONUSURI:                                                                   ║
+║  • Analiză suplimentară a timing-ului (grafic): +5 puncte                   ║
+║  • Comparație cu tcpdump în terminal: +3 puncte                             ║
+║  • Recomandări de îmbunătățire a securității: +5 puncte                     ║
+║  • Format raport LaTeX/PDF profesional: +2 puncte                           ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+""")
+
+
 def main():
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -362,6 +450,11 @@ def main():
         action="store_true",
         help="Afișează șablonul de raport"
     )
+    parser.add_argument(
+        "--rubrica", "-r",
+        action="store_true",
+        help="Afișează rubrica detaliată de evaluare"
+    )
     args = parser.parse_args()
 
     print()
@@ -372,6 +465,8 @@ def main():
 
     if args.sablon:
         afiseaza_sablon_raport()
+    elif args.rubrica:
+        afiseaza_rubrica()
     elif args.scenariu == 1:
         simuleaza_scenariu_1()
     elif args.scenariu == 2:
@@ -391,6 +486,7 @@ def main():
         print("  python hw_7_02.py --scenariu 1   # Rulează scenariul 1")
         print("  python hw_7_02.py --toate        # Rulează toate scenariile")
         print("  python hw_7_02.py --sablon       # Afișează șablonul de raport")
+        print("  python hw_7_02.py --rubrica      # Afișează rubrica de evaluare")
         print()
         print("Pași recomandați:")
         print("  1. Porniți Wireshark și începeți captura")

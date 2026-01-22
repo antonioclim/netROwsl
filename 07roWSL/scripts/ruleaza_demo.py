@@ -7,6 +7,10 @@ Acest script execută demonstrații automatizate pentru prezentarea
 conceptelor de filtrare a pachetelor în laborator.
 """
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU — Importuri și configurare căi
+# ═══════════════════════════════════════════════════════════════════════════════
+
 from __future__ import annotations
 
 import argparse
@@ -27,8 +31,17 @@ from scripts.utils.network_utils import UtilitareRetea
 logger = configureaza_logger("ruleaza_demo")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# GESTIONARE_PROFILE — Încărcare și aplicare profile firewall
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def incarca_profile() -> dict:
-    """Încarcă profilele de firewall din fișierul JSON."""
+    """
+    Încarcă profilele de firewall din fișierul JSON.
+    
+    Returns:
+        Dicționar cu toate profilele disponibile
+    """
     cale_profile = RADACINA_PROIECT / "docker" / "configs" / "firewall_profiles.json"
     with open(cale_profile, 'r', encoding='utf-8') as f:
         return json.load(f)
@@ -73,6 +86,10 @@ def aplica_profil(nume_profil: str) -> bool:
     return True
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEMO_REFERINTA — Conectivitate de bază fără filtrare
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def demo_referinta():
     """Demonstrație: Conectivitate de referință (fără filtrare)."""
     logger.info("")
@@ -102,6 +119,10 @@ def demo_referinta():
     else:
         logger.warning(f"  [AVERTISMENT] {mesaj}")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEMO_TCP_REJECT — Filtrare TCP cu răspuns explicit
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def demo_tcp_reject():
     """Demonstrație: Filtrare TCP cu REJECT."""
@@ -144,6 +165,10 @@ def demo_tcp_reject():
         logger.error(f"  [EROARE] {e}")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEMO_UDP_DROP — Filtrare UDP cu eliminare silențioasă
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def demo_udp_drop():
     """Demonstrație: Filtrare UDP cu DROP."""
     logger.info("")
@@ -174,6 +199,10 @@ def demo_udp_drop():
         logger.info("       Nu se poate distinge de pierderea pachetelor.")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEMO_SONDARE — Identificare servicii și stări porturi
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def demo_sondare():
     """Demonstrație: Sondare defensivă a porturilor."""
     logger.info("")
@@ -197,6 +226,10 @@ def demo_sondare():
     logger.info("  ÎNCHIS   = Niciun serviciu, port accesibil")
     logger.info("  FILTRAT  = Firewall DROP activ")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEMO_COMPARATIE — Diferențe comportamentale REJECT vs DROP
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def demo_reject_vs_drop():
     """Demonstrație: Comparație REJECT vs DROP."""
@@ -264,6 +297,10 @@ def demo_reject_vs_drop():
     logger.info("  - DROP este mai discret dar cauzează timeout-uri în aplicații")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEMO_COMPLET — Secvență completă toate demonstrațiile
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def demo_complet():
     """Rulează toate demonstrațiile secvențial."""
     logger.info("")
@@ -291,6 +328,10 @@ def demo_complet():
     logger.info("Demonstrație completă finalizată!")
     logger.info("=" * 60)
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN — Punct de intrare, parsare argumente
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     """Funcția principală."""

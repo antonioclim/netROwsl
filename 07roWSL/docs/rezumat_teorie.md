@@ -15,6 +15,20 @@ este fundamentală pentru:
 - **Dezvoltarea aplicațiilor** - verificarea implementării protocoalelor
 - **Educație** - înțelegerea funcționării rețelelor
 
+### 💡 Analogie: Camere de Supraveghere
+
+Imaginează-ți o clădire de birouri cu sistem de securitate:
+
+| Concept Tehnic | Analogie |
+|----------------|----------|
+| **Interceptarea pachetelor** | Camerele video înregistrează tot ce se întâmplă |
+| **Wireshark** | Monitorul de securitate unde vizualizezi filmările |
+| **Filtrele de captură** | Setarea camerelor să filmeze doar anumite zone |
+| **Filtrele de afișare** | Căutarea în arhivă pentru o persoană sau interval |
+| **Fișier PCAP** | Caseta video salvată ca probă |
+
+Așa cum securitatea poate revizui filmările pentru a investiga un incident, tu poți analiza capturile pentru a diagnostica probleme de rețea.
+
 ### Instrumente de Captare
 
 **Wireshark** - Analizor grafic de protocoale
@@ -53,6 +67,19 @@ este fundamentală pentru:
 Netfilter este framework-ul de filtrare a pachetelor în kernelul Linux.
 iptables este instrumentul de configurare pentru Netfilter.
 
+### 💡 Analogie: Poarta cu Paznic
+
+Imaginează-ți intrarea într-un campus universitar:
+
+| Regulă Firewall | Echivalent Campus |
+|-----------------|-------------------|
+| **ACCEPT** | Paznicul verifică legitimația și te lasă să intri |
+| **DROP** | Paznicul te ignoră complet, ca și cum nu exiști |
+| **REJECT** | Paznicul îți spune "Accesul interzis!" și te trimite înapoi |
+| **Lanțul INPUT** | Verificarea la intrare în campus |
+| **Lanțul OUTPUT** | Verificarea la ieșire din campus |
+| **Lanțul FORWARD** | Tranzitul prin campus către altă clădire |
+
 **Lanțuri principale:**
 - **INPUT** - pachete destinate sistemului local
 - **OUTPUT** - pachete generate de sistemul local
@@ -80,6 +107,18 @@ iptables -t TABLE -A CHAIN -p PROTOCOL --dport PORT -j TARGET
 ---
 
 ## Semantica REJECT vs DROP
+
+### 💡 Analogie: Apel Telefonic Refuzat
+
+| Scenariu Telefon | Echivalent Firewall |
+|------------------|---------------------|
+| Sună ocupat imediat | **REJECT** — răspuns clar, eșec rapid |
+| Sună la infinit, nimeni nu răspunde | **DROP** — tăcere, trebuie să aștepți |
+| "Numărul format nu există" | **REJECT cu ICMP** — mesaj explicit |
+
+**De reținut:**
+- REJECT = politicos dar informativ (atacatorul știe că exiști)
+- DROP = tăcut dar frustrant (nimeni nu știe ce s-a întâmplat)
 
 ### Acțiunea REJECT
 
@@ -129,6 +168,21 @@ Când un pachet este eliminat cu DROP:
 
 ## Filtrarea la Nivel Aplicație
 
+### 💡 Analogie: Controlul la Aeroport
+
+| Etapă Aeroport | Echivalent Rețea |
+|----------------|------------------|
+| Check-in reușit | Handshake TCP complet |
+| Bagajele trec prin scanner | Inspecția conținutului la nivel aplicație |
+| "Obiect interzis în bagaj!" | 403 Forbidden — cerere blocată |
+| "Puteți îmbarca" | 200 OK — cerere acceptată |
+
+**Diferența cheie:** 
+- Firewall rețea (iptables) = bariera de la intrarea în aeroport
+- Firewall aplicație (proxy) = scanner-ul de bagaje
+
+Poți trece de barieră (conexiune TCP) dar tot să fii oprit la scanner (conținut blocat).
+
 ### Diferențe față de Filtrarea la Nivel Rețea
 
 **Filtrare la nivel rețea (iptables):**
@@ -163,6 +217,21 @@ Când un pachet este eliminat cu DROP:
 
 Tehnica de identificare a serviciilor active pe un sistem prin
 trimiterea de cereri către diferite porturi și analiza răspunsurilor.
+
+### 💡 Analogie: Bătutul la Uși
+
+Imaginează-ți că verifici care apartamente sunt ocupate într-un bloc:
+
+| Răspuns la Ușă | Stare Port | Ce înseamnă |
+|----------------|------------|-------------|
+| "Cine e?" | **DESCHIS** | Cineva locuiește aici și răspunde |
+| "Apartament gol" (de la administrator) | **ÎNCHIS** | Nimeni nu stă, dar clădirea confirmă |
+| Tăcere completă | **FILTRAT** | Nu știi — e gol? e ascuns? e interfon defect? |
+
+**De ce contează pentru securitate:**
+- Sondarea identifică ce servicii rulează
+- FILTRAT (DROP) face mai greu de cartografiat rețeaua
+- ÎNCHIS (RST) confirmă că sistemul există
 
 ### Tipuri de Sondare TCP
 

@@ -5,6 +5,24 @@ All notable changes to the Week 7 WSL Starter Kit will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-22
+
+### Added
+- Peer Instruction questions (4 MCQ cu distractori bazați pe misconceptii)
+- Prediction prompts în toate cele 5 exerciții de laborator
+- Analogii CPA (Concret-Pictorial-Abstract) pentru toate conceptele cheie
+- Glosar de termeni (`docs/glosar.md`)
+- Modul constante centralizat (`src/constants.py`)
+- Rubrici detaliate de evaluare pentru teme
+- Subgoal labels în scripturile de management
+
+### Changed
+- Îmbunătățire documentație cu analogii intuitive
+- Restructurare scripturi cu etichete clare pentru pași
+
+### Fixed
+- Eliminare vocabular AI-sounding din documentație
+
 ## [1.0.0] - 2026-01-07
 
 ### Added
@@ -15,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Defensive port probe utility
 - Firewall profile management with JSON-based configuration
 - Five structured laboratory exercises with verification tests
-- Comprehensive documentation including theory summary and command cheatsheet
+- Documentație completă: rezumat teoretic și referință comenzi rapide
 - Homework assignments with solution stubs
 - Automated demonstration scripts for instructor use
 - Wireshark and tcpdump integration for traffic capture

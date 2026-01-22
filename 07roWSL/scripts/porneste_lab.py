@@ -9,6 +9,10 @@ NOTĂ: Portainer rulează global pe portul 9000 și NU este gestionat de acest s
 Accesați Portainer la: http://localhost:9000 (credențiale: stud / studstudstud)
 """
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU — Importuri și configurare căi
+# ═══════════════════════════════════════════════════════════════════════════════
+
 from __future__ import annotations
 
 import argparse
@@ -27,6 +31,10 @@ from scripts.utils.network_utils import UtilitareRetea
 from scripts.utils.logger import configureaza_logger
 
 logger = configureaza_logger("porneste_lab")
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEFINIRE_CONFIGURATIE — Servicii, porturi, credențiale
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Definire servicii și configurația lor
 # NOTĂ: Portainer NU este inclus - rulează global pe portul 9000
@@ -64,8 +72,17 @@ PORTAINER_USER = "stud"
 PORTAINER_PASS = "studstudstud"
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICA_PREREQUISITE — Docker activ, Portainer disponibil
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def verifica_docker_activ() -> bool:
-    """Verifică dacă Docker este activ și funcțional."""
+    """
+    Verifică dacă Docker este activ și funcțional.
+    
+    Returns:
+        True dacă Docker răspunde la comenzi, False altfel
+    """
     try:
         rezultat = subprocess.run(
             ["docker", "info"],
@@ -78,7 +95,12 @@ def verifica_docker_activ() -> bool:
 
 
 def porneste_docker_service() -> bool:
-    """Încearcă să pornească serviciul Docker în WSL."""
+    """
+    Încearcă să pornească serviciul Docker în WSL.
+    
+    Returns:
+        True dacă Docker a fost pornit cu succes, False altfel
+    """
     logger.info("Se încearcă pornirea serviciului Docker...")
     try:
         rezultat = subprocess.run(
@@ -102,7 +124,12 @@ def porneste_docker_service() -> bool:
 
 
 def verifica_portainer_status() -> bool:
-    """Verifică dacă Portainer rulează pe portul 9000."""
+    """
+    Verifică dacă Portainer rulează pe portul 9000.
+    
+    Returns:
+        True dacă Portainer este accesibil, False altfel
+    """
     try:
         # Verifică prin docker ps
         rezultat = subprocess.run(
@@ -128,6 +155,10 @@ def verifica_portainer_status() -> bool:
         return False
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# AFISEAZA_MESAJE — Avertismente și informații pentru utilizator
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def afiseaza_avertisment_portainer() -> None:
     """Afișează avertisment dacă Portainer nu rulează."""
     logger.warning("")
@@ -147,8 +178,20 @@ def afiseaza_avertisment_portainer() -> None:
     logger.warning("")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICA_SANATATE — Health checks, conectivitate servicii
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def verifica_servicii(servicii: dict) -> bool:
-    """Verifică că serviciile sunt funcționale."""
+    """
+    Verifică că serviciile sunt funcționale prin teste de conectivitate.
+    
+    Args:
+        servicii: Dicționar cu configurația serviciilor de verificat
+        
+    Returns:
+        True dacă toate serviciile răspund, False dacă cel puțin unul eșuează
+    """
     toate_ok = True
     
     for nume, info in servicii.items():
@@ -172,6 +215,96 @@ def verifica_servicii(servicii: dict) -> bool:
     
     return toate_ok
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PORNESTE_SERVICII — Compose up, așteptare inițializare
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def porneste_laborator(docker: ManagerDocker, args) -> int:
+    """
+    Pornește containerele Docker pentru laborator.
+    
+    Args:
+        docker: Instanță ManagerDocker
+        args: Argumente linie de comandă
+        
+    Returns:
+        0 pentru succes, 1 pentru eroare
+    """
+    try:
+        # Determinare profil
+        if args.demo:
+            profil = "demo"
+            toate_servicii = dict(SERVICII)
+            toate_servicii.update(SERVICII_OPTIONALE)
+        elif args.proxy:
+            profil = "proxy"
+            toate_servicii = dict(SERVICII)
+            toate_servicii.update(SERVICII_OPTIONALE)
+        else:
+            profil = None
+            toate_servicii = SERVICII
+
+        # Reconstruire dacă este cerută
+        if args.reconstruieste:
+            logger.info("Reconstruire imagini Docker...")
+            docker.compose_build()
+
+        # Pornire containere
+        logger.info("Pornire containere Docker...")
+        ok = docker.compose_up(detach=True, profile=profil)
+        
+        if not ok:
+            logger.error("Eroare la pornirea containerelor")
+            return 1
+
+        # Așteptare inițializare
+        timp_asteptare = max(s["timp_pornire"] for s in toate_servicii.values())
+        logger.info(f"Așteptare {timp_asteptare} secunde pentru inițializarea serviciilor...")
+        time.sleep(timp_asteptare)
+
+        # Verificare servicii
+        logger.info("Verificare servicii...")
+        toate_ok = verifica_servicii(toate_servicii)
+
+        return 0 if toate_ok else 1, toate_servicii
+
+    except Exception as e:
+        logger.error(f"Eroare la pornirea laboratorului: {e}")
+        return 1, {}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AFISEAZA_REZULTATE — Status final, puncte de acces
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def afiseaza_succes(toate_servicii: dict) -> None:
+    """Afișează mesajul de succes cu punctele de acces."""
+    logger.info("")
+    logger.info("=" * 60)
+    logger.info("✓ Mediul de laborator este pregătit!")
+    logger.info("")
+    logger.info("Puncte de acces:")
+    
+    # Afișează status Portainer
+    if verifica_portainer_status():
+        logger.info(f"  Portainer: {PORTAINER_URL}")
+    else:
+        logger.info(f"  Portainer: NU RULEAZĂ (vezi instrucțiuni mai sus)")
+    
+    for nume, info in toate_servicii.items():
+        port = info["port"]
+        protocol = info["protocol"]
+        descriere = info["descriere"]
+        logger.info(f"  {descriere}: localhost:{port}/{protocol}")
+    logger.info("")
+    logger.info("Pentru oprire: python3 scripts/opreste_lab.py")
+    logger.info("=" * 60)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN — Punct de intrare, parsare argumente
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     """Funcția principală."""
@@ -247,72 +380,16 @@ def main():
     if not verifica_portainer_status():
         afiseaza_avertisment_portainer()
 
-    try:
-        # Determinare profil
-        if args.demo:
-            profil = "demo"
-            toate_servicii = dict(SERVICII)
-            toate_servicii.update(SERVICII_OPTIONALE)
-        elif args.proxy:
-            profil = "proxy"
-            toate_servicii = dict(SERVICII)
-            toate_servicii.update(SERVICII_OPTIONALE)
-        else:
-            profil = None
-            toate_servicii = SERVICII
-
-        # Reconstruire dacă este cerută
-        if args.reconstruieste:
-            logger.info("Reconstruire imagini Docker...")
-            docker.compose_build()
-
-        # Pornire containere
-        logger.info("Pornire containere Docker...")
-        ok = docker.compose_up(detach=True, profile=profil)
-        
-        if not ok:
-            logger.error("Eroare la pornirea containerelor")
-            return 1
-
-        # Așteptare inițializare
-        timp_asteptare = max(s["timp_pornire"] for s in toate_servicii.values())
-        logger.info(f"Așteptare {timp_asteptare} secunde pentru inițializarea serviciilor...")
-        time.sleep(timp_asteptare)
-
-        # Verificare servicii
-        logger.info("Verificare servicii...")
-        toate_ok = verifica_servicii(toate_servicii)
-
-        if toate_ok:
-            logger.info("")
-            logger.info("=" * 60)
-            logger.info("✓ Mediul de laborator este pregătit!")
-            logger.info("")
-            logger.info("Puncte de acces:")
-            
-            # Afișează status Portainer
-            if verifica_portainer_status():
-                logger.info(f"  Portainer: {PORTAINER_URL}")
-            else:
-                logger.info(f"  Portainer: NU RULEAZĂ (vezi instrucțiuni mai sus)")
-            
-            for nume, info in toate_servicii.items():
-                port = info["port"]
-                protocol = info["protocol"]
-                descriere = info["descriere"]
-                logger.info(f"  {descriere}: localhost:{port}/{protocol}")
-            logger.info("")
-            logger.info("Pentru oprire: python3 scripts/opreste_lab.py")
-            logger.info("=" * 60)
-            return 0
-        else:
-            logger.error("")
-            logger.error("Unele servicii nu au pornit corect.")
-            logger.error("Verificați logurile: docker compose -f docker/docker-compose.yml logs")
-            return 1
-
-    except Exception as e:
-        logger.error(f"Eroare la pornirea laboratorului: {e}")
+    # Pornire laborator
+    rezultat, toate_servicii = porneste_laborator(docker, args)
+    
+    if rezultat == 0 and toate_servicii:
+        afiseaza_succes(toate_servicii)
+        return 0
+    else:
+        logger.error("")
+        logger.error("Unele servicii nu au pornit corect.")
+        logger.error("Verificați logurile: docker compose -f docker/docker-compose.yml logs")
         return 1
 
 
