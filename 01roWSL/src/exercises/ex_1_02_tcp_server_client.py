@@ -3,256 +3,251 @@
 Exercițiul 1.02: Server și Client TCP
 Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 
-Acest exercițiu demonstrează comunicarea client-server folosind socket-uri TCP.
-Veți învăța despre modelul conexiune-orientat și handshake-ul în trei pași.
+Acest exercițiu demonstrează comunicarea TCP folosind socket-uri Python.
+Rulează atât serverul cât și clientul pentru a arăta handshake-ul TCP.
 
 Concepte cheie:
-- Socket-uri TCP (SOCK_STREAM)
-- Handshake în trei pași (SYN, SYN-ACK, ACK)
-- Stările socket-urilor (LISTEN, ESTABLISHED, TIME_WAIT)
-- Modelul client-server
-
-Rulare:
-    python ex_1_02_tcp_server_client.py
-    python ex_1_02_tcp_server_client.py --port 9999
+- Socket TCP (SOCK_STREAM) - conexiune orientată
+- Handshake în 3 pași (SYN, SYN-ACK, ACK)
+- Stări socket: LISTEN, ESTABLISHED, TIME_WAIT
+- Comunicare bidirecțională
 """
 
 from __future__ import annotations
 
 import socket
-import sys
 import threading
 import time
-import argparse
-from typing import Optional
+import sys
+from pathlib import Path
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTS_SI_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
-# Culori pentru terminal
-VERDE = "\033[92m"
-ALBASTRU = "\033[94m"
-GALBEN = "\033[93m"
+# Culori pentru output - diferențiem vizual SERVER de CLIENT
+VERDE = "\033[92m"      # SERVER
+ALBASTRU = "\033[94m"   # CLIENT
+GALBEN = "\033[93m"     # INFO
+CYAN = "\033[96m"       # STĂRI
+ROSU = "\033[91m"       # ERORI
 RESET = "\033[0m"
+BOLD = "\033[1m"
 
+# Configurare
+HOST = '127.0.0.1'
+PORT = 9095  # Port diferit de cel standard pentru a evita conflicte
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AFISARE_STARI_SOCKET
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_stari_socket() -> None:
-    """Explică stările unui socket TCP."""
-    print("""
-┌─────────────────────────────────────────────────────────────────┐
-│                    STĂRILE SOCKET-URILOR TCP                    │
-├─────────────────────────────────────────────────────────────────┤
-│  CLOSED      │ Socket închis, nu există conexiune              │
-│  LISTEN      │ Server așteaptă conexiuni                       │
-│  SYN_SENT    │ Client a trimis SYN, așteaptă SYN-ACK           │
-│  SYN_RCVD    │ Server a primit SYN, a trimis SYN-ACK           │
-│  ESTABLISHED │ Conexiune stabilită, transfer de date activ     │
-│  FIN_WAIT_1  │ S-a trimis FIN, se așteaptă ACK                 │
-│  FIN_WAIT_2  │ ACK primit, se așteaptă FIN de la celălalt      │
-│  TIME_WAIT   │ Așteaptă ca pachetele să expire                 │
-│  CLOSE_WAIT  │ FIN primit, aplicația încă procesează           │
-│  LAST_ACK    │ FIN trimis, se așteaptă ultimul ACK             │
-└─────────────────────────────────────────────────────────────────┘
-""")
-
-
-def server_tcp(port: int, mesaje_de_primit: int = 3) -> None:
-    """Funcția serverului TCP.
+    """Afișează un tabel explicativ cu stările socket-ului TCP.
     
-    Args:
-        port: Portul pe care să asculte
-        mesaje_de_primit: Numărul de mesaje de primit înainte de închidere
+    Ajută la înțelegerea ce se întâmplă în spatele scenei.
     """
-    print(f"\n{VERDE}[SERVER]{RESET} Se inițializează serverul TCP...")
+    print()
+    print(f"{CYAN}┌{'─' * 60}┐{RESET}")
+    print(f"{CYAN}│{BOLD}  STĂRI SOCKET TCP - CE ÎNSEAMNĂ FIECARE                     {RESET}{CYAN}│{RESET}")
+    print(f"{CYAN}├{'─' * 60}┤{RESET}")
+    print(f"{CYAN}│  LISTEN      │ Server: Așteaptă conexiuni pe port           │{RESET}")
+    print(f"{CYAN}│  SYN_SENT    │ Client: A trimis SYN, așteaptă SYN-ACK       │{RESET}")
+    print(f"{CYAN}│  SYN_RECV    │ Server: A primit SYN, a trimis SYN-ACK       │{RESET}")
+    print(f"{CYAN}│  ESTABLISHED │ Conexiune activă - se pot trimite date       │{RESET}")
+    print(f"{CYAN}│  FIN_WAIT_1  │ A trimis FIN, așteaptă ACK                   │{RESET}")
+    print(f"{CYAN}│  TIME_WAIT   │ Așteaptă pachete întârziate (~60s)           │{RESET}")
+    print(f"{CYAN}│  CLOSE_WAIT  │ A primit FIN, așteaptă close() local         │{RESET}")
+    print(f"{CYAN}│  CLOSED      │ Conexiune închisă complet                    │{RESET}")
+    print(f"{CYAN}└{'─' * 60}┘{RESET}")
+    print()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_SERVER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def ruleaza_server() -> None:
+    """Rulează serverul TCP.
     
-    # Crearea socket-ului
+    Pașii serverului:
+    1. socket() - creează socket
+    2. bind() - asociază cu adresă și port
+    3. listen() - începe să asculte
+    4. accept() - acceptă conexiune (blochează până vine client)
+    5. recv()/send() - primește/trimite date
+    6. close() - închide conexiunea
+    """
+    print(f"{VERDE}[SERVER]{RESET} Se creează socket-ul TCP...")
+    
+    # Creează socket TCP
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
-    # Permite reutilizarea adresei
+    # SO_REUSEADDR permite refolosirea portului imediat după închidere
+    # Fără asta, ai primi "Address already in use" dacă rulezi din nou rapid
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
-    try:
-        # Legare la adresă și port
-        server_socket.bind(('0.0.0.0', port))
-        print(f"{VERDE}[SERVER]{RESET} Socket legat la 0.0.0.0:{port}")
-        
-        # Începe ascultarea
-        server_socket.listen(5)
-        print(f"{VERDE}[SERVER]{RESET} Serverul ascultă (backlog=5)")
-        print(f"{VERDE}[SERVER]{RESET} Stare: LISTEN")
-        print(f"{VERDE}[SERVER]{RESET} Se așteaptă conexiuni...")
-        
-        # Acceptă conexiunea
-        client_socket, adresa_client = server_socket.accept()
-        print(f"\n{VERDE}[SERVER]{RESET} ═══════════════════════════════════════")
-        print(f"{VERDE}[SERVER]{RESET} ✓ Conexiune acceptată de la {adresa_client}")
-        print(f"{VERDE}[SERVER]{RESET} Stare: ESTABLISHED")
-        print(f"{VERDE}[SERVER]{RESET} ═══════════════════════════════════════")
-        
-        mesaje_primite = 0
-        while mesaje_primite < mesaje_de_primit:
-            # Primește date
-            date = client_socket.recv(1024)
-            
-            if not date:
-                print(f"{VERDE}[SERVER]{RESET} Clientul a închis conexiunea")
-                break
-            
-            mesaj = date.decode('utf-8')
-            mesaje_primite += 1
-            print(f"{VERDE}[SERVER]{RESET} Primit [{mesaje_primite}]: \"{mesaj}\"")
-            
-            # Trimite răspuns
-            raspuns = f"Confirmare: am primit mesajul #{mesaje_primite}"
-            client_socket.send(raspuns.encode('utf-8'))
-            print(f"{VERDE}[SERVER]{RESET} Trimis răspuns: \"{raspuns}\"")
-        
-        # Închide conexiunea cu clientul
-        client_socket.close()
-        print(f"\n{VERDE}[SERVER]{RESET} Conexiune cu clientul închisă")
-        print(f"{VERDE}[SERVER]{RESET} Stare client socket: CLOSE_WAIT → CLOSED")
-        
-    except Exception as e:
-        print(f"{VERDE}[SERVER]{RESET} ✗ Eroare: {e}")
-    finally:
-        server_socket.close()
-        print(f"{VERDE}[SERVER]{RESET} Server oprit")
-
-
-def client_tcp(gazda: str, port: int, mesaje: list[str]) -> None:
-    """Funcția clientului TCP.
+    print(f"{VERDE}[SERVER]{RESET} Se face bind() pe {HOST}:{PORT}...")
+    server_socket.bind((HOST, PORT))
     
-    Args:
-        gazda: Adresa serverului
-        port: Portul serverului
-        mesaje: Lista de mesaje de trimis
+    print(f"{VERDE}[SERVER]{RESET} Se apelează listen() - serverul așteaptă conexiuni")
+    print(f"{VERDE}[SERVER]{RESET} {CYAN}>>> Stare: LISTEN <<<{RESET}")
+    server_socket.listen(1)  # Coada de 1 conexiune
+    
+    print(f"{VERDE}[SERVER]{RESET} Se așteaptă conexiune... (accept() blochează)")
+    
+    # accept() blochează până vine un client
+    client_conn, client_addr = server_socket.accept()
+    
+    print(f"{VERDE}[SERVER]{RESET} ✓ Conexiune acceptată de la {client_addr}")
+    print(f"{VERDE}[SERVER]{RESET} {CYAN}>>> Stare: ESTABLISHED <<<{RESET}")
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # TRANSFER_DATE_SERVER
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    # Primește date de la client
+    print(f"{VERDE}[SERVER]{RESET} Se așteaptă date de la client...")
+    data = client_conn.recv(1024)
+    
+    if data:
+        mesaj_primit = data.decode('utf-8')
+        print(f"{VERDE}[SERVER]{RESET} Primit: '{mesaj_primit}'")
+        
+        # Trimite răspuns
+        raspuns = f"Server a primit: {mesaj_primit}"
+        client_conn.send(raspuns.encode('utf-8'))
+        print(f"{VERDE}[SERVER]{RESET} Trimis răspuns: '{raspuns}'")
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # INCHIDERE_CONEXIUNE_SERVER
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    print(f"{VERDE}[SERVER]{RESET} Se închide conexiunea cu clientul...")
+    client_conn.close()
+    
+    print(f"{VERDE}[SERVER]{RESET} Se închide socket-ul server...")
+    server_socket.close()
+    
+    print(f"{VERDE}[SERVER]{RESET} ✓ Server oprit")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_CLIENT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def ruleaza_client() -> None:
+    """Rulează clientul TCP.
+    
+    Pașii clientului:
+    1. socket() - creează socket
+    2. connect() - conectare la server (declanșează handshake)
+    3. send()/recv() - trimite/primește date
+    4. close() - închide conexiunea
     """
-    # Mică întârziere pentru a lăsa serverul să pornească
+    # Așteaptă puțin să pornească serverul
     time.sleep(0.5)
     
-    print(f"\n{ALBASTRU}[CLIENT]{RESET} Se inițializează clientul TCP...")
+    print(f"{ALBASTRU}[CLIENT]{RESET} Se creează socket-ul TCP...")
     
-    # Crearea socket-ului
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
+    print(f"{ALBASTRU}[CLIENT]{RESET} Se conectează la {HOST}:{PORT}...")
+    print(f"{ALBASTRU}[CLIENT]{RESET} {CYAN}>>> Trimite SYN (handshake pas 1) <<<{RESET}")
+    
     try:
-        # Conectare la server
-        print(f"{ALBASTRU}[CLIENT]{RESET} Se conectează la {gazda}:{port}...")
-        print(f"{ALBASTRU}[CLIENT]{RESET} Stare: SYN_SENT (se trimite SYN)")
-        
-        client_socket.connect((gazda, port))
-        
-        print(f"\n{ALBASTRU}[CLIENT]{RESET} ═══════════════════════════════════════")
+        client_socket.connect((HOST, PORT))
+        print(f"{ALBASTRU}[CLIENT]{RESET} {CYAN}>>> Primit SYN-ACK, trimis ACK (handshake complet) <<<{RESET}")
+        print(f"{ALBASTRU}[CLIENT]{RESET} {CYAN}>>> Stare: ESTABLISHED <<<{RESET}")
         print(f"{ALBASTRU}[CLIENT]{RESET} ✓ Conectat la server!")
-        print(f"{ALBASTRU}[CLIENT]{RESET} Handshake TCP completat:")
-        print(f"{ALBASTRU}[CLIENT]{RESET}   1. Client → Server: SYN")
-        print(f"{ALBASTRU}[CLIENT]{RESET}   2. Server → Client: SYN-ACK")
-        print(f"{ALBASTRU}[CLIENT]{RESET}   3. Client → Server: ACK")
-        print(f"{ALBASTRU}[CLIENT]{RESET} Stare: ESTABLISHED")
-        print(f"{ALBASTRU}[CLIENT]{RESET} ═══════════════════════════════════════")
         
-        # Trimite mesajele
-        for i, mesaj in enumerate(mesaje, 1):
-            print(f"\n{ALBASTRU}[CLIENT]{RESET} Trimit mesajul #{i}: \"{mesaj}\"")
-            client_socket.send(mesaj.encode('utf-8'))
-            
-            # Așteaptă răspuns
-            raspuns = client_socket.recv(1024).decode('utf-8')
-            print(f"{ALBASTRU}[CLIENT]{RESET} Răspuns primit: \"{raspuns}\"")
-            
-            time.sleep(0.3)  # Pauză scurtă între mesaje
+        # ═══════════════════════════════════════════════════════════════════════
+        # TRANSFER_DATE_CLIENT
+        # ═══════════════════════════════════════════════════════════════════════
         
-        # Închide conexiunea
-        print(f"\n{ALBASTRU}[CLIENT]{RESET} Se închide conexiunea...")
-        print(f"{ALBASTRU}[CLIENT]{RESET} Stare: FIN_WAIT_1 → FIN_WAIT_2 → TIME_WAIT")
+        # Trimite mesaj
+        mesaj = "Salut de la client TCP!"
+        print(f"{ALBASTRU}[CLIENT]{RESET} Se trimite: '{mesaj}'")
+        client_socket.send(mesaj.encode('utf-8'))
+        
+        # Primește răspuns
+        print(f"{ALBASTRU}[CLIENT]{RESET} Se așteaptă răspuns...")
+        raspuns = client_socket.recv(1024)
+        
+        if raspuns:
+            print(f"{ALBASTRU}[CLIENT]{RESET} Primit: '{raspuns.decode('utf-8')}'")
+        
+        # ═══════════════════════════════════════════════════════════════════════
+        # INCHIDERE_CONEXIUNE_CLIENT
+        # ═══════════════════════════════════════════════════════════════════════
+        
+        print(f"{ALBASTRU}[CLIENT]{RESET} Se închide conexiunea...")
+        print(f"{ALBASTRU}[CLIENT]{RESET} {CYAN}>>> Trimite FIN (începe închiderea) <<<{RESET}")
+        client_socket.close()
+        print(f"{ALBASTRU}[CLIENT]{RESET} {CYAN}>>> Stare: TIME_WAIT (așteaptă ~60s) <<<{RESET}")
+        print(f"{ALBASTRU}[CLIENT]{RESET} ✓ Client oprit")
         
     except ConnectionRefusedError:
-        print(f"{ALBASTRU}[CLIENT]{RESET} ✗ Conexiune refuzată - serverul nu rulează")
+        print(f"{ROSU}[CLIENT] EROARE: Conexiune refuzată - serverul nu rulează?{RESET}")
     except Exception as e:
-        print(f"{ALBASTRU}[CLIENT]{RESET} ✗ Eroare: {e}")
-    finally:
-        client_socket.close()
-        print(f"{ALBASTRU}[CLIENT]{RESET} Socket client închis")
+        print(f"{ROSU}[CLIENT] EROARE: {e}{RESET}")
 
 
-def demonstratie_completa(port: int) -> None:
-    """Rulează o demonstrație completă server-client.
-    
-    Args:
-        port: Portul pentru comunicare
-    """
-    print("\n" + "=" * 60)
-    print("  DEMONSTRAȚIE: COMUNICARE TCP CLIENT-SERVER")
-    print("=" * 60)
-    
-    # Mesajele pe care clientul le va trimite
-    mesaje_client = [
-        "Salut, server!",
-        "Acesta este un test TCP.",
-        "La revedere!"
-    ]
-    
-    # Pornește serverul într-un fir de execuție separat
-    fir_server = threading.Thread(
-        target=server_tcp,
-        args=(port, len(mesaje_client))
-    )
-    fir_server.daemon = True
-    fir_server.start()
-    
-    # Pornește clientul
-    client_tcp("127.0.0.1", port, mesaje_client)
-    
-    # Așteaptă finalizarea serverului
-    fir_server.join(timeout=5)
-    
-    print("\n" + "=" * 60)
-    print("  DEMONSTRAȚIE FINALIZATĂ")
-    print("=" * 60)
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main() -> int:
-    """Funcția principală."""
-    parser = argparse.ArgumentParser(
-        description="Demonstrație Server-Client TCP",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Exemple:
-  python ex_1_02_tcp_server_client.py              # Demonstrație completă
-  python ex_1_02_tcp_server_client.py --port 8080  # Alt port
-  python ex_1_02_tcp_server_client.py --stari      # Afișează stările socket
-        """
-    )
-    parser.add_argument(
-        "--port", "-p",
-        type=int,
-        default=9999,
-        help="Portul pentru comunicare (implicit: 9999)"
-    )
-    parser.add_argument(
-        "--stari",
-        action="store_true",
-        help="Afișează explicația stărilor socket TCP"
-    )
-    args = parser.parse_args()
-
+    """Funcția principală - rulează demonstrația server-client."""
     print()
-    print("╔" + "═" * 58 + "╗")
-    print("║" + "  EXERCIȚIUL 1.02: SERVER ȘI CLIENT TCP".center(58) + "║")
-    print("║" + "  Curs REȚELE DE CALCULATOARE - ASE".center(58) + "║")
-    print("╚" + "═" * 58 + "╝")
-
-    if args.stari:
-        afiseaza_stari_socket()
-        return 0
-
-    try:
-        demonstratie_completa(args.port)
-        return 0
-    except KeyboardInterrupt:
-        print("\n\n⚠ Întrerupt de utilizator")
-        return 130
-    except Exception as e:
-        print(f"\n✗ Eroare: {e}")
-        return 1
+    print(f"{BOLD}╔{'═' * 58}╗{RESET}")
+    print(f"{BOLD}║  EXERCIȚIUL 1.02: SERVER ȘI CLIENT TCP                   ║{RESET}")
+    print(f"{BOLD}╚{'═' * 58}╝{RESET}")
+    
+    # Afișează explicația stărilor
+    afiseaza_stari_socket()
+    
+    print(f"{GALBEN}Se pornește demonstrația...{RESET}")
+    print(f"{GALBEN}(Serverul și clientul rulează în paralel){RESET}")
+    print()
+    print("=" * 60)
+    print()
+    
+    # Pornește serverul într-un thread separat
+    thread_server = threading.Thread(target=ruleaza_server)
+    thread_server.start()
+    
+    # Pornește clientul (așteaptă puțin ca serverul să fie gata)
+    ruleaza_client()
+    
+    # Așteaptă terminarea serverului
+    thread_server.join(timeout=5)
+    
+    print()
+    print("=" * 60)
+    print()
+    
+    # Explicație handshake
+    print(f"{BOLD}HANDSHAKE TCP ÎN 3 PAȘI (ce s-a întâmplat):{RESET}")
+    print()
+    print(f"  Client                              Server")
+    print(f"     │                                   │")
+    print(f"     │  ─────── SYN (seq=x) ──────────►  │  Pas 1: Vreau să mă conectez")
+    print(f"     │                                   │")
+    print(f"     │  ◄──── SYN-ACK (ack=x+1) ───────  │  Pas 2: OK, și eu vreau")
+    print(f"     │                                   │")
+    print(f"     │  ─────── ACK (ack=y+1) ────────►  │  Pas 3: Confirmat!")
+    print(f"     │                                   │")
+    print(f"     │     CONEXIUNE STABILITĂ           │")
+    print()
+    
+    print(f"{VERDE}✓ Exercițiu completat!{RESET}")
+    print()
+    print(f"{GALBEN}TIP: Rulează `ss -tn state time-wait` pentru a vedea socket-uri în TIME_WAIT{RESET}")
+    print()
+    
+    return 0
 
 
 if __name__ == "__main__":

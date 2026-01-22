@@ -17,6 +17,10 @@ import argparse
 import socket
 from pathlib import Path
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTS_SI_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 # Adaugă directorul rădăcină al proiectului la path
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
@@ -44,6 +48,10 @@ def afiseaza_banner() -> None:
     print()
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICA_PREREQUISITE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def verifica_portainer_status() -> bool:
     """Verifică dacă Portainer rulează pe portul 9000."""
     try:
@@ -56,6 +64,7 @@ def verifica_portainer_status() -> bool:
         if rezultat.returncode == 0 and "Up" in rezultat.stdout:
             return True
         
+        # Verifică portul direct - backup check
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(2)
@@ -74,8 +83,14 @@ def este_container_exclus(nume_container: str) -> bool:
     return any(exclus in nume_container.lower() for exclus in CONTAINERE_EXCLUSE)
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# EXECUTA_LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def oprire_gratiosa(container: str, timeout: int = 30) -> bool:
     """Oprește un container în mod grațios.
+    
+    Trimite SIGTERM și așteaptă timeout secunde înainte de SIGKILL.
     
     Args:
         container: Numele containerului
@@ -116,7 +131,7 @@ def oprire_gratiosa(container: str, timeout: int = 30) -> bool:
 
 
 def oprire_fortata(container: str) -> bool:
-    """Forțează oprirea unui container.
+    """Forțează oprirea unui container cu SIGKILL.
     
     Args:
         container: Numele containerului
@@ -149,6 +164,10 @@ def oprire_fortata(container: str) -> bool:
         logger.error(f"Eroare la oprirea forțată: {e}")
         return False
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN_SI_ARGUMENTE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main() -> int:
     """Funcția principală."""
@@ -185,6 +204,10 @@ NOTĂ: Portainer NU este oprit - rulează global pe portul 9000.
     logger.info("Oprirea Mediului de Laborator")
     logger.info("(Portainer rămâne activ)")
     logger.info("=" * 60)
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # OPRIRE_CONTAINERE
+    # ═══════════════════════════════════════════════════════════════════════════
 
     try:
         # Obține lista containerelor week1_* (exclude portainer)
@@ -227,10 +250,18 @@ NOTĂ: Portainer NU este oprit - rulează global pe portul 9000.
             if not succes:
                 succes_total = False
 
+        # ═══════════════════════════════════════════════════════════════════════
+        # CURATARE_FINALA
+        # ═══════════════════════════════════════════════════════════════════════
+
         # Oprește și cu docker compose (va ignora portainer care nu e definit)
         logger.info("")
         logger.info("Se finalizează oprirea cu Docker Compose...")
         docker.compose_down()
+
+        # ═══════════════════════════════════════════════════════════════════════
+        # AFISEAZA_REZULTATE
+        # ═══════════════════════════════════════════════════════════════════════
 
         logger.info("")
         logger.info("=" * 60)

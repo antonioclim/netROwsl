@@ -5,10 +5,7 @@
 ## Prezentare Generală
 
 Acest director conține temele pentru acasă aferente Săptămânii 1.
-Fiecare temă include:
-- Descrierea cerințelor
-- Script de pornire (starter)
-- Criterii de evaluare
+Fiecare temă include: descrierea cerințelor, script de pornire (starter), și criterii de evaluare.
 
 ## Teme Disponibile
 
@@ -60,6 +57,56 @@ Fiecare temă include:
 
 ---
 
+## Lucrul în Perechi (Recomandat)
+
+Temele sunt **individuale**, dar discuțiile și debugging-ul în perechi sunt încurajate. Cercetările arată că Pair Programming îmbunătățește înțelegerea și reduce erorile.
+
+### Metoda Driver-Navigator
+
+| Rol | Ce face | Durată |
+|-----|---------|--------|
+| **Driver** | Scrie cod, tastează comenzi, navighează în fișiere | 15-20 min |
+| **Navigator** | Verifică ce scrie Driver-ul, sugerează abordări, caută în documentație | 15-20 min |
+
+După 15-20 minute, **schimbați rolurile**. Rotația e importantă!
+
+### Reguli de Aur
+
+**Navigator-ul POATE:**
+- ✅ Spune "încearcă comanda `ss -tlnp`"
+- ✅ Întreba "ce crezi că va afișa asta?"
+- ✅ Sugera "hai să verificăm documentația pentru parametrul ăsta"
+- ✅ Indica erori: "cred că lipsește un două puncte pe linia 15"
+
+**Navigator-ul NU poate:**
+- ❌ Dicta cod linie cu linie ("scrie i-p-space-a-d-d-r...")
+- ❌ Lua tastatura din mâna Driver-ului
+- ❌ Critica în loc să sugereze
+
+**Driver-ul TREBUIE:**
+- ✅ Să explice ce face și de ce
+- ✅ Să asculte sugestiile Navigator-ului
+- ✅ Să întrebe dacă ceva nu e clar
+
+### Ce Este Permis în Perechi
+
+| ✅ Permis | ❌ Interzis |
+|-----------|-------------|
+| Discuții despre concepte | Copierea codului final |
+| Debugging împreună | Un singur om face toată munca |
+| Împărtășirea resurselor găsite | Predarea aceluiași cod |
+| Explicarea abordărilor | Împărțirea temei ("tu faci 1, eu fac 2") |
+
+### Găsirea unui Partener
+
+- Întreabă colegii de grupă la laborator
+- Folosește canalul Discord/Teams al cursului
+- Lucrează la biblioteca facultății
+
+**Notă:** Chiar dacă lucrezi în perechi pentru debugging, tema predată trebuie să fie munca ta proprie.
+
+---
+
 ## Instrucțiuni de Predare
 
 ### Format
@@ -96,19 +143,22 @@ Verificați platforma de e-learning pentru data exactă de predare.
 ✓ Utilizarea exemplelor din laborator
 ✓ Discuții conceptuale cu colegii
 ✓ Căutarea de soluții la erori specifice
+✓ Pair Programming pentru debugging
 
 ### Ce NU este permis:
 
 ✗ Copierea codului de la colegi
-✗ Partajarea soluțiilor
+✗ Partajarea soluțiilor complete
 ✗ Utilizarea soluțiilor de pe internet fără înțelegere
 ✗ Predarea muncii altcuiva
+✗ Folosirea ChatGPT/AI pentru a genera soluția completă
 
 ## Resurse Utile
 
-- `../docs/rezumat_teoretic.md` - Concepte teoretice
+- `../docs/rezumat_teoretic.md` - Concepte teoretice + analogii CPA
 - `../docs/fisa_comenzi.md` - Comenzi utile
 - `../docs/depanare.md` - Soluții la probleme comune
+- `../docs/intrebari_peer_instruction.md` - Întrebări pentru auto-evaluare
 - `../src/exercises/` - Exemple de cod
 
 ## Întrebări Frecvente
@@ -124,6 +174,9 @@ R: Da, oricând înainte de termen.
 
 **Î: Ce se întâmplă dacă ratez termenul?**
 R: Consultați politica de întârzieri din syllabus.
+
+**Î: Pot lucra în perechi?**
+R: Da, pentru discuții și debugging. Tema predată trebuie să fie munca ta.
 
 ---
 

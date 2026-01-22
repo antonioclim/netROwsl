@@ -2,6 +2,30 @@
 
 > Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 
+## 0. Analogii pentru Concepte Cheie (CPA)
+
+Înainte de a intra în detalii tehnice, iată cum să-ți imaginezi conceptele. Metoda CPA (Concret-Pictorial-Abstract) te ajută să construiești intuiția pas cu pas.
+
+| Concept | 🎯 Imaginează-ți că... | 📊 Vizual | 💻 În practică |
+|---------|------------------------|-----------|----------------|
+| **Container** | O cutie de transport maritim. Înăuntru e tot ce trebuie pentru a rula aplicația. Poți muta cutia oriunde, conținutul rămâne izolat. | `[App+Libs+Config]` | `docker run nginx` |
+| **Imagine Docker** | Rețeta pentru o prăjitură. Poți face oricâte prăjituri (containere) din aceeași rețetă, toate identice. | `Dockerfile → Image → Container(s)` | `docker pull python:3.12` |
+| **Volume** | Un hard disk extern pe care-l atașezi la laptop. Datele rămân pe disk chiar când laptopul e oprit. | `Host ←→ Container` | `-v /date:/app/date` |
+| **Port Mapping** | Adresa unei clădiri (host) + numărul apartamentului (container). Vizitatorii vin la adresa clădirii, portarul îi trimite la apartament. | `Windows:8080 → Container:80` | `-p 8080:80` |
+| **Network Bridge** | Un drum privat între case vecine. Doar casele de pe acest drum pot comunica direct între ele. Străinii nu văd drumul. | `Container A ↔ Bridge ↔ Container B` | `docker network create retea_mea` |
+| **Docker Compose** | Dirijorul unei orchestre. Coordonează mai multe instrumente (containere) să cânte împreună, fiecare la momentul potrivit. | `YAML → Orchestrate → Services` | `docker compose up` |
+| **TCP Handshake** | Când suni pe cineva: tu zici "Alo?" (SYN), el zice "Da, te aud, tu mă auzi?" (SYN-ACK), tu zici "Da, te aud" (ACK). Abia apoi vorbiți. | `SYN → SYN-ACK → ACK → DATA` | `connect() → accept()` |
+| **UDP** | Trimiți o scrisoare fără confirmare de primire. Rapid, dar nu știi 100% dacă a ajuns. Bun pentru mesaje unde viteza contează mai mult decât certitudinea. | `Send → ? → Maybe received` | `socket.SOCK_DGRAM` |
+| **Socket** | Priza din perete. Fiecare priză are o adresă (IP) și un număr (port). Conectezi "cablul" aplicației tale la priză pentru a comunica. | `App ← Socket(IP:Port) → Network` | `bind(('0.0.0.0', 9090))` |
+| **Wireshark** | Camera de supraveghere pentru traficul de rețea. Vezi tot ce trece pe "drum" - cine trimite, cine primește, ce conțin pachetele. | `Capture → Filter → Analyze` | Captură pe `vEthernet (WSL)` |
+
+**Cum să folosești acest tabel:**
+1. Citește coloana "Imaginează-ți" pentru a înțelege conceptul intuitiv
+2. Privește coloana "Vizual" pentru a-ți forma o imagine mentală
+3. Exersează cu coloana "În practică" în terminal
+
+---
+
 ## 1. Clasificarea Rețelelor de Calculatoare
 
 ### După Aria Geografică
@@ -15,11 +39,13 @@
 
 ### Topologii de Rețea
 
-- **Bus (Magistrală)**: Toate dispozitivele conectate la un cablu comun
-- **Stea (Star)**: Dispozitivele conectate la un nod central (switch/hub)
-- **Inel (Ring)**: Fiecare dispozitiv conectat la două vecine
-- **Plasă (Mesh)**: Conexiuni multiple între dispozitive
-- **Arbore (Tree)**: Structură ierarhică
+Fiecare topologie are avantaje și dezavantaje:
+
+- **Bus (Magistrală)**: Toate dispozitivele conectate la un cablu comun. Simplu dar vulnerabil la defecțiuni.
+- **Stea (Star)**: Dispozitivele conectate la un nod central (switch/hub). Cel mai comun în LAN-uri moderne.
+- **Inel (Ring)**: Fiecare dispozitiv conectat la două vecine. Folosit în rețele industriale.
+- **Plasă (Mesh)**: Conexiuni multiple între dispozitive. Redundanță maximă, cost ridicat.
+- **Arbore (Tree)**: Structură ierarhică. Folosită în rețele mari de enterprise.
 
 ## 2. Modelul TCP/IP
 
@@ -98,9 +124,9 @@ Notația CIDR specifică numărul de biți pentru partea de rețea:
 ### Adrese IP Speciale
 
 - **0.0.0.0**: Adresa "orice" sau "toate rețelele"
-- **127.0.0.1**: Loopback (localhost)
+- **127.0.0.1**: Loopback (localhost) - datele nu părăsesc mașina
 - **255.255.255.255**: Broadcast global
-- **169.254.x.x**: Link-local (APIPA)
+- **169.254.x.x**: Link-local (APIPA) - când DHCP nu funcționează
 
 ## 4. Protocoale de Transport
 
@@ -130,7 +156,7 @@ Client                          Server
 - `LISTEN`: Serverul așteaptă conexiuni
 - `SYN_SENT`: Clientul a trimis SYN
 - `ESTABLISHED`: Conexiune activă
-- `TIME_WAIT`: Așteaptă pachete întârziate
+- `TIME_WAIT`: Așteaptă pachete întârziate (durează ~60s)
 - `CLOSE_WAIT`: Așteaptă închiderea aplicației
 
 ### UDP (User Datagram Protocol)
@@ -194,10 +220,10 @@ Un socket este un endpoint pentru comunicarea bidirecțională între două prog
 import socket
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(('0.0.0.0', 9090))
-server.listen(1)
+server.bind(('0.0.0.0', 9090))  # Ascultă pe toate interfețele
+server.listen(1)  # Coadă de 1 conexiune
 
-conn, addr = server.accept()
+conn, addr = server.accept()  # Blochează până vine cineva
 data = conn.recv(1024)
 conn.send(b'Primit!')
 conn.close()
@@ -208,7 +234,7 @@ conn.close()
 import socket
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('localhost', 9090))
+client.connect(('localhost', 9090))  # Conectare la server
 client.send(b'Salut!')
 response = client.recv(1024)
 client.close()
@@ -238,7 +264,7 @@ client.close()
 ```bash
 # Afișare interfețe de rețea
 ip addr show
-ip -br addr show
+ip -br addr show  # format scurt, mai ușor de citit
 
 # Afișare tabelă de rutare
 ip route show
@@ -250,10 +276,10 @@ ip neigh show
 ### Testare Conectivitate
 
 ```bash
-# Test ICMP
+# Test ICMP - 4 pachete, ca la examen
 ping -c 4 192.168.1.1
 
-# Trasare rută
+# Trasare rută - vezi prin ce noduri trec pachetele
 traceroute 8.8.8.8
 
 # Rezolvare DNS
@@ -264,10 +290,10 @@ dig google.com
 ### Inspectare Socket-uri
 
 ```bash
-# Toate socket-urile
+# Toate socket-urile (-t TCP, -u UDP, -n numeric, -a all, -p process)
 ss -tunap
 
-# Doar TCP în ascultare
+# Doar TCP în ascultare (-l listen)
 ss -tln
 
 # Cu informații despre proces
@@ -280,7 +306,7 @@ ss -tlnp
 # Captură pe interfață
 tcpdump -i eth0
 
-# Salvare în fișier
+# Salvare în fișier pentru Wireshark
 tcpdump -i eth0 -w captura.pcap
 
 # Filtrare după port
@@ -297,19 +323,19 @@ d_total = d_transmisie + d_propagare + d_procesare + d_așteptare
 
 **Întârzierea de Transmisie (Transmission Delay)**
 - Timpul pentru a pune biții pe mediu
-- d_trans = L / R (L = dimensiune, R = rată)
+- d_trans = L / R (L = dimensiune pachet, R = rată link)
 
 **Întârzierea de Propagare (Propagation Delay)**
-- Timpul pentru un bit să parcurgă distanța
-- d_prop = D / S (D = distanță, S = viteză)
+- Timpul pentru un bit să parcurgă distanța fizică
+- d_prop = D / S (D = distanță, S = viteză în mediu)
 
 **Întârzierea de Procesare**
-- Timp pentru verificare erori, rutare
+- Timp pentru verificare erori, decizie rutare
 - Tipic: microsecunde
 
 **Întârzierea de Așteptare (Queuing Delay)**
-- Timp în coada de așteptare
-- Variabil, depinde de trafic
+- Timp petrecut în coada de așteptare
+- Variabil, depinde de congestionarea rețelei
 
 ## Referințe
 

@@ -14,6 +14,10 @@ import sys
 import argparse
 from pathlib import Path
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTS_SI_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 # Adaugă directorul rădăcină al proiectului la path
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
@@ -35,8 +39,14 @@ def afiseaza_banner() -> None:
     print()
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# CURATARE_DIRECTOARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def curata_directoare_locale(complet: bool, dry_run: bool) -> None:
     """Curăță directoarele locale de artefacte.
+    
+    Șterge fișierele generate (pcap, artifacts) dar păstrează .gitkeep
     
     Args:
         complet: Curățare completă
@@ -54,6 +64,7 @@ def curata_directoare_locale(complet: bool, dry_run: bool) -> None:
         if director.exists():
             logger.info(f"Se curăță directorul: {director}")
             for fisier in director.iterdir():
+                # Păstrează .gitkeep și README.md
                 if fisier.name != ".gitkeep" and fisier.name != "README.md":
                     if dry_run:
                         logger.info(f"  [SIMULARE] S-ar șterge: {fisier}")
@@ -63,6 +74,10 @@ def curata_directoare_locale(complet: bool, dry_run: bool) -> None:
                             logger.info(f"  Șters: {fisier.name}")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIRMARE_UTILIZATOR
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def confirma_actiune(mesaj: str) -> bool:
     """Solicită confirmarea utilizatorului.
     
@@ -70,11 +85,15 @@ def confirma_actiune(mesaj: str) -> bool:
         mesaj: Mesajul de confirmare
         
     Returns:
-        True dacă utilizatorul confirmă
+        True dacă utilizatorul confirmă cu 'd' sau 'da'
     """
     raspuns = input(f"\n{mesaj} (d/n): ").strip().lower()
     return raspuns == "d" or raspuns == "da"
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN_SI_ARGUMENTE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main() -> int:
     """Funcția principală."""
@@ -123,6 +142,10 @@ Exemple:
     if args.dry_run:
         logger.info("[SIMULARE] Nu se vor face modificări reale")
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # CONFIRMARE_CURATARE_COMPLETA
+    # ═══════════════════════════════════════════════════════════════════════════
+
     # Avertisment pentru curățare completă
     if args.complet and not args.dry_run and not args.da:
         logger.warning("")
@@ -136,28 +159,36 @@ Exemple:
             logger.info("Curățare anulată.")
             return 0
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # EXECUTA_CURATARE
+    # ═══════════════════════════════════════════════════════════════════════════
+
     try:
-        # Oprește containerele
+        # Pas 1: Oprește containerele
         logger.info("")
         logger.info("Pas 1: Oprirea containerelor...")
         docker.compose_down(volume=args.complet, dry_run=args.dry_run)
 
-        # Elimină resursele cu prefix
+        # Pas 2: Elimină resursele cu prefix
         logger.info("")
         logger.info(f"Pas 2: Eliminarea resurselor {PREFIX_SAPTAMANA}_*...")
         docker.elimina_dupa_prefix(PREFIX_SAPTAMANA, dry_run=args.dry_run)
 
-        # Curăță directoarele locale
+        # Pas 3: Curăță directoarele locale
         if args.complet:
             logger.info("")
             logger.info("Pas 3: Curățarea directoarelor locale...")
             curata_directoare_locale(args.complet, args.dry_run)
 
-        # Curățare sistem Docker
+        # Pas 4: Curățare sistem Docker (opțional)
         if args.prune and not args.dry_run:
             logger.info("")
             logger.info("Pas 4: Curățarea resurselor Docker neutilizate...")
             docker.curatare_sistem()
+
+        # ═══════════════════════════════════════════════════════════════════════
+        # AFISEAZA_REZULTATE
+        # ═══════════════════════════════════════════════════════════════════════
 
         logger.info("")
         logger.info("=" * 60)

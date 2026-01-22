@@ -360,11 +360,23 @@ Filtru pentru a vedea doar handshake-uri: `tcp.flags.syn == 1`
 
 ## Prezentare Generală
 
-Această săptămână explorează fundamentele arhitecturale ale rețelelor de calculatoare, concentrându-se pe două modele esențiale: **modelul OSI** (Open Systems Interconnection) cu cele 7 straturi ale sale și **modelul TCP/IP** cu 4 straturi, care reprezintă baza practică a Internetului contemporan.
+Laboratorul analizează arhitectura rețelelor prin prisma a două modele: **OSI** (7 straturi) și **TCP/IP** (4 straturi). Veți înțelege de ce TCP/IP domină Internetul actual, în timp ce OSI rămâne util ca referință conceptuală.
 
-Componenta practică introduce **programarea socket-urilor**, mecanismul fundamental prin care aplicațiile comunică prin rețea. Veți implementa servere TCP concurente și servere UDP cu protocoale personalizate, observând diferențele comportamentale dintre comunicația orientată pe conexiune (TCP) și cea fără conexiune (UDP).
+Partea practică: **programare socket în Python**. Construiți un server TCP concurent (cu thread-uri) și un server UDP cu protocol personalizat. Observați diferențele direct în Wireshark — handshake TCP vs. datagrame UDP independente.
 
-Laboratorul pune accent pe observarea practică a traficului de rețea folosind Wireshark, permițându-vă să vizualizați handshake-ul TCP în trei pași, schimbul de date și terminarea conexiunii, consolidând astfel înțelegerea teoretică prin experiență directă.
+La final, veți ști să alegeți între TCP și UDP pentru scenarii concrete și să depanați probleme de conectivitate folosind capturi de pachete.
+
+### Analogie: De ce Docker pentru laboratoare de rețea?
+
+| Concept | Analogie din viața reală |
+|---------|--------------------------|
+| **Container** | Un apartament complet mobilat într-un bloc. Are tot ce-i trebuie, izolat de vecini. |
+| **Imagine Docker** | Planul apartamentului. Poți construi oricâte apartamente identice. |
+| **docker-compose.yml** | Contractul de închiriere: specifică ce apartamente vrei și cum le conectezi. |
+| **Port mapping 9090:9090** | Soneria de la intrarea blocului (9090 extern) conectată la apartamentul tău (9090 intern). |
+| **Volume mount** | Un hard disk extern pe care îl muți între calculatoare — datele persistă. |
+
+Când rulezi `docker compose up`, construiești apartamentul după plan și îl conectezi la sonerie.
 
 ## Obiective de Învățare
 
@@ -446,6 +458,19 @@ python3 scripts/start_lab.py --status
 
 **Durată estimată:** 30-40 minute
 
+**Mod de lucru: Pair Programming**
+
+| Rol | Responsabilitate | Durată |
+|-----|------------------|--------|
+| **Driver** | Tastează comenzile, rulează codul | 15 min |
+| **Navigator** | Verifică output-ul, consultă documentația, sugerează | 15 min |
+| *Schimb roluri la jumătatea exercițiului* | | |
+
+**Reguli:**
+- Driver-ul NU scrie nimic fără acordul Navigator-ului
+- Navigator-ul NU atinge tastatura
+- Discutați ÎNAINTE de fiecare comandă: "Ce așteptăm să vedem?"
+
 **Pregătire Wireshark:** Deschide Wireshark pe Windows și pornește captura pe interfața `vEthernet (WSL)` cu filtrul `tcp.port == 9090` ÎNAINTE de a începe exercițiul.
 
 **Descrierea Protocolului:**
@@ -454,6 +479,10 @@ python3 scripts/start_lab.py --status
 - Conexiunea rămâne deschisă pentru mesaje multiple
 
 **Pași:**
+
+**🔮 Predicție înainte de rulare:**
+- Câte linii va afișa terminalul serverului la pornire?
+- Ce mesaj confirmă că serverul e gata?
 
 1. **Porniți serverul în modul threaded:**
    ```bash
@@ -466,6 +495,10 @@ python3 scripts/start_lab.py --status
    # Într-un alt terminal
    docker exec -it week2_lab python /app/exercises/ex_2_01_tcp.py client --message "salut lume"
    ```
+
+**🔮 Predicție:**
+- În modul threaded, în ce ordine vor primi clienții răspunsurile?
+- Timpul total va fi ~5× timpul unui client sau mai mic?
 
 3. **Testați concurența cu mai mulți clienți:**
    ```bash
@@ -497,6 +530,19 @@ python3 tests/test_exercises.py --exercise 1
 
 **Durată estimată:** 25-35 minute
 
+**Mod de lucru: Pair Programming**
+
+| Rol | Responsabilitate | Durată |
+|-----|------------------|--------|
+| **Driver** | Tastează comenzile, rulează codul | 12 min |
+| **Navigator** | Verifică output-ul, consultă documentația, sugerează | 12 min |
+| *Schimb roluri la jumătatea exercițiului* | | |
+
+**Reguli:**
+- Driver-ul NU scrie nimic fără acordul Navigator-ului
+- Navigator-ul NU atinge tastatura
+- Discutați ÎNAINTE de fiecare comandă: "Ce așteptăm să vedem?"
+
 **Pregătire Wireshark:** Schimbă filtrul la `udp.port == 9091` pentru a observa traficul UDP.
 
 **Comenzile Protocolului:**
@@ -511,6 +557,10 @@ python3 tests/test_exercises.py --exercise 1
 | `help` | Listează comenzile disponibile | - |
 
 **Pași:**
+
+**🔮 Predicție:**
+- Serverul UDP va afișa "Listening on..." sau altceva la pornire?
+- Ce diferență observi față de mesajul serverului TCP?
 
 1. **Porniți serverul UDP:**
    ```bash
@@ -556,6 +606,10 @@ python3 tests/test_exercises.py --exercise 2
 
 **Durată estimată:** 20-30 minute
 
+**🔮 Predicție Wireshark:**
+- Pentru o conexiune TCP completă (connect + send + close), câte pachete minime apar?
+- Pentru un schimb UDP (send + receive), câte pachete apar?
+
 **Pași:**
 
 1. **Porniți captura:**
@@ -587,6 +641,163 @@ python3 tests/test_exercises.py --exercise 2
 **Ce să identificați în Wireshark:**
 - **TCP:** SYN → SYN-ACK → ACK (handshake), PSH-ACK (date), FIN-ACK (terminare)
 - **UDP:** Doar pachete de date, fără confirmare
+
+---
+
+## 🗳️ Verificare Înțelegere (Peer Instruction)
+
+Aceste întrebări sunt concepute pentru discuție în perechi. Procesul:
+1. Citește întrebarea individual (1 minut)
+2. Votează răspunsul fără discuție
+3. Discută cu colegul de bancă (3 minute)
+4. Revotează
+5. Explicație de la instructor
+
+### Întrebarea 1: TCP Handshake
+
+Un client Python execută `socket.connect(('server', 9090))`. 
+
+**Ce pachete trimite clientul ÎNAINTE ca funcția connect() să returneze?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | Doar SYN |
+| B | SYN, apoi ACK după primirea SYN-ACK |
+| C | SYN-ACK |
+| D | Niciun pachet — connect() e local |
+
+<details>
+<summary>Răspuns și explicație</summary>
+
+**Corect: B**
+
+- **A** — Incomplet. Clientul trimite SYN, dar `connect()` NU returnează până nu finalizează handshake-ul.
+- **B** — ✅ Clientul trimite SYN, primește SYN-ACK, trimite ACK. Abia apoi `connect()` returnează.
+- **C** — Greșit. SYN-ACK e trimis de SERVER, nu de client.
+- **D** — Greșit. `connect()` inițiază comunicarea reală în rețea.
+
+**Verificare în Wireshark:** Filtrează `tcp.flags.syn == 1` și observă secvența.
+</details>
+
+---
+
+### Întrebarea 2: UDP și Pierderea Pachetelor
+
+Serverul UDP din exercițiul 2 primește comanda `upper:test` dar clientul NU primește răspuns.
+
+**Care este cea mai probabilă cauză?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | Serverul a returnat eroare și a închis conexiunea |
+| B | Pachetul de răspuns s-a pierdut în rețea |
+| C | Clientul nu a făcut bind() pe un port |
+| D | Firewall-ul blochează doar traficul inbound |
+
+<details>
+<summary>Răspuns și explicație</summary>
+
+**Corect: B** (cel mai probabil în condiții reale)
+
+- **A** — Greșit conceptual. UDP NU are conexiuni. Serverul nu "închide" nimic.
+- **B** — ✅ UDP nu garantează livrarea. Pachetul poate fi pierdut fără notificare.
+- **C** — Parțial valid tehnic, dar `sendto()` face bind implicit. Nu e cauza uzuală.
+- **D** — Posibil, dar mai puțin probabil decât B în rețele locale.
+
+**De aceea tema 2.02 cere implementarea retry-ului!**
+</details>
+
+---
+
+### Întrebarea 3: Port Mapping Docker
+
+Fișierul `docker-compose.yml` conține:
+```yaml
+ports:
+  - "8080:9090"
+```
+
+Serverul TCP din container ascultă pe portul 9090. 
+
+**Din Windows, ce comandă folosești pentru conectare?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | `nc localhost 9090` |
+| B | `nc localhost 8080` |
+| C | `nc week2_lab 9090` |
+| D | `nc 10.0.2.10 9090` |
+
+<details>
+<summary>Răspuns și explicație</summary>
+
+**Corect: B**
+
+- **A** — Greșit. 9090 e portul INTERN al containerului, nu expus pe host.
+- **B** — ✅ Formatul e `HOST:CONTAINER`. Din Windows, accesezi portul HOST (8080).
+- **C** — Greșit. `week2_lab` e rezolvabil doar din interiorul rețelei Docker.
+- **D** — Funcționează doar din alt container pe aceeași rețea Docker, nu din Windows.
+
+**Regulă:** `ports: "X:Y"` → din exterior folosești X, din container folosești Y.
+</details>
+
+---
+
+### Întrebarea 4: Server Iterativ vs. Threaded
+
+Serverul TCP rulează în modul `--mode iterative`. Doi clienți se conectează simultan și trimit fiecare câte un mesaj.
+
+**Ce se întâmplă?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | Ambii clienți primesc răspuns simultan |
+| B | Clientul 2 primește "Connection refused" |
+| C | Clientul 2 așteaptă până clientul 1 termină |
+| D | Serverul crash-uiește cu "Too many connections" |
+
+<details>
+<summary>Răspuns și explicație</summary>
+
+**Corect: C**
+
+- **A** — Greșit. Modul iterativ procesează UN client la un moment dat.
+- **B** — Greșit. Conexiunea e acceptată (intră în coada backlog), dar nu e procesată imediat.
+- **C** — ✅ Clientul 2 e în coada `listen(backlog)`. Serverul îl procesează DUPĂ ce termină cu clientul 1.
+- **D** — Greșit. Backlog-ul default (5) permite conexiuni în așteptare.
+
+**De aceea serverele de producție sunt THREADED sau folosesc async I/O!**
+</details>
+
+---
+
+### Întrebarea 5: Wireshark și Filtre
+
+Vrei să vezi DOAR pachetele TCP care inițiază conexiuni noi (nu și cele din conversații existente).
+
+**Ce filtru Wireshark folosești?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | `tcp.port == 9090` |
+| B | `tcp.flags.syn == 1` |
+| C | `tcp.flags.syn == 1 && tcp.flags.ack == 0` |
+| D | `tcp.flags.fin == 1` |
+
+<details>
+<summary>Răspuns și explicație</summary>
+
+**Corect: C**
+
+- **A** — Arată TOT traficul pe portul 9090, nu doar inițierile.
+- **B** — Arată atât SYN inițial CÂT și SYN-ACK (care are și SYN=1).
+- **C** — ✅ SYN=1 ȘI ACK=0 înseamnă DOAR pachetul inițial de la client.
+- **D** — Arată terminările de conexiune, nu inițierile.
+
+**Pro tip:** Salvează filtrele frecvente ca bookmarks în Wireshark.
+</details>
+
+---
 
 ## Demonstrații
 

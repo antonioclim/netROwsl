@@ -17,7 +17,7 @@
    - Exemple practice cu tcpdump
 
 3. **Tanenbaum, A. S. & Wetherall, D.** (2011). *Computer Networks* (5th ed.). Pearson.
-   - Tratare comprehensivă a rețelelor
+   - Acoperire completă a rețelelor
    - Modelul OSI explicat în detaliu
 
 ### Programare Socket
@@ -70,7 +70,7 @@
 
 1. **Computer Networking** - Georgia Tech (Udacity)
    - https://www.udacity.com/course/computer-networking--ud436
-   - Curs comprehensiv, gratuit
+   - Curs complet, gratuit
 
 2. **Introduction to Computer Networking** - Stanford (Coursera)
    - Profesori: Philip Levis, Nick McKeown
