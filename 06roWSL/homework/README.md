@@ -31,6 +31,16 @@ Analizează comportamentul traducerilor NAT sub diverse modele de trafic.
 - Captura de pachete (PCAP)
 - Analiză scrisă (300-500 cuvinte)
 
+### Rubrică auto-evaluare Tema 1
+
+| Criteriu | Punctaj | Verificare |
+|----------|---------|------------|
+| Topologia modificată funcționează | 5p | □ `pingall` trece pentru toate hosturile |
+| Captura PCAP conține traduceri | 4p | □ Văd IP-uri traduse în Wireshark |
+| Analiza identifică pattern-ul PAT | 4p | □ Am explicat alocarea porturilor |
+| Documentație clară | 2p | □ README include pașii de reproducere |
+| **Total** | **15p** | |
+
 ---
 
 ## Tema 2: Implementare politici SDN personalizate
@@ -60,6 +70,17 @@ Proiectează și implementează politici OpenFlow personalizate.
 - Script de test
 - Documentație
 
+### Rubrică auto-evaluare Tema 2
+
+| Criteriu | Punctaj | Verificare |
+|----------|---------|------------|
+| Topologia cu h4 pornește | 3p | □ `nodes` arată 4 hosturi |
+| Politica h1↔h2 funcționează | 3p | □ `h1 ping h2` OK |
+| Politica h1↔h3 (doar ICMP) | 3p | □ ping OK, TCP blocat |
+| Politica h1→h4 (doar TCP:80) | 3p | □ HTTP OK, restul blocat |
+| Documentație completă | 3p | □ Explică fiecare regulă |
+| **Total** | **15p** | |
+
 ---
 
 ## Tema 3: Analiză comparativă
@@ -83,6 +104,16 @@ Compară NAT tradițional cu abordările bazate pe SDN.
 - Document de cercetare (800-1000 cuvinte)
 - Implementare funcțională
 - Tabel comparativ
+
+### Rubrică auto-evaluare Tema 3
+
+| Criteriu | Punctaj | Verificare |
+|----------|---------|------------|
+| 3+ alternative cercetate | 4p | □ Surse academice citate |
+| Implementare funcțională | 5p | □ Codul rulează fără erori |
+| Tabel comparativ complet | 3p | □ Min. 5 criterii comparate |
+| Analiză critică | 3p | □ Pro/contra pentru fiecare |
+| **Total** | **15p** | |
 
 ---
 
@@ -124,6 +155,15 @@ O companie mică (50 angajați) trebuie să aleagă între:
 ### Livrabil
 
 `homework/exercises/hw_6_04_evaluare_nat_sdn.md`
+
+### Rubrică auto-evaluare Tema 4
+
+| Criteriu | Punctaj | Verificare |
+|----------|---------|------------|
+| Tabel complet (8 criterii) | 6p | □ Toate celulele completate |
+| Recomandare cu 3+ argumente | 5p | □ Argumente tehnice, nu opinii |
+| Scenariu alternativ logic | 4p | □ Justificare coerentă |
+| **Total** | **15p** | |
 
 ---
 
@@ -172,6 +212,22 @@ Proiectează arhitectura de rețea pentru un campus universitar cu:
 - Dashboard de monitorizare
 - Teste automate
 
+### Rubrică auto-evaluare Tema 5
+
+| Criteriu | Punctaj | Verificare |
+|----------|---------|------------|
+| Diagrama completă și lizibilă | 4p | □ Include toate cele 3 clădiri + datacenter |
+| Topologia Mininet pornește | 7p | □ `sudo python3 topo_campus.py` OK |
+| Politicile SDN funcționează | 6p | □ Izolarea inter-departamente verificată |
+| Documentația justifică deciziile | 3p | □ Explică "de ce", nu doar "ce" |
+| **Total** | **20p** | |
+
+| Bonus | Punctaj extra | Verificare |
+|-------|---------------|------------|
+| Failover implementat | +4p | □ Un switch cade, rețeaua funcționează |
+| Dashboard monitorizare | +3p | □ Interfață web cu statistici |
+| Teste automate | +3p | □ Script care verifică toate politicile |
+
 ---
 
 ## Ghid de trimitere
@@ -182,6 +238,26 @@ Proiectează arhitectura de rețea pentru un campus universitar cu:
 - Include capturile în format PCAP
 
 **Termen limită:** Consultă calendarul cursului
+
+---
+
+## Checklist pre-trimitere
+
+Înainte de a trimite, verifică:
+
+```bash
+# 1. Sintaxa Python este validă
+python3 -m py_compile *.py
+
+# 2. Topologiile pornesc
+sudo python3 topo_*.py --test
+
+# 3. Documentația există
+ls *.md README.txt
+
+# 4. Arhiva este completă
+unzip -l tema6_<id>.zip
+```
 
 ---
 

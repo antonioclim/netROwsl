@@ -27,16 +27,22 @@ Arhitectură SDN:
 Politica implementată:
 - h1 (10.0.6.11) ↔ h2 (10.0.6.12): PERMITE (tot traficul)
 - * → h3 (10.0.6.13): BLOCHEAZĂ (implicit)
-- UDP → h3: CONFIGURABIL (vezi ALLOW_UDP_TO_H3)
+- UDP → h3: CONFIGURABIL (vezi PERMITE_UDP_CATRE_H3)
 
 Utilizare:
     osken-manager sdn_policy_controller.py
     
     # Opțional, cu depanare detaliată:
     osken-manager --verbose sdn_policy_controller.py
+
+ing. dr. Antonio Clim | ASE-CSIE 2025-2026
 """
 
 from __future__ import annotations
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTURI
+# ═══════════════════════════════════════════════════════════════════════════════
 
 from os_ken.base import app_manager
 from os_ken.controller import ofp_event
@@ -49,26 +55,32 @@ from os_ken.ofproto import ofproto_v1_3
 from os_ken.lib.packet import packet, ethernet, ipv4, arp
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# CONFIGURARE EDUCAȚIONALĂ - studenții pot modifica aceste constante
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIGURARE_EDUCATIONALA
+# Studenții pot modifica aceste constante pentru a experimenta
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Schimbă în True pentru a permite UDP către h3 (dar TCP rămâne blocat)
-ALLOW_UDP_TO_H3 = False
+PERMITE_UDP_CATRE_H3 = False
 
 # Adrese IP hosturi (corespund topologiei topo_sdn.py)
 # Standard Săptămâna 6: 10.0.6.0/24
 H1_IP = "10.0.6.11"
 H2_IP = "10.0.6.12"
 H3_IP = "10.0.6.13"
+# TODO: [TEMA 2] Adaugă H4_IP = "10.0.6.14" pentru extinderea topologiei
 
 # Port de rezervă pentru h3 (în topologia noastră: portul 3)
 H3_PORT_FALLBACK = 3
 
 # Timeout pentru fluxurile instalate (secunde)
-FLOW_IDLE_TIMEOUT = 60
-FLOW_HARD_TIMEOUT = 0  # 0 = fără timeout hard
+FLOW_IDLE_TIMEOUT_SEC = 60
+FLOW_HARD_TIMEOUT_SEC = 0  # 0 = fără timeout hard
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLASA_CONTROLLER
+# ═══════════════════════════════════════════════════════════════════════════════
 
 class SDNPolicyController(app_manager.OSKenApp):
     """
@@ -140,8 +152,8 @@ class SDNPolicyController(app_manager.OSKenApp):
         match,
         actions: list,
         buffer_id=None,
-        idle_timeout: int = FLOW_IDLE_TIMEOUT,
-        hard_timeout: int = FLOW_HARD_TIMEOUT
+        idle_timeout: int = FLOW_IDLE_TIMEOUT_SEC,
+        hard_timeout: int = FLOW_HARD_TIMEOUT_SEC
     ):
         """
         Instalează un flux în switch.
@@ -315,7 +327,7 @@ class SDNPolicyController(app_manager.OSKenApp):
         
         if dst_ip == H3_IP:
             # Caz special: UDP permis (dacă e configurat)
-            if proto == 17 and ALLOW_UDP_TO_H3:
+            if proto == 17 and PERMITE_UDP_CATRE_H3:
                 out_port = self._get_port(dpid, dst_mac, fallback=H3_PORT_FALLBACK)
                 actions = [parser.OFPActionOutput(out_port)]
                 

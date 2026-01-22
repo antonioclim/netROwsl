@@ -32,9 +32,9 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# CONSTANTE SĂPTĂMÂNA 6
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_SAPTAMANA_6
+# ═══════════════════════════════════════════════════════════════════════════════
 
 SAPTAMANA = 6
 
@@ -65,9 +65,9 @@ TIMEOUT_IMPLICIT = 5
 DIMENSIUNE_BUFFER_IMPLICIT = 4096
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # JURNALIZARE
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def configureaza_logging(
     nume: str = "aplicatie_retea",
@@ -103,9 +103,9 @@ def configureaza_logging(
     return logger
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# AJUTOARE SOCKET
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# AJUTOARE_SOCKET
+# ═══════════════════════════════════════════════════════════════════════════════
 
 @dataclass
 class ConfigSocket:
@@ -117,13 +117,13 @@ class ConfigSocket:
         port: Portul de folosit (implicit: TCP_APP_PORT)
         timeout: Timeout pentru operații în secunde (0 = fără timeout)
         dimensiune_buffer: Dimensiunea buffer-ului de recepție în bytes
-        reutilizeaza_adresa: Permite reutilizarea imediată a adresei (SO_REUSEADDR)
+        refoloseste_adresa: Permite refolosirea imediată a adresei (SO_REUSEADDR)
     """
     host: str = "0.0.0.0"
     port: int = TCP_APP_PORT
     timeout: float = TIMEOUT_IMPLICIT
     dimensiune_buffer: int = DIMENSIUNE_BUFFER_IMPLICIT
-    reutilizeaza_adresa: bool = True
+    refoloseste_adresa: bool = True
 
 
 def creeaza_socket_tcp(config: Optional[ConfigSocket] = None) -> socket.socket:
@@ -149,7 +149,7 @@ def creeaza_socket_tcp(config: Optional[ConfigSocket] = None) -> socket.socket:
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
-    if config.reutilizeaza_adresa:
+    if config.refoloseste_adresa:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     if config.timeout > 0:
@@ -181,7 +181,7 @@ def creeaza_socket_udp(config: Optional[ConfigSocket] = None) -> socket.socket:
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     
-    if config.reutilizeaza_adresa:
+    if config.refoloseste_adresa:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     if config.timeout > 0:
@@ -190,9 +190,9 @@ def creeaza_socket_udp(config: Optional[ConfigSocket] = None) -> socket.socket:
     return sock
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # VALIDARE
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def este_ip_valid(ip: str) -> bool:
     """
@@ -239,9 +239,9 @@ def este_port_saptamana(port: int) -> bool:
     return port in WEEK_PORT_RANGE
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# AJUTOARE ARGPARSE
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# AJUTOARE_ARGPARSE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def adauga_argumente_comune(
     parser: argparse.ArgumentParser,
@@ -285,9 +285,9 @@ def adauga_argumente_comune(
     )
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# INFORMAȚII SĂPTĂMÂNĂ
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# INFORMATII_SAPTAMANA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_info_saptamana() -> None:
     """

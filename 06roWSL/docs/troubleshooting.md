@@ -185,6 +185,73 @@ docker stats week6_lab
 
 ---
 
+## Erori frecvente și soluții rapide
+
+### Top 5 erori raportate de studenți
+
+| # | Eroare | Cauză | Soluție rapidă |
+|---|--------|-------|----------------|
+| 1 | "Connection refused" pe port 9000 | Portainer nu rulează | `docker start portainer` |
+| 2 | "Network unreachable" în Mininet | IP forwarding dezactivat | `sudo sysctl -w net.ipv4.ip_forward=1` |
+| 3 | "OFPErrorMsg" în controller | Versiune OpenFlow incorectă | Verifică `OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]` |
+| 4 | Ping funcționează, TCP nu | Regulă de flux incompletă | Verifică `ip_proto` în match |
+| 5 | "File exists" la pornire | Mininet anterior necurat | `sudo mn -c` |
+
+### Mesaje de eroare comune și semnificația lor
+
+| Mesaj | Ce înseamnă | Ce faci |
+|-------|-------------|---------|
+| `RTNETLINK answers: File exists` | Interfața de rețea există deja | Curăță cu `sudo mn -c` |
+| `Connection refused 127.0.0.1:6633` | Controller-ul SDN nu rulează | Pornește controller-ul sau folosește `--install-flows` |
+| `OFPT_ERROR (type=4, code=5)` | Versiune OpenFlow incompatibilă | Verifică `protocols="OpenFlow13"` pe switch |
+| `Permission denied` | Lipsesc privilegii root | Rulează cu `sudo` |
+| `No such container: week6_lab` | Containerul nu a fost creat | Rulează `docker compose up -d` |
+
+### Checklist pre-laborator
+
+Rulează aceste comenzi ÎNAINTE de a cere ajutor:
+
+```bash
+# 1. Verifică Docker
+sudo service docker start
+docker ps | head -5
+
+# 2. Verifică Portainer
+curl -s http://localhost:9000 > /dev/null && echo "OK" || echo "Portainer nu rulează"
+
+# 3. Curăță Mininet
+sudo mn -c 2>/dev/null
+
+# 4. Verifică mediul
+python3 -c "import mininet; print('Mininet OK')"
+python3 -c "from os_ken.base import app_manager; print('OS-Ken OK')"
+
+# 5. Verifică spațiul pe disc
+df -h / | tail -1
+```
+
+### Dacă totul pare blocat
+
+1. **Repornește tot:**
+   ```bash
+   sudo mn -c
+   docker compose -f docker/docker-compose.yml down
+   docker compose -f docker/docker-compose.yml up -d
+   ```
+
+2. **Verifică logurile:**
+   ```bash
+   docker compose -f docker/docker-compose.yml logs --tail=50
+   ```
+
+3. **Pornește de la zero:**
+   ```bash
+   python3 scripts/cleanup.py --full --force
+   python3 scripts/start_lab.py
+   ```
+
+---
+
 ## Obținerea ajutorului
 
 1. Verifică mesajul de eroare cu atenție

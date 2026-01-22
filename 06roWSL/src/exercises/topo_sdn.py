@@ -30,10 +30,14 @@ Utilizare:
     # Terminal 2 - pornește topologia
     sudo python3 topo_sdn.py --cli
 
-Revolvix&Hypotheticalandrei
+ing. dr. Antonio Clim | ASE-CSIE 2025-2026
 """
 
 from __future__ import annotations
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTURI
+# ═══════════════════════════════════════════════════════════════════════════════
 
 import argparse
 import sys
@@ -45,6 +49,25 @@ from mininet.cli import CLI
 from mininet.link import TCLink
 from mininet.log import setLogLevel, info
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIGURARE_HOSTURI
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Format: (nume, ip/prefix, descriere)
+HOSTURI_SDN = [
+    ("h1", "10.0.6.11/24", "acces complet"),
+    ("h2", "10.0.6.12/24", "server"),
+    ("h3", "10.0.6.13/24", "acces restricționat"),
+    # TODO: [TEMA 2] Adaugă h4 cu IP 10.0.6.14/24
+    # Hint: Actualizează și controller-ul pentru noua politică
+    # ("h4", "10.0.6.14/24", "reguli personalizate"),
+]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INSTALARE_FLUXURI_STATICE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def instaleaza_fluxuri_statice(net: Mininet) -> None:
     """Instalează un set minimal de reguli OpenFlow folosind ovs-ofctl.
@@ -61,7 +84,12 @@ def instaleaza_fluxuri_statice(net: Mininet) -> None:
     - restul: NORMAL (acționează ca un switch simplu de învățare)
     """
     s1 = net.get("s1")
-    h1, h2, h3 = net.get("h1", "h2", "h3")
+    
+    # Obține hosturile existente
+    hosturi = [(nume, ip, desc) for nume, ip, desc in HOSTURI_SDN]
+    h1 = net.get("h1")
+    h2 = net.get("h2")
+    h3 = net.get("h3")
 
     # Mapează interfața hostului la numărul portului switch-ului
     p_h1 = s1.ports[h1.intf()].port_no
@@ -92,11 +120,21 @@ def instaleaza_fluxuri_statice(net: Mininet) -> None:
     # Permite explicit ICMP de la h2 la h3 (astfel demonstrația are un caz contrastant)
     ofctl(f"add-flow 'priority=200,icmp,in_port={p_h2},nw_dst=10.0.6.13,actions=output:{p_h3}'")
     ofctl(f"add-flow 'priority=200,icmp,in_port={p_h3},nw_dst=10.0.6.12,actions=output:{p_h2}'")
+    
+    # TODO: [TEMA 2] Adaugă reguli pentru h4 dacă este adăugat
+    # Exemple:
+    # - Permite doar TCP port 80 de la h1 la h4
+    # - Blochează tot traficul de la h4 la h1
+    # Hint: ofctl(f"add-flow 'priority=200,tcp,in_port={p_h1},nw_dst=10.0.6.14,tp_dst=80,actions=output:{p_h4}'")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLASA_TOPOLOGIE_SDN
+# ═══════════════════════════════════════════════════════════════════════════════
 
 class TopologieSDN(Topo):
     """
-    Topologie SDN simplă: 3 hosturi conectate la un switch OVS.
+    Topologie SDN simplă: 3+ hosturi conectate la un switch OVS.
     
     Switch-ul este configurat să folosească OpenFlow 1.3 și să se conecteze
     la un controller extern pe portul 6633.
@@ -111,17 +149,14 @@ class TopologieSDN(Topo):
         )
         
         # Hosturi
-        h1 = self.addHost("h1", ip="10.0.6.11/24")
-        h2 = self.addHost("h2", ip="10.0.6.12/24")
-        h3 = self.addHost("h3", ip="10.0.6.13/24")
-        
-        # Legături
-        # Ordinea conexiunii determină porturile:
-        #   portul 1 → h1, portul 2 → h2, portul 3 → h3
-        self.addLink(h1, s1)
-        self.addLink(h2, s1)
-        self.addLink(h3, s1)
+        for nume, ip, desc in HOSTURI_SDN:
+            host = self.addHost(nume, ip=ip)
+            self.addLink(host, s1)
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TEST_RAPID
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def ruleaza_test_rapid(net: Mininet) -> int:
     """
@@ -150,6 +185,10 @@ def ruleaza_test_rapid(net: Mininet) -> int:
         info("*** UNELE TESTE AU EȘUAT ***\n")
         return 1
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main() -> int:
     """Punct de intrare principal."""
@@ -201,8 +240,8 @@ def main() -> int:
         info("  \n")
         info("  Politici implementate:\n")
         info("    ✓ h1 ↔ h2: PERMITE\n")
-        info("    ✗ * → h3: BLOCHEAZĂ (ICMP, TCP)\n")
-        info("    ? UDP → h3: Configurabil (ALLOW_UDP_TO_H3)\n")
+        info("    ✗ h1 → h3: BLOCHEAZĂ (ICMP)\n")
+        info("    ✓ h2 ↔ h3: PERMITE (ICMP)\n")
         info("  \n")
         info("  Comenzi utile:\n")
         info("    h1 ping 10.0.6.12\n")
@@ -223,6 +262,10 @@ def main() -> int:
     finally:
         net.stop()
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     setLogLevel("info")

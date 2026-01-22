@@ -24,10 +24,14 @@ Utilizare:
     sudo python3 topo_nat.py --cli     # Mod interactiv
     sudo python3 topo_nat.py --test    # Test automat rapid
 
-Revolvix&Hypotheticalandrei
+ing. dr. Antonio Clim | ASE-CSIE 2025-2026
 """
 
 from __future__ import annotations
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTURI
+# ═══════════════════════════════════════════════════════════════════════════════
 
 import argparse
 import sys
@@ -39,6 +43,32 @@ from mininet.cli import CLI
 from mininet.link import TCLink
 from mininet.log import setLogLevel, info
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIGURARE_TOPOLOGIE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Hosturi în rețeaua privată
+# Format: (nume, ip/prefix)
+HOSTURI_PRIVATE = [
+    ("h1", "192.168.1.10/24"),
+    ("h2", "192.168.1.20/24"),
+    # TODO: [TEMA 1] Adaugă h4 cu IP 192.168.1.40/24
+    # Hint: Folosește același format ca liniile de mai sus
+    # ("h4", "192.168.1.40/24"),
+]
+
+# Configurare router NAT
+ROUTER_IP_PRIVAT = "192.168.1.1/24"
+ROUTER_IP_PUBLIC = "203.0.113.1/24"
+
+# Host public (simulează internetul)
+HOST_PUBLIC = ("h3", "203.0.113.2/24")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLASA_ROUTER_LINUX
+# ═══════════════════════════════════════════════════════════════════════════════
 
 class RouterLinux(Node):
     """
@@ -59,10 +89,14 @@ class RouterLinux(Node):
         super().terminate()
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLASA_TOPOLOGIE_NAT
+# ═══════════════════════════════════════════════════════════════════════════════
+
 class TopologieNat(Topo):
     """
     Topologie NAT cu:
-    - 2 hosturi private (h1, h2)
+    - 2+ hosturi private (h1, h2, ...)
     - 1 router Linux cu NAT (rnat)
     - 1 host "public" (h3)
     - 2 switch-uri OVS (s1 privat, s2 public)
@@ -76,18 +110,23 @@ class TopologieNat(Topo):
         # Router Linux cu NAT
         rnat = self.addNode("rnat", cls=RouterLinux)
         
-        # Hosturi
-        h1 = self.addHost("h1")
-        h2 = self.addHost("h2")
-        h3 = self.addHost("h3")
+        # Hosturi private
+        for nume, _ in HOSTURI_PRIVATE:
+            host = self.addHost(nume)
+            self.addLink(host, s1)
         
-        # Legături
-        self.addLink(h1, s1)       # h1-eth0 ↔ s1
-        self.addLink(h2, s1)       # h2-eth0 ↔ s1
+        # Host public
+        h3 = self.addHost(HOST_PUBLIC[0])
+        
+        # Legături router
         self.addLink(s1, rnat)     # rnat-eth0 (privat)
         self.addLink(rnat, s2)     # rnat-eth1 (public)
         self.addLink(s2, h3)       # h3-eth0 ↔ s2
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIGURARE_RETEA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def configureaza_retea(net: Mininet) -> None:
     """
@@ -98,33 +137,44 @@ def configureaza_retea(net: Mininet) -> None:
     2. Adăugarea rutelor implicite (gateway implicit)
     3. Configurarea NAT cu iptables (MASQUERADE)
     """
-    h1, h2, h3 = net.get("h1", "h2", "h3")
     rnat = net.get("rnat")
+    h3 = net.get(HOST_PUBLIC[0])
     
     # === Configurare adrese IP ===
+    
     # Rețea privată (192.168.1.0/24)
-    h1.setIP("192.168.1.10/24", intf="h1-eth0")
-    h2.setIP("192.168.1.20/24", intf="h2-eth0")
-    rnat.setIP("192.168.1.1/24", intf="rnat-eth0")
+    for i, (nume, ip) in enumerate(HOSTURI_PRIVATE):
+        host = net.get(nume)
+        host.setIP(ip, intf=f"{nume}-eth0")
+    
+    rnat.setIP(ROUTER_IP_PRIVAT, intf="rnat-eth0")
     
     # Rețea publică (203.0.113.0/24 - TEST-NET-3)
-    rnat.setIP("203.0.113.1/24", intf="rnat-eth1")
-    h3.setIP("203.0.113.2/24", intf="h3-eth0")
+    rnat.setIP(ROUTER_IP_PUBLIC, intf="rnat-eth1")
+    h3.setIP(HOST_PUBLIC[1], intf=f"{HOST_PUBLIC[0]}-eth0")
     
     # === Configurare rute ===
+    
     # Hosturile private folosesc rnat ca gateway implicit
-    h1.cmd("ip route add default via 192.168.1.1")
-    h2.cmd("ip route add default via 192.168.1.1")
+    for nume, _ in HOSTURI_PRIVATE:
+        host = net.get(nume)
+        host.cmd("ip route add default via 192.168.1.1")
+    
     # Hostul public folosește și el rnat (pentru simplitate)
     h3.cmd("ip route add default via 203.0.113.1")
     
     # === Configurare NAT (iptables) ===
+    
     # Golește regulile existente pentru a evita duplicarea
     rnat.cmd("iptables -t nat -F")
     rnat.cmd("iptables -F")
     
-    # Permite redirecționarea între interfețe
+    # TODO: [TEMA 1] Permite redirecționarea între interfețe
+    # Hint: iptables -A FORWARD -i rnat-eth0 -o rnat-eth1 -j ACCEPT
     rnat.cmd("iptables -A FORWARD -i rnat-eth0 -o rnat-eth1 -j ACCEPT")
+    
+    # TODO: [TEMA 1] Adaugă regulă pentru traficul de întoarcere (stateful)
+    # Hint: iptables -A FORWARD -i rnat-eth1 -o rnat-eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
     rnat.cmd("iptables -A FORWARD -i rnat-eth1 -o rnat-eth0 "
              "-m state --state ESTABLISHED,RELATED -j ACCEPT")
     
@@ -137,6 +187,10 @@ def configureaza_retea(net: Mininet) -> None:
     info("*** h1/h2 (192.168.1.x) → NAT → 203.0.113.1 → h3\n")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# TEST_RAPID
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def ruleaza_test_rapid(net: Mininet) -> int:
     """
     Rulează teste de bază pentru a verifica funcționalitatea.
@@ -144,7 +198,9 @@ def ruleaza_test_rapid(net: Mininet) -> int:
     Returnează:
         0 dacă toate testele trec, 1 altfel
     """
-    h1, h2, h3 = net.get("h1", "h2", "h3")
+    h1 = net.get("h1")
+    h2 = net.get("h2")
+    h3 = net.get(HOST_PUBLIC[0])
     rnat = net.get("rnat")
     
     info("\n*** TEST 1: Ping h1 → h3 (prin NAT)\n")
@@ -176,6 +232,10 @@ def ruleaza_test_rapid(net: Mininet) -> int:
             info(f"    Output ping h2: {out2}\n")
         return 1
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main() -> int:
     """Punct de intrare principal."""
@@ -225,6 +285,10 @@ def main() -> int:
     finally:
         net.stop()
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     setLogLevel("info")

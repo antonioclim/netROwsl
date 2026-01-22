@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
 Curățare Laborator Săptămâna 6
-Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de ing. dr. Antonio Clim
 
 Acest script elimină toate containerele, rețelele și opțional volumele
 pentru a pregăti sistemul pentru următoarea sesiune de laborator.
 """
 
 from __future__ import annotations
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTURI_SI_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 import argparse
 import subprocess
@@ -23,8 +27,17 @@ from scripts.utils.logger import setup_logger
 
 logger = setup_logger("cleanup")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_GLOBALE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 PREFIX_SAPTAMANA = "week6"
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CURATARE_MININET
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def curata_mininet() -> bool:
     """
@@ -58,6 +71,10 @@ def curata_mininet() -> bool:
         logger.warning(f"  ! Eroare la curățarea Mininet: {e}")
         return True  # Nu este critică
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CURATARE_OVS
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def curata_ovs() -> bool:
     """
@@ -102,6 +119,10 @@ def curata_ovs() -> bool:
         return True  # Nu este critică
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# CURATARE_ARTEFACTE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def curata_artefacte(complet: bool = False) -> None:
     """
     Curăță artefactele generate.
@@ -135,8 +156,16 @@ def curata_artefacte(complet: bool = False) -> None:
         logger.info("  ✓ Capturi de pachete curățate")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     """Punct de intrare principal."""
+    
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 1: Parsare argumente
+    # ───────────────────────────────────────────────────────────────────────
     parser = argparse.ArgumentParser(
         description="Curăță mediul de laborator Săptămâna 6"
     )
@@ -171,6 +200,9 @@ def main() -> int:
         from scripts.utils.logger import set_verbose
         set_verbose(logger, True)
     
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 2: Inițializare Docker Manager
+    # ───────────────────────────────────────────────────────────────────────
     director_docker = RADACINA_PROIECT / "docker"
     
     try:
@@ -179,6 +211,9 @@ def main() -> int:
         logger.error(f"Configurația Docker nu a fost găsită: {e}")
         return 1
     
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 3: Afișare banner
+    # ───────────────────────────────────────────────────────────────────────
     logger.info("=" * 60)
     logger.info("Curățarea mediului de laborator Săptămâna 6")
     if args.full:
@@ -191,7 +226,9 @@ def main() -> int:
         logger.info("[SIMULARE] Nu se vor face modificări")
         logger.info("")
     
-    # Confirmare pentru curățare completă
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 4: Confirmare pentru curățare completă
+    # ───────────────────────────────────────────────────────────────────────
     if args.full and not args.force and not args.dry_run:
         print()
         print("ATENȚIE: Curățarea completă va elimina toate datele inclusiv:")
@@ -205,38 +242,52 @@ def main() -> int:
             return 0
     
     try:
-        # Pasul 1: Oprește serviciile Docker Compose
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 5: Oprește serviciile Docker Compose
+        # ───────────────────────────────────────────────────────────────────
         logger.info("")
         logger.info("Oprirea serviciilor Docker...")
         docker.compose_down(volumes=args.full, dry_run=args.dry_run)
         
-        # Pasul 2: Elimină resursele Docker specifice săptămânii
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 6: Elimină resursele Docker specifice săptămânii
+        # ───────────────────────────────────────────────────────────────────
         logger.info("")
         logger.info(f"Eliminarea resurselor {PREFIX_SAPTAMANA}_*...")
         docker.remove_by_prefix(PREFIX_SAPTAMANA, dry_run=args.dry_run)
         
-        # Pasul 3: Curăță Mininet (dacă este disponibil)
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 7: Curăță Mininet (dacă este disponibil)
+        # ───────────────────────────────────────────────────────────────────
         if not args.dry_run:
             logger.info("")
             curata_mininet()
         
-        # Pasul 4: Curăță OVS (dacă este disponibil)
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 8: Curăță OVS (dacă este disponibil)
+        # ───────────────────────────────────────────────────────────────────
         if not args.dry_run:
             logger.info("")
             curata_ovs()
         
-        # Pasul 5: Curăță artefactele
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 9: Curăță artefactele
+        # ───────────────────────────────────────────────────────────────────
         if not args.dry_run:
             logger.info("")
             curata_artefacte(complet=args.full)
         
-        # Pasul 6: Elimină resursele Docker neutilizate (opțional)
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 10: Elimină resursele Docker neutilizate (opțional)
+        # ───────────────────────────────────────────────────────────────────
         if args.prune and not args.dry_run:
             logger.info("")
             logger.info("Eliminarea resurselor Docker neutilizate...")
             docker.system_prune()
         
-        # Sumar
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 11: Afișează sumar
+        # ───────────────────────────────────────────────────────────────────
         logger.info("")
         logger.info("=" * 60)
         if args.dry_run:
@@ -259,6 +310,10 @@ def main() -> int:
         logger.error(f"Curățare eșuată: {e}")
         return 1
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

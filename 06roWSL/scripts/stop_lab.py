@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Oprire Laborator Săptămâna 6
-Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de ing. dr. Antonio Clim
 
 Acest script oprește grațios toate containerele Docker păstrând datele.
 
@@ -9,6 +9,10 @@ IMPORTANT: Portainer NU este oprit - rulează global pe portul 9000!
 """
 
 from __future__ import annotations
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTURI_SI_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 import argparse
 import subprocess
@@ -25,6 +29,11 @@ from scripts.utils.logger import setup_logger
 
 logger = setup_logger("stop_lab")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_GLOBALE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 # Credențiale standard
 PORTAINER_PORT = 9000
 PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
@@ -32,6 +41,10 @@ PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
 # Containere care NU trebuie oprite (rulează global)
 CONTAINERE_EXCLUSE = ["portainer"]
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICARI_PORTAINER
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifica_portainer_status() -> bool:
     """Verifică dacă Portainer rulează pe portul 9000."""
@@ -58,8 +71,16 @@ def verifica_portainer_status() -> bool:
         return False
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     """Punct de intrare principal."""
+    
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 1: Parsare argumente
+    # ───────────────────────────────────────────────────────────────────────
     parser = argparse.ArgumentParser(
         description="Oprește mediul de laborator Săptămâna 6"
     )
@@ -85,6 +106,9 @@ def main() -> int:
         from scripts.utils.logger import set_verbose
         set_verbose(logger, True)
     
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 2: Inițializare Docker Manager
+    # ───────────────────────────────────────────────────────────────────────
     director_docker = RADACINA_PROIECT / "docker"
     
     try:
@@ -93,13 +117,18 @@ def main() -> int:
         logger.error(f"Configurația Docker nu a fost găsită: {e}")
         return 1
     
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 3: Afișare banner
+    # ───────────────────────────────────────────────────────────────────────
     logger.info("=" * 60)
     logger.info("Oprirea mediului de laborator Săptămâna 6")
     logger.info("(Portainer rămâne activ pe portul 9000)")
     logger.info("=" * 60)
     
     try:
-        # Afișează starea curentă
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 4: Afișează starea curentă
+        # ───────────────────────────────────────────────────────────────────
         logger.info("Servicii care rulează în prezent:")
         stare = docker.compose_ps()
         for nume, info in stare.items():
@@ -112,7 +141,9 @@ def main() -> int:
             logger.info("  Niciun serviciu de laborator nu rulează")
             return 0
         
-        # Oprește serviciile
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 5: Oprește serviciile
+        # ───────────────────────────────────────────────────────────────────
         logger.info("")
         logger.info("Se opresc containerele de laborator...")
         logger.info("(Portainer va rămâne activ)")
@@ -131,6 +162,9 @@ def main() -> int:
         
         rezultat = subprocess.run(cmd, cwd=director_docker)
         
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 6: Afișează rezultatul
+        # ───────────────────────────────────────────────────────────────────
         if rezultat.returncode == 0:
             logger.info("")
             logger.info("=" * 60)
@@ -160,6 +194,10 @@ def main() -> int:
         logger.error(f"Eșec la oprirea laboratorului: {e}")
         return 1
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

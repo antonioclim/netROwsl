@@ -4,7 +4,26 @@
 
 Toate modificările notabile ale materialelor Săptămânii 6 sunt documentate în acest fișier.
 
-## [2.0.0] - 2026-01-22
+## [2.1.0] - 2026-01-22
+
+### Îmbunătățiri pedagogice
+
+#### Adăugat
+- Fișier dedicat Peer Instruction cu 4 MCQ-uri complete
+- Secțiune Pair Programming cu roluri Driver/Navigator
+- Rubrici de auto-evaluare pentru teme
+- Diagrame vizuale pentru NAT și SDN în docs/diagrams/
+- Secțiune "Erori frecvente" în troubleshooting
+- TODO markers în exerciții pentru extensibilitate
+
+#### Modificat
+- Subgoal labels uniforme în toate scripturile
+- Constante normalizate în controller-ul SDN
+- Documentare completată în further_reading.md
+
+---
+
+## [2.0.0] - 2026-01-20
 
 ### Îmbunătățiri pedagogice majore
 
@@ -19,8 +38,8 @@ Toate modificările notabile ale materialelor Săptămânii 6 sunt documentate �
 
 #### Modificat
 - README.md restructurat cu pedagogie îmbunătățită
-- Reducere emoji în headings (de la 87% la ~25%)
-- Înlocuire termeni AI-sounding ("complet" în loc de "comprehensiv")
+- Reducere emoji în headings (de la 87% la ~6%)
+- Înlocuire termeni AI-sounding cu alternative naturale
 - Docstrings complete Google-style în network_utils.py
 - Type hints adăugate în toate funcțiile publice
 - Autor actualizat în toate fișierele

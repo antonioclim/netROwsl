@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """
 Executor demonstrații Săptămâna 6
-Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de ing. dr. Antonio Clim
 
 Rulează demonstrații automatizate pentru exercițiile NAT/PAT și SDN.
 """
 
 from __future__ import annotations
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTURI_SI_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 import argparse
 import subprocess
@@ -22,6 +26,11 @@ sys.path.insert(0, str(RADACINA_PROIECT))
 from scripts.utils.logger import setup_logger
 
 logger = setup_logger("run_demo")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEFINITII_DEMONSTRATII
+# ═══════════════════════════════════════════════════════════════════════════════
 
 DEMONSTRATII = {
     "nat": {
@@ -57,6 +66,10 @@ DEMONSTRATII = {
 }
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICARI_PREREQUISITE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def verifica_mininet() -> bool:
     """Verifică dacă Mininet este disponibil."""
     try:
@@ -69,6 +82,10 @@ def verifica_mininet() -> bool:
     except Exception:
         return False
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EXECUTARE_DEMONSTRATII
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def ruleaza_demo_topologie(
     topologie: str,
@@ -164,6 +181,10 @@ def ruleaza_demo_fluxuri_sdn() -> int:
     return ruleaza_demo_topologie("topo_sdn.py", "cli", ["--install-flows"])
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# LISTARE_DEMONSTRATII
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def listeaza_demonstratii() -> None:
     """Afișează demonstrațiile disponibile."""
     print()
@@ -179,8 +200,16 @@ def listeaza_demonstratii() -> None:
     print()
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     """Punct de intrare principal."""
+    
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 1: Parsare argumente
+    # ───────────────────────────────────────────────────────────────────────
     parser = argparse.ArgumentParser(
         description="Rulează demonstrațiile de laborator Săptămâna 6"
     )
@@ -205,11 +234,16 @@ def main() -> int:
         from scripts.utils.logger import set_verbose
         set_verbose(logger, True)
     
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 2: Listare sau verificare demo specificat
+    # ───────────────────────────────────────────────────────────────────────
     if args.list or not args.demo:
         listeaza_demonstratii()
         return 0
     
-    # Verifică cerințele preliminare
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 3: Verifică cerințele preliminare
+    # ───────────────────────────────────────────────────────────────────────
     if not verifica_mininet():
         logger.error("Mininet nu este disponibil")
         logger.info("Te rugăm să rulezi demonstrațiile în interiorul containerului Docker:")
@@ -217,12 +251,18 @@ def main() -> int:
         logger.info("  make <nume-demo>")
         return 1
     
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 4: Obține informațiile demonstrației
+    # ───────────────────────────────────────────────────────────────────────
     info_demo = DEMONSTRATII.get(args.demo)
     if not info_demo:
         logger.error(f"Demonstrație necunoscută: {args.demo}")
         listeaza_demonstratii()
         return 1
     
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 5: Afișare banner și rulare demonstrație
+    # ───────────────────────────────────────────────────────────────────────
     print()
     logger.info("=" * 60)
     logger.info(f"Demonstrație: {info_demo.get('description', args.demo)}")
@@ -248,6 +288,10 @@ def main() -> int:
             info_demo.get("extra_args")
         )
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

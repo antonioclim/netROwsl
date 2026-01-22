@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Lansator Laborator Săptămâna 6
-Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de ing. dr. Antonio Clim
 
 Acest script pornește toate containerele Docker și verifică mediul de laborator
 pentru exercițiile NAT/PAT și SDN.
@@ -11,6 +11,10 @@ Accesați Portainer la: http://localhost:9000 (credențiale: stud / studstudstud
 """
 
 from __future__ import annotations
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTURI_SI_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 import argparse
 import subprocess
@@ -28,6 +32,11 @@ from scripts.utils.logger import setup_logger, ProgressLogger
 
 logger = setup_logger("start_lab")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_GLOBALE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 # Definiții servicii pentru Săptămâna 6
 # NOTĂ: Portainer NU este inclus - rulează global pe portul 9000
 SERVICII = {
@@ -41,7 +50,6 @@ SERVICII = {
 }
 
 # Servicii opționale (activate cu profile)
-# NOTĂ: Portainer a fost eliminat - rulează global pe portul 9000
 SERVICII_OPTIONALE = {
     "sdn-controller": {
         "container": "week6_controller",
@@ -60,15 +68,23 @@ PORTAINER_USER = "stud"
 PORTAINER_PASS = "studstudstud"
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# AFISARE_BANNER
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def afiseaza_banner():
     """Afișează banner-ul de pornire."""
     print()
     print("=" * 60)
     print("  Săptămâna 6: NAT/PAT și Laborator SDN")
-    print("  Disciplina REȚELE DE CALCULATOARE - ASE | de Revolvix")
+    print("  Disciplina REȚELE DE CALCULATOARE - ASE")
     print("=" * 60)
     print()
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICARI_DOCKER
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifica_docker_activ() -> bool:
     """Verifică dacă Docker este activ și funcțional."""
@@ -106,6 +122,10 @@ def porneste_docker_service() -> bool:
         logger.error(f"Eroare neașteptată: {e}")
         return False
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICARI_PORTAINER
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifica_portainer_status() -> bool:
     """Verifică dacă Portainer rulează pe portul 9000."""
@@ -153,6 +173,10 @@ def afiseaza_avertisment_portainer() -> None:
     logger.warning("")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# AFISARE_INFORMATII_ACCES
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def afiseaza_informatii_acces(servicii_pornite: dict):
     """Afișează informațiile de acces pentru serviciile pornite."""
     print()
@@ -181,6 +205,10 @@ def afiseaza_informatii_acces(servicii_pornite: dict):
     print("  make clean       - Curăță Mininet")
     print()
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main() -> int:
     """Punct de intrare principal."""
@@ -221,7 +249,9 @@ def main() -> int:
     
     afiseaza_banner()
     
-    # Verifică și pornește Docker dacă nu rulează
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 1: Verifică și pornește Docker
+    # ───────────────────────────────────────────────────────────────────────
     if not verifica_docker_activ():
         logger.warning("Docker nu este activ. Se încearcă pornirea automată...")
         if not porneste_docker_service():
@@ -232,7 +262,9 @@ def main() -> int:
             return 1
         logger.info("✓ Docker a fost pornit cu succes!")
     
-    # Localizează docker-compose.yml
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 2: Localizează configurația Docker
+    # ───────────────────────────────────────────────────────────────────────
     director_docker = RADACINA_PROIECT / "docker"
     
     try:
@@ -241,7 +273,9 @@ def main() -> int:
         logger.error(f"Configurația Docker nu a fost găsită: {e}")
         return 1
     
-    # Doar verificare stare
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 3: Mod verificare stare (--status)
+    # ───────────────────────────────────────────────────────────────────────
     if args.status:
         toate_serviciile = {**SERVICII, **SERVICII_OPTIONALE}
         docker.show_status(toate_serviciile)
@@ -254,11 +288,15 @@ def main() -> int:
         
         return 0
     
-    # Verifică status Portainer (doar avertisment, nu oprește execuția)
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 4: Verifică Portainer (doar avertisment)
+    # ───────────────────────────────────────────────────────────────────────
     if not verifica_portainer_status():
         afiseaza_avertisment_portainer()
     
-    # Determină ce profile să activeze
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 5: Determină serviciile de pornit
+    # ───────────────────────────────────────────────────────────────────────
     profile = []
     servicii_de_pornit = dict(SERVICII)
     
@@ -266,9 +304,12 @@ def main() -> int:
         profile.append("controller")
         servicii_de_pornit["sdn-controller"] = SERVICII_OPTIONALE["sdn-controller"]
     
+    # ───────────────────────────────────────────────────────────────────────
+    # Pasul 6: Pornește serviciile
+    # ───────────────────────────────────────────────────────────────────────
     try:
         with ProgressLogger(logger, "Pornirea mediului de laborator", 4) as progress:
-            # Pasul 1: Construiește imaginile
+            # Construiește imaginile
             if args.rebuild:
                 progress.step("Construirea imaginilor Docker (--rebuild specificat)")
                 if not docker.compose_build(no_cache=args.rebuild):
@@ -278,20 +319,23 @@ def main() -> int:
                 progress.step("Verificarea imaginilor Docker")
                 docker.compose_build()  # Construiește dacă nu există
             
-            # Pasul 2: Pornește serviciile
+            # Pornește serviciile
             progress.step("Pornirea containerelor Docker")
             if not docker.compose_up(detach=args.detach or True, profiles=profile if profile else None):
                 logger.error("Eșec la pornirea serviciilor")
                 return 1
             
-            # Pasul 3: Așteaptă pornirea
+            # Așteaptă pornirea
             progress.step("Așteptarea inițializării serviciilor")
             time.sleep(5)
             
-            # Pasul 4: Verifică serviciile
+            # Verifică serviciile
             progress.step("Verificarea serviciilor")
             toate_sanatoase = docker.verify_services(servicii_de_pornit)
         
+        # ───────────────────────────────────────────────────────────────────
+        # Pasul 7: Afișează rezultatul
+        # ───────────────────────────────────────────────────────────────────
         if toate_sanatoase:
             print()
             print("=" * 60)
@@ -319,6 +363,10 @@ def main() -> int:
         logger.error(f"Eșec la pornirea laboratorului: {e}")
         return 1
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())
