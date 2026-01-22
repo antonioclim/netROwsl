@@ -356,11 +356,35 @@ Tipuri de mesaje IGMP de observat:
 
 ## Prezentare Generală
 
-Această sesiune de laborator explorează mecanismele fundamentale de comunicare în rețea prin intermediul programării cu socket-uri: transmisia broadcast, comunicarea multicast și tunelarea TCP. Aceste paradigme reprezintă piloni esențiali ai arhitecturilor distribuite moderne, de la descoperirea serviciilor în rețele locale până la sisteme multimedia și infrastructuri VPN.
+Această sesiune de laborator explorează mecanismele fundamentale de comunicare în rețea prin intermediul programării cu socket-uri: transmisia broadcast, comunicarea multicast și tunelarea TCP. Aceste moduri de comunicare reprezintă piloni esențiali ai arhitecturilor distribuite moderne, de la descoperirea serviciilor în rețele locale până la sisteme multimedia și infrastructuri VPN.
 
 Transmisia **broadcast** permite unui singur emițător să comunice simultan cu toate dispozitivele dintr-un segment de rețea, eliminând necesitatea cunoașterii prealabile a destinatarilor. **Multicast** extinde acest concept prin crearea grupurilor de interes, unde doar stațiile membre primesc traficul, optimizând astfel utilizarea lățimii de bandă. **Tunelarea TCP** oferă mecanisme de redirecționare transparentă a conexiunilor, fundamentale pentru proxy-uri, load balancere și rețele virtuale private.
 
 Exercițiile practice utilizează containere Docker pentru simularea unei topologii de rețea izolate, permițând observarea comportamentului protocoalelor fără a afecta infrastructura reală. Analiza pachetelor cu Wireshark completează înțelegerea teoretică prin vizualizarea directă a structurii cadrelor și fluxurilor de date.
+
+### 💡 Gândește Concret Înainte de Abstract
+
+Înainte de a te scufunda în cod, înțelege conceptele prin analogii din viața reală:
+
+| Concept | Analogie | Ce înseamnă |
+|---------|----------|-------------|
+| **Broadcast** | Anunț pe megafon în piață | Toți aud, indiferent dacă vor sau nu |
+| **Multicast** | Grup de WhatsApp | Doar membrii grupului primesc mesajele |
+| **IGMP Join** | Abonare la newsletter | Te înscrii activ pentru a primi |
+| **TTL** | Bilet de metrou valabil N stații | La fiecare router traversat, "o stație" se consumă |
+| **Tunel TCP** | Poștaș care redirecționează | Primește scrisori și le trimite mai departe |
+| **SO_BROADCAST** | Permis de megafon | Fără el, sistemul refuză să transmită broadcast |
+
+**Revino la aceste analogii** când întâmpini dificultăți cu conceptele tehnice sau cu depanarea.
+
+### 📋 Auto-Evaluare
+
+Înainte de a începe exercițiile, verifică-ți cunoștințele:
+→ [Întrebări de Recapitulare](docs/intrebari_recapitulare.md)
+
+Dacă nu poți răspunde la întrebările REMEMBER, recitește [Rezumatul Teoretic](docs/rezumat_teoretic.md).
+
+
 
 ## Obiective de Învățare
 
@@ -371,7 +395,7 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 3. **Implementați** aplicații client-server folosind socket-uri UDP cu opțiuni SO_BROADCAST și IP_ADD_MEMBERSHIP
 4. **Construiți** un tunel TCP bidirecțional pentru redirecționarea transparentă a conexiunilor între endpoint-uri
 5. **Analizați** traficul de rețea capturat, identificând tipare specifice broadcast-ului, multicast-ului și tunelării
-6. **Evaluați** avantajele și dezavantajele fiecărei paradigme de comunicare în scenarii practice
+6. **Evaluați** avantajele și dezavantajele fiecărui mod de comunicare în scenarii practice
 
 ## Cerințe Preliminare
 
@@ -452,6 +476,12 @@ python3 scripts/porneste_lab.py --status
 **Fundament teoretic:**
 Broadcast-ul permite transmiterea unui singur pachet către toate stațiile dintr-un segment de rețea. Adresa de broadcast limitat (255.255.255.255) nu traversează routere, fiind confinată la rețeaua locală. Socket-urile necesită activarea explicită a opțiunii SO_BROADCAST pentru a permite astfel de transmisii.
 
+
+**🔮 PREDICȚIE:** Înainte de a rula, răspunde mental:
+- Ce adresă MAC va avea pachetul broadcast la Layer 2? (Hint: începe cu ff:)
+- Dacă sunt 4 containere în rețea, câte vor primi mesajul broadcast?
+- Ce se întâmplă dacă receptorul face bind la IP-ul său specific în loc de 0.0.0.0?
+
 **Pași:**
 
 1. Porniți containerul receiver într-un terminal:
@@ -490,6 +520,12 @@ python3 tests/test_exercitii.py --exercitiu 1
 
 **Fundament teoretic:**
 Multicast-ul permite comunicarea eficientă unul-la-mulți prin utilizarea adreselor din intervalul 224.0.0.0 - 239.255.255.255. Receptorii se înscriu în grupuri folosind protocolul IGMP (Internet Group Management Protocol), iar rețeaua livrează pachetele doar membrilor activi. Spre deosebire de broadcast, multicast-ul poate traversa routere configurate corespunzător.
+
+
+**🔮 PREDICȚIE:** Înainte de a rula receptorul, răspunde:
+- Ce tip de mesaj IGMP va trimite receptorul când pornește? (Join sau Leave?)
+- Ce vei vedea în Wireshark dacă filtrezi cu `igmp`?
+- De ce multicast-ul este mai eficient decât broadcast-ul pentru 10 receptori din 100 de dispozitive?
 
 **Pași:**
 
@@ -534,6 +570,12 @@ python3 tests/test_exercitii.py --exercitiu 2
 
 **Fundament teoretic:**
 Tunelarea TCP implică acceptarea conexiunilor pe un port și redirecționarea traficului către o destinație diferită. Acest pattern este fundamental pentru proxy-uri, load balancere și gateway-uri de securitate. Implementarea corectă necesită gestionarea bidirecțională a datelor și tratarea elegantă a deconectărilor.
+
+
+**🔮 PREDICȚIE:** Înainte de a testa tunelul, răspunde:
+- Câte conexiuni TCP separate vor exista? (1, 2 sau 3?)
+- Ce IP sursă va vedea serverul echo - IP-ul clientului sau IP-ul routerului/tunelului?
+- Câte segmente TCP SYN vei vedea în Wireshark pentru o singură cerere prin tunel?
 
 **Pași:**
 

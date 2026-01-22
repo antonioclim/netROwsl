@@ -4,18 +4,19 @@
 
 ## Cuprins
 
-1. [Paradigme de Comunicare](#paradigme-de-comunicare)
-2. [Transmisia Broadcast](#transmisia-broadcast)
-3. [Comunicarea Multicast](#comunicarea-multicast)
-4. [Tunelarea TCP](#tunelarea-tcp)
-5. [Opțiuni Socket Relevante](#opțiuni-socket-relevante)
-6. [Protocolul IGMP](#protocolul-igmp)
+1. [Moduri de Comunicare](#moduri-de-comunicare)
+2. [Analogii pentru Înțelegere](#analogii-pentru-înțelegere)
+3. [Transmisia Broadcast](#transmisia-broadcast)
+4. [Comunicarea Multicast](#comunicarea-multicast)
+5. [Tunelarea TCP](#tunelarea-tcp)
+6. [Opțiuni Socket Relevante](#opțiuni-socket-relevante)
+7. [Protocolul IGMP](#protocolul-igmp)
 
 ---
 
-## Paradigme de Comunicare
+## Moduri de Comunicare
 
-Comunicarea în rețele de calculatoare se poate clasifica în trei paradigme fundamentale bazate pe relația dintre emițător și receptor(i):
+Comunicarea în rețele de calculatoare se poate clasifica în trei moduri fundamentale bazate pe relația dintre emițător și receptor(i):
 
 ### Unicast (Unul-la-Unul)
 Comunicarea punct-la-punct între un singur emițător și un singur receptor. Aceasta este forma cea mai comună de comunicare în Internet, folosită de protocoale precum HTTP, SSH și majoritatea aplicațiilor client-server.
@@ -42,6 +43,25 @@ Un emițător transmite către un grup selectat de receptori care s-au înscris 
 - Scalabil - emițătorul trimite o singură copie
 - Poate traversa routere (cu configurare corespunzătoare)
 - Receptorii se înscriu/dezabonează dinamic
+
+---
+
+## Analogii pentru Înțelegere
+
+Înainte de a studia detaliile tehnice, gândește-te la aceste comparații din viața reală:
+
+| Concept | Analogie | Explicație |
+|---------|----------|------------|
+| **Unicast** | Apel telefonic | Vorbești cu o singură persoană, linie dedicată |
+| **Broadcast** | Anunț pe megafon în piață | Toți aud, indiferent dacă vor sau nu |
+| **Multicast** | Grup de WhatsApp | Doar membrii grupului primesc mesajele |
+| **IGMP Join** | Abonare la newsletter | Te înscrii activ pentru a primi |
+| **IGMP Leave** | Dezabonare | Anunți că nu mai vrei să primești |
+| **TTL** | Bilet de metrou valabil N stații | La fiecare router, "o stație" se consumă |
+| **SO_BROADCAST** | Permis de megafon | Fără el, sistemul refuză să "strige" |
+| **Port UDP** | Cutia poștală a apartamentului | Adresa IP e clădirea, portul e apartamentul |
+
+Revino la aceste analogii când întâmpini dificultăți cu conceptele tehnice.
 
 ---
 

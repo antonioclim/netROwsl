@@ -7,10 +7,21 @@ Demonstrează comunicarea broadcast UDP folosind socket-uri Python.
 Broadcast-ul permite transmiterea unui mesaj către toate dispozitivele
 dintr-un segment de rețea simultan.
 
+ANALOGIE: Broadcast-ul este ca un ANUNȚ PE MEGAFON într-o piață aglomerată.
+    - Toți cei prezenți aud mesajul, indiferent dacă sunt interesați sau nu.
+    - Nu poți alege cine aude - toată "piața" (rețeaua locală) primește.
+    - Opțiunea SO_BROADCAST este "permisul de megafon" - fără ea, 
+      sistemul refuză să transmită la adresa de broadcast.
+
 Concepte cheie:
 - Opțiunea socket SO_BROADCAST
 - Adresa de broadcast limitat (255.255.255.255)
 - Comunicarea fără conexiune (UDP)
+
+PREDICȚIE pentru student: Înainte de a rula, gândește-te:
+- La ce adresă trebuie să faci bind() receptorul? De ce nu la IP-ul specific?
+- Ce se întâmplă dacă uiți SO_REUSEADDR și repornești rapid programul?
+- Ce adresă MAC va avea pachetul la Layer 2?
 
 Utilizare:
     Receptor:  python ex_3_01_udp_broadcast.py --mod receiver
@@ -40,6 +51,10 @@ MESAJ_IMPLICIT = 'Mesaj broadcast de test'
 def porneste_receptor(port: int = PORT_BROADCAST) -> None:
     """
     Pornește un receptor UDP care ascultă mesaje broadcast.
+    
+    ANALOGIE: Receptorul este ca o persoană în piață care ascultă anunțurile.
+    Pentru a auzi TOATE anunțurile (inclusiv broadcast), trebuie să fie
+    "în centrul pieței" (bind la 0.0.0.0), nu într-un colț specific.
     
     Pași implementați:
     1. Creează socket UDP
@@ -105,6 +120,10 @@ def porneste_emitator(
 ) -> None:
     """
     Transmite mesaje broadcast UDP.
+    
+    ANALOGIE: Emițătorul este persoana cu megafonul. Dar înainte de a striga,
+    trebuie să obțină "permisul" (SO_BROADCAST). Fără acest permis, sistemul
+    de operare refuză să transmită la adresa de broadcast.
     
     Pași implementați:
     1. Creează socket UDP

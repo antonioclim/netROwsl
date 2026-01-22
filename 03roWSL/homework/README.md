@@ -172,7 +172,7 @@ python tema_3_03.py \
 |----------|---------|
 | Logging complet cu nivele | 30% |
 | Metrici corecte | 25% |
-| Gestionare conexiuni robustă | 25% |
+| Gestionare conexiuni solidă | 25% |
 | Caracteristici opționale | 20% |
 
 ### Testare
@@ -248,6 +248,123 @@ docker exec -it week3_client python3 /app/homework/exercises/tema_3_01.py
 - **+10%**: Implementare excepțională sau funcționalități extra
 - **-10%**: Cod copiat fără înțelegere
 - **-20%**: Trimis după termen limită (pe zi)
+
+---
+
+*Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix*
+
+---
+
+## 🤝 Exerciții pentru Perechi (Pair Programming)
+
+Aceste exerciții sunt concepute pentru lucru în echipă de 2 persoane.
+
+### Pair Exercise 1: Debug the Broadcast
+
+**Roluri:** Driver (scrie cod) + Navigator (ghidează, verifică)
+
+**⚠️ Schimbați rolurile la fiecare 5 minute!**
+
+**Situație:** Codul de mai jos NU funcționează. Receptorul nu primește nimic.
+
+```python
+# sender.py - COD CU PROBLEME
+import socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.sendto(b"Hello", ('255.255.255.255', 5007))
+
+# receiver.py - COD CU PROBLEME
+import socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind(('172.20.0.100', 5007))
+data = sock.recvfrom(1024)
+print(data)
+```
+
+**Sarcină:**
+1. **Navigator:** Identifică TOATE erorile (sunt exact 2)
+2. **Driver:** Corectează codul
+3. **Ambii:** Testați în containere Docker
+4. **Schimbați rolurile** și explicați-vă reciproc DE CE au fost erori
+
+<details>
+<summary>Hint (deschide doar după 5 minute de încercări)</summary>
+
+- Eroare 1: Emițătorul... (ce opțiune socket lipsește pentru broadcast?)
+- Eroare 2: Receptorul face bind la... (ce adresă specială primește TOATE pachetele?)
+
+</details>
+
+<details>
+<summary>Soluție completă (doar după rezolvare)</summary>
+
+```python
+# sender.py - CORECTAT
+import socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  # FIX 1
+sock.sendto(b"Hello", ('255.255.255.255', 5007))
+
+# receiver.py - CORECTAT
+import socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind(('0.0.0.0', 5007))  # FIX 2: bind la toate interfețele
+data = sock.recvfrom(1024)
+print(data)
+```
+
+</details>
+
+---
+
+### Pair Exercise 2: Multicast Chat Mini
+
+**Roluri:** Driver + Navigator (schimb la 10 minute)
+
+**Sarcină:** Implementați împreună un mini-chat multicast:
+
+**Runda 1 (Driver A, 10 min):** Scrie funcția de trimitere mesaje
+- Grup: 239.0.0.50
+- Port: 5050
+- TTL: 1
+
+**Runda 2 (Driver B, 10 min):** Scrie funcția de recepție cu IGMP join
+- Bind la '' (toate interfețele)
+- IP_ADD_MEMBERSHIP pentru grupul de mai sus
+
+**Runda 3 (Ambii, 10 min):** Integrați și testați cu 2 terminale în containere diferite
+
+**Cerințe minime:**
+- Mesajele includ username-ul expeditorului
+- Funcționează în containere Docker
+- Receptorul afișează și timestamp-ul
+
+**Discuție finală:** 
+- Ce s-ar întâmpla dacă TTL=0?
+- Dar TTL=255?
+- De ce trebuie să faci bind ÎNAINTE de IP_ADD_MEMBERSHIP?
+
+---
+
+### Pair Exercise 3: Trace the Tunnel
+
+**Tip:** Exercițiu de analiză (fără cod)
+
+**Materiale necesare:** Wireshark + laboratorul pornit
+
+**Sarcină:**
+1. **Ambii:** Porniți Wireshark cu filtrul `tcp.port == 9090 || tcp.port == 8080`
+2. **Driver:** Trimite 3 mesaje prin tunel: `echo "test1" | nc 172.20.0.254 9090`
+3. **Navigator:** Numără și notează:
+   - Câte pachete SYN vezi în total?
+   - Câte conexiuni TCP separate există?
+   - Care sunt IP-urile sursă și destinație pentru fiecare conexiune?
+4. **Schimbați rolurile** și repetați cu alt mesaj
+5. **Ambii:** Desenați diagrama conexiunilor pe hârtie
+
+**Întrebări de verificare:**
+- Serverul echo vede IP-ul clientului sau IP-ul tunelului?
+- Ce se întâmplă în Wireshark când clientul trimite FIN?
 
 ---
 

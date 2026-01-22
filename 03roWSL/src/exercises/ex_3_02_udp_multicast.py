@@ -7,11 +7,24 @@ Demonstrează comunicarea multicast UDP folosind socket-uri Python.
 Multicast-ul permite transmiterea eficientă către un grup selectat
 de receptori, folosind protocoalul IGMP pentru gestionarea apartenenței.
 
+ANALOGIE: Multicast-ul este ca un GRUP DE WHATSAPP:
+    - Creezi un grup (adresa multicast, ex: 239.0.0.1)
+    - Oamenii se alătură voluntar (IGMP Join / IP_ADD_MEMBERSHIP)
+    - Mesajele ajung DOAR la membri, nu la toată lumea
+    - Poți pleca oricând (IGMP Leave / IP_DROP_MEMBERSHIP)
+    - TTL-ul este ca un "bilet de metrou valabil N stații" - la fiecare 
+      router traversat, se consumă o "stație". TTL=0 = doar local.
+
 Concepte cheie:
 - Adrese multicast (224.0.0.0 - 239.255.255.255)
 - Protocolul IGMP (Internet Group Management Protocol)
 - Opțiunile socket IP_ADD_MEMBERSHIP și IP_MULTICAST_TTL
 - Diferența dintre broadcast și multicast
+
+PREDICȚIE pentru student: Înainte de a rula, gândește-te:
+- Ce mesaj IGMP trimite receptorul când pornește? (Join sau Leave?)
+- Dacă TTL=0, cine va primi pachetele?
+- De ce multicast e mai eficient decât broadcast pentru 10 receptori din 100?
 
 Utilizare:
     Receptor:  python ex_3_02_udp_multicast.py --mod receiver
@@ -55,6 +68,12 @@ def porneste_receptor(
 ) -> None:
     """
     Pornește un receptor UDP care se alătură unui grup multicast.
+    
+    ANALOGIE: Este ca să te alături unui grup de WhatsApp:
+    1. Deschizi aplicația (creezi socket-ul)
+    2. Te abonezi la grup (IP_ADD_MEMBERSHIP trimite IGMP Join)
+    3. Primești mesajele grupului
+    4. Când pleci, anunți (IP_DROP_MEMBERSHIP trimite IGMP Leave)
     
     Pași implementați:
     1. Creează socket UDP
@@ -156,6 +175,11 @@ def porneste_emitator(
 ) -> None:
     """
     Transmite mesaje UDP către un grup multicast.
+    
+    ANALOGIE: Emițătorul este ca administratorul grupului WhatsApp care 
+    trimite mesaje. Nu trebuie să fie membru pentru a trimite - doar 
+    membrii primesc. TTL-ul controlează "cât de departe" ajunge mesajul:
+    TTL=1 = doar rețeaua locală, TTL=32 = poate traversa routere interne.
     
     Pași implementați:
     1. Creează socket UDP

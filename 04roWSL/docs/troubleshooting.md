@@ -1,498 +1,508 @@
-# Ghid de Depanare: Laborator Săptămâna 4
+# Ghid de Depanare (Troubleshooting)
 
 > Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | realizat de Revolvix
 
+Acest ghid acoperă problemele comune și soluțiile lor pentru laboratorul de rețele.
+
+Pentru debugging detaliat pas-cu-pas, consultă [Ghid Debugging](debugging_guide.md).
+Pentru întrebări frecvente, vezi [FAQ](faq.md).
+
+---
+
 ## Cuprins
 1. [Probleme Docker](#probleme-docker)
-2. [Probleme Rețea](#probleme-rețea)
-3. [Probleme Protocol](#probleme-protocol)
-4. [Probleme WSL2](#probleme-wsl2)
-5. [Probleme Wireshark](#probleme-wireshark)
+2. [Probleme Portainer](#probleme-portainer)
+3. [Probleme Wireshark](#probleme-wireshark)
+4. [Probleme Protocoale](#probleme-protocoale)
+5. [Probleme Conexiune](#probleme-conexiune)
+6. [Probleme Python](#probleme-python)
 
 ---
 
 ## Probleme Docker
 
-### Docker Desktop nu pornește
+### "Cannot connect to the Docker daemon"
 
 **Simptome:**
-- Docker Desktop se blochează la pornire
-- Mesaj "Docker Desktop is starting..."
+- Comanda `docker ps` returnează eroare
+- Mesajul "Is the docker daemon running?"
 
-**Soluții:**
+**Cauză:** Serviciul Docker nu rulează în WSL.
 
-1. **Reporniți Docker Desktop**
-   ```powershell
-   # Opriți Docker Desktop din system tray
-   # Sau folosiți Task Manager
-   taskkill /F /IM "Docker Desktop.exe"
-   
-   # Reporniți
-   Start-Process "Docker Desktop"
-   ```
-
-2. **Verificați WSL2**
-   ```powershell
-   wsl --status
-   wsl --update
-   ```
-
-3. **Resetați Docker Desktop**
-   - Settings → Troubleshoot → Reset to factory defaults
-   - **ATENȚIE:** Aceasta șterge toate containerele și imaginile
-
-4. **Verificați Hyper-V/WSL**
-   ```powershell
-   # Ca Administrator
-   bcdedit /set hypervisorlaunchtype auto
-   # Reporniți calculatorul
-   ```
-
-### Eroare "Cannot connect to Docker daemon"
-
-**Simptome:**
-```
-Cannot connect to the Docker daemon at unix:///var/run/docker.sock
-```
-
-**Soluții:**
-
-1. **Verificați că Docker Desktop rulează**
-   - Căutați pictograma Docker în system tray
-   - Ar trebui să fie verde (nu galbenă sau roșie)
-
-2. **Reporniți serviciul Docker**
-   ```powershell
-   # PowerShell ca Administrator
-   Restart-Service docker
-   ```
-
-3. **În WSL, verificați integrarea**
-   ```bash
-   # În terminalul WSL
-   docker info
-   ```
-   Dacă nu funcționează:
-   - Docker Desktop → Settings → Resources → WSL Integration
-   - Activați pentru distribuția voastră
-
-### Container-ul nu pornește
-
-**Simptome:**
-- `docker compose up` eșuează
-- Container-ul se oprește imediat
-
-**Diagnoză:**
+**Soluție:**
 ```bash
-# Verificați jurnalele
-docker logs week4-lab
+# Pornește serviciul Docker
+sudo service docker start
+# Parolă: stud
 
-# Verificați starea
+# Verifică statusul
+sudo service docker status
+
+# Testează funcționarea
+docker ps
+```
+
+**Dacă problema persistă:**
+```bash
+# Verifică log-urile Docker
+sudo cat /var/log/docker.log | tail -20
+
+# Repornește complet
+sudo service docker restart
+```
+
+---
+
+### "permission denied while trying to connect to Docker"
+
+**Simptome:**
+- Docker funcționează cu `sudo`, dar nu fără
+- Mesajul "Got permission denied"
+
+**Cauză:** Utilizatorul nu face parte din grupul `docker`.
+
+**Soluție:**
+```bash
+# Adaugă utilizatorul la grupul docker
+sudo usermod -aG docker $USER
+
+# Aplică modificările
+newgrp docker
+
+# Sau deconectează-te și reconectează-te
+exit
+wsl
+```
+
+---
+
+### Containerele nu pornesc
+
+**Simptome:**
+- `docker compose up` afișează erori
+- Containerele rămân în starea "Exited"
+
+**Diagnosticare:**
+```bash
+# Verifică statusul containerelor
 docker ps -a
 
-# Verificați detalii
-docker inspect week4-lab
+# Citește log-urile containerului problematic
+docker logs saptamana4-text
+docker logs saptamana4-binar
+docker logs saptamana4-senzor
 ```
 
 **Soluții comune:**
 
-1. **Port deja în uz**
-   ```powershell
-   # Găsiți procesul
-   netstat -ano | findstr :5400
+1. **Port ocupat:**
+   ```bash
+   # Găsește ce ocupă portul
+   sudo ss -tlnp | grep 5400
    
-   # Opriți-l sau folosiți alt port
+   # Oprește procesul sau schimbă portul în docker-compose.yml
    ```
 
-2. **Eroare de imagine**
+2. **Imagine coruptă:**
    ```bash
-   # Reconstruiți imaginea
-   docker compose build --no-cache
-   docker compose up -d
+   # Reconstruiește imaginea
+   docker compose -f docker/docker-compose.yml build --no-cache
+   docker compose -f docker/docker-compose.yml up -d
    ```
 
-3. **Eroare de volum**
+3. **Resurse insuficiente:**
    ```bash
-   # Ștergeți volumele vechi
-   docker compose down -v
-   docker compose up -d
+   # Verifică utilizarea resurselor
+   docker system df
+   
+   # Curăță resursele neutilizate
+   docker system prune -f
    ```
 
 ---
 
-## Probleme Rețea
-
-### "Connection refused" pe localhost
+### "No space left on device"
 
 **Simptome:**
-```
-ConnectionRefusedError: [Errno 111] Connection refused
-```
+- Docker refuză să creeze containere sau imagini
+- Eroarea "no space left on device"
 
-**Soluții:**
-
-1. **Verificați că serverul rulează**
-   ```bash
-   # Verificați starea containerului
-   docker ps
-   
-   # Sau procesele
-   netstat -tulpn | grep 5400
-   ```
-
-2. **Verificați portul corect**
-   - Protocol TEXT: 5400
-   - Protocol BINAR: 5401
-   - Senzor UDP: 5402
-
-3. **Verificați firewall-ul Windows**
-   ```powershell
-   # Listați regulile
-   Get-NetFirewallRule | Where-Object { $_.DisplayName -like "*Docker*" }
-   
-   # Adăugați excepție (ca Administrator)
-   New-NetFirewallRule -DisplayName "Week4 Lab" -Direction Inbound -Protocol TCP -LocalPort 5400-5402 -Action Allow
-   ```
-
-### Timeout la conexiune
-
-**Simptome:**
-- Conexiunea durează mult și apoi eșuează
-- `socket.timeout` în Python
-
-**Soluții:**
-
-1. **Verificați că serviciul răspunde**
-   ```bash
-   # Test simplu
-   nc -zv localhost 5400
-   ```
-
-2. **Măriți timeout-ul în cod**
-   ```python
-   sock.settimeout(10)  # 10 secunde
-   ```
-
-3. **Verificați rețeaua Docker**
-   ```bash
-   docker network inspect week4_network
-   ```
-
-### UDP nu primește răspuns
-
-**Simptome:**
-- Mesajele UDP sunt trimise dar nu se primește nimic
-
-**Explicație:**
-UDP este un protocol fără conexiune. Serverul poate să nu trimită răspunsuri.
-
-**Verificări:**
+**Soluție:**
 ```bash
-# Verificați că serverul ascultă
-netstat -ulpn | grep 5402
+# Verifică utilizarea spațiului
+docker system df
 
-# Capturați traficul
-sudo tcpdump -i any udp port 5402
+# Curăță imaginile nefolosite
+docker image prune -a -f
+
+# Curăță volume orfane
+docker volume prune -f
+
+# Curăță totul (ATENȚIE: șterge și cache-ul!)
+docker system prune -a --volumes -f
 ```
 
 ---
 
-## Probleme Protocol
+## Probleme Portainer
 
-### CRC32 nu se potrivește
+### Nu pot accesa http://localhost:9000
 
-**Simptome:**
-- Serverul respinge mesajele cu eroare CRC
-- "CRC mismatch" sau similar
+**Diagnosticare:**
+```bash
+# Verifică dacă Portainer rulează
+docker ps | grep portainer
 
-**Cauze și Soluții:**
+# Verifică portul
+nc -zv localhost 9000
+```
 
-1. **Ordinea octeților greșită**
-   ```python
-   # GREȘIT: Fără specificare ordine
-   struct.pack('I', valoare)
-   
-   # CORECT: Big-endian (rețea)
-   struct.pack('!I', valoare)
+**Soluții:**
+
+1. **Containerul nu rulează:**
+   ```bash
+   docker start portainer
    ```
 
-2. **CRC calculat peste date greșite**
-   - CRC trebuie calculat ÎNAINTE de a fi adăugat la mesaj
-   - Include toate câmpurile antetului EXCEPT CRC-ul în sine
-
-3. **Verificare corectă:**
-   ```python
-   import binascii
-   import struct
-   
-   # Construire mesaj
-   antet_fara_crc = struct.pack('!2sBBHI', b'NP', 1, 0x01, 0, 1)
-   crc = binascii.crc32(antet_fara_crc) & 0xFFFFFFFF
-   mesaj = antet_fara_crc + struct.pack('!I', crc)
+2. **Containerul nu există:**
+   ```bash
+   docker run -d -p 9000:9000 --name portainer --restart=always \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     -v portainer_data:/data portainer/portainer-ce:latest
    ```
 
-### Protocol TEXT - Parsare eșuează
-
-**Simptome:**
-- Erori de parsare la citirea răspunsului
-- Lungimea nu se potrivește
-
-**Cauze:**
-
-1. **Newline lipsă sau în plus**
-   ```python
-   # Trimitere cu newline
-   sock.sendall(b'4 PING\n')
-   
-   # Sau fără, depinde de implementare
-   sock.sendall(b'4 PING')
+3. **Portul e ocupat de alt proces:**
+   ```bash
+   sudo ss -tlnp | grep 9000
+   # Oprește procesul care ocupă portul
    ```
-
-2. **Buffer-ul nu conține mesajul complet**
-   ```python
-   # Citiți până când aveți totul
-   date = b''
-   while len(date) < lungime_asteptata:
-       date += sock.recv(1024)
-   ```
-
-### Protocol BINAR - Antet invalid
-
-**Simptome:**
-- "Invalid magic number"
-- "Unknown message type"
-
-**Verificări:**
-
-1. **Magic corect**
-   ```python
-   magic = b'NP'  # Exact 2 octeți
-   ```
-
-2. **Dimensiune antet corectă (14 octeți)**
-   ```python
-   antet = struct.pack('!2sBBHII', magic, versiune, tip, lungime, secventa, crc)
-   assert len(antet) == 14
-   ```
-
-3. **Tip mesaj valid**
-   - 0x01: PING
-   - 0x02: PONG
-   - 0x03: SET
-   - 0x04: GET
-   - 0x05: DELETE
-   - 0x06: RESPONSE
-   - 0xFF: ERROR
 
 ---
 
-## Probleme WSL2
+### Am uitat parola Portainer
 
-### WSL nu pornește
+**Soluție:** Resetează Portainer complet:
+```bash
+docker stop portainer
+docker rm portainer
+docker volume rm portainer_data
 
-**Simptome:**
+# Recreează - prima accesare cere parolă nouă
+docker run -d -p 9000:9000 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
 ```
-WslRegisterDistribution failed with error
+
+---
+
+### Portainer nu vede containerele
+
+**Cauză:** Portainer nu are acces la socket-ul Docker.
+
+**Soluție:**
+```bash
+# Verifică montarea socket-ului
+docker inspect portainer | grep -A5 Mounts
+
+# Recreează cu montarea corectă
+docker rm -f portainer
+docker run -d -p 9000:9000 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
 ```
-
-**Soluții:**
-
-1. **Actualizați WSL**
-   ```powershell
-   wsl --update
-   wsl --shutdown
-   wsl
-   ```
-
-2. **Resetați distribuția**
-   ```powershell
-   wsl --unregister Ubuntu
-   wsl --install -d Ubuntu
-   ```
-
-3. **Verificați virtualizarea**
-   - BIOS: Activați Intel VT-x sau AMD-V
-   - Windows Features: Activați "Virtual Machine Platform"
-
-### Rețeaua nu funcționează în WSL
-
-**Simptome:**
-- Nu se poate accesa internetul din WSL
-- Docker nu poate descărca imagini
-
-**Soluții:**
-
-1. **Resetați rețeaua WSL**
-   ```powershell
-   wsl --shutdown
-   netsh winsock reset
-   netsh int ip reset
-   # Reporniți calculatorul
-   ```
-
-2. **Verificați DNS**
-   ```bash
-   # În WSL
-   cat /etc/resolv.conf
-   
-   # Dacă e gol, adăugați
-   echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
-   ```
-
-### Permisiuni fișiere în WSL
-
-**Simptome:**
-- "Permission denied" când rulați scripturi
-- Fișierele create nu pot fi accesate
-
-**Soluții:**
-
-1. **Setați permisiuni**
-   ```bash
-   chmod +x script.py
-   chmod -R 755 director/
-   ```
-
-2. **Probleme de mount Windows**
-   ```bash
-   # Adăugați în /etc/wsl.conf
-   [automount]
-   options = "metadata,umask=22,fmask=11"
-   ```
 
 ---
 
 ## Probleme Wireshark
 
-### Nu se văd interfețele
+### Nu se capturează pachete
 
-**Simptome:**
-- Lista de interfețe e goală
-- "No interfaces found"
+**Verificări:**
 
-**Soluții:**
+1. **Interfața corectă:**
+   - Selectează "vEthernet (WSL)" pentru trafic Docker
+   - NU selecta "Loopback Adapter" decât pentru 127.0.0.1 direct
 
-1. **Reinstalați Npcap**
-   - Descărcați de pe npcap.com
-   - Instalați cu opțiunea "WinPcap API-compatible Mode"
+2. **Captura pornită:**
+   - Butonul albastru (aripioara) trebuie să fie activ
+   - Butonul roșu oprește captura
 
-2. **Rulați ca Administrator**
-   - Click dreapta pe Wireshark → "Run as administrator"
+3. **Filtrul prea restrictiv:**
+   - Șterge filtrul și verifică dacă vezi pachete
+   - Dacă da, filtrul ascunde pachetele dorite
 
-3. **Verificați serviciul Npcap**
-   ```powershell
-   Get-Service npcap
-   Start-Service npcap
-   ```
-
-### Nu se capturează pachete localhost
-
-**Simptome:**
-- Traficul pe localhost nu apare
-- Capturarea e goală
-
-**Soluții:**
-
-1. **Folosiți interfața Loopback**
-   - În Wireshark, selectați "Adapter for loopback traffic capture"
-   - Sau "Npcap Loopback Adapter"
-
-2. **Alternativă: RawCap**
-   - Descărcați RawCap pentru capturare localhost
-   - Sau folosiți tcpdump în WSL/container
-
-### Filtre nu funcționează
-
-**Simptome:**
-- Filtrul devine roșu
-- Eroare de sintaxă
-
-**Cauze comune:**
-
-1. **Sintaxă greșită**
-   ```
-   # GREȘIT
-   tcp.port = 5400
-   
-   # CORECT
-   tcp.port == 5400
-   ```
-
-2. **Confuzie filtru capturare vs. afișare**
-   - Filtru capturare (BPF): `port 5400`
-   - Filtru afișare: `tcp.port == 5400`
-
-3. **Câmp inexistent pentru protocolul curent**
-   - `tcp.port` nu funcționează pentru pachete UDP
+4. **Traficul generat în timpul capturii:**
+   - Pornește captura ÎNTÂI
+   - Apoi rulează clientul
+   - Oprește captura DUPĂ
 
 ---
 
-## Verificări Rapide
+### Filtrul devine roșu (sintaxă invalidă)
 
-### Script de Diagnosticare
+**Greșeli comune:**
 
-Rulați acest script pentru a verifica mediul:
+| Greșit | Corect |
+|--------|--------|
+| `tcp.port = 5400` | `tcp.port == 5400` |
+| `port == 5400` | `tcp.port == 5400` |
+| `tcp contains 'PING'` | `tcp contains "PING"` |
+| `TCP.port == 5400` | `tcp.port == 5400` |
 
+---
+
+### Nu văd conținutul pachetelor
+
+**Cauză:** Pachetele TCP sunt reassemblate.
+
+**Soluție:**
+1. Click dreapta pe un pachet
+2. "Follow" → "TCP Stream"
+3. Vezi conversația completă în format text
+
+---
+
+## Probleme Protocoale
+
+### CRC32 invalid
+
+**Verificări:**
+
+1. **Network Byte Order:**
+   ```python
+   # GREȘIT
+   struct.pack('I', crc)
+   
+   # CORECT
+   struct.pack('!I', crc)
+   ```
+
+2. **Date corecte pentru CRC:**
+   ```python
+   # Pentru protocol BINAR:
+   # CRC = crc32(antet_fara_crc + payload)
+   # Antet fără CRC = primii 10 bytes
+   
+   crc = binascii.crc32(mesaj[0:10] + payload) & 0xFFFFFFFF
+   ```
+
+3. **Mascare 32-bit:**
+   ```python
+   # GREȘIT (poate fi negativ pe unele sisteme)
+   crc = binascii.crc32(date)
+   
+   # CORECT
+   crc = binascii.crc32(date) & 0xFFFFFFFF
+   ```
+
+---
+
+### Mesajele nu sunt primite
+
+**Verificări:**
+
+1. **Conexiune activă:**
+   ```python
+   # Verifică înainte de send
+   if sock.fileno() == -1:
+       print("Socket închis!")
+   ```
+
+2. **Buffer complet trimis:**
+   ```python
+   # GREȘIT (poate trimite parțial)
+   sock.send(mesaj)
+   
+   # CORECT (garantează trimiterea completă)
+   sock.sendall(mesaj)
+   ```
+
+3. **Recepție completă:**
+   ```python
+   # recv() poate returna mai puțin decât ai cerut!
+   date = b''
+   while len(date) < lungime_asteptata:
+       chunk = sock.recv(lungime_asteptata - len(date))
+       if not chunk:
+           break  # Conexiunea s-a închis
+       date += chunk
+   ```
+
+---
+
+### Protocol TEXT nu funcționează
+
+**Format corect:**
+```
+<LUNGIME> <COMANDĂ> [ARGUMENTE]
+```
+
+**Exemple:**
 ```python
-#!/usr/bin/env python3
-"""Script rapid de diagnosticare."""
+# CORECT
+mesaj = "4 PING"           # Lungime "PING" = 4
+mesaj = "13 SET cheie val" # Lungime "SET cheie val" = 13
 
-import socket
-import subprocess
-import sys
-
-def verifica_port(port, protocol='tcp'):
-    try:
-        if protocol == 'tcp':
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        else:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(2)
-        rezultat = s.connect_ex(('localhost', port))
-        s.close()
-        return rezultat == 0
-    except:
-        return False
-
-def verifica_docker():
-    try:
-        rezultat = subprocess.run(['docker', 'info'], capture_output=True, timeout=10)
-        return rezultat.returncode == 0
-    except:
-        return False
-
-print("=== Diagnosticare Rapidă ===\n")
-
-print("Docker:", "✓" if verifica_docker() else "✗")
-print("Port 5400 (TEXT):", "✓" if verifica_port(5400) else "✗")
-print("Port 5401 (BINAR):", "✓" if verifica_port(5401) else "✗")
-print("Port 5402 (UDP):", "✓" if verifica_port(5402, 'udp') else "✗")
-print("Port 9443 (Portainer):", "✓" if verifica_port(9443) else "✗")
+# GREȘIT
+mesaj = "PING"             # Lipsește lungimea
+mesaj = "5 PING"           # Lungime greșită (4, nu 5)
 ```
 
 ---
 
-## Ajutor Suplimentar
+## Probleme Conexiune
 
-Dacă problemele persistă:
+### "Connection refused"
 
-1. **Verificați jurnalele**
+**Cauză:** Serverul nu ascultă pe portul respectiv.
+
+**Verificări:**
+```bash
+# Containerul rulează?
+docker ps | grep saptamana4
+
+# Portul ascultă?
+nc -zv localhost 5400
+```
+
+**Soluții:**
+1. Pornește containerele: `docker compose up -d`
+2. Verifică maparea porturilor în `docker-compose.yml`
+
+---
+
+### "Connection timed out"
+
+**Cauze posibile:**
+- Firewall blochează conexiunea
+- Adresa sau portul greșit
+- Serverul nu răspunde
+
+**Verificări:**
+```bash
+# Firewall WSL
+sudo ufw status
+
+# Ping la gazdă
+ping localhost
+
+# Verifică routarea
+ip route
+```
+
+---
+
+### "Address already in use"
+
+**Cauză:** Alt proces ocupă portul.
+
+**Soluție:**
+```bash
+# Găsește procesul
+sudo ss -tlnp | grep 5400
+
+# Oprește-l sau folosește alt port
+kill -9 <PID>
+```
+
+---
+
+## Probleme Python
+
+### ModuleNotFoundError
+
+**Soluție:**
+```bash
+# Instalează modulul lipsă
+pip install <modul> --break-system-packages
+
+# Sau în mediu virtual
+python -m venv venv
+source venv/bin/activate
+pip install <modul>
+```
+
+---
+
+### struct.error: unpack requires a buffer of X bytes
+
+**Cauză:** Nu ai primit suficiente date.
+
+**Soluție:**
+```python
+date = sock.recv(1024)
+if len(date) < 14:  # Verifică înainte de unpack
+    print(f"Insuficient: {len(date)} bytes")
+else:
+    header = struct.unpack('!2sBBHII', date[:14])
+```
+
+---
+
+### Socket timeout
+
+**Soluție:**
+```python
+sock.settimeout(10.0)  # Mărește timeout-ul
+
+try:
+    date = sock.recv(1024)
+except socket.timeout:
+    print("Serverul nu a răspuns în 10 secunde")
+```
+
+---
+
+## Checklist General
+
+Când ceva nu funcționează, verifică în ordine:
+
+```
+□ Docker rulează?              sudo service docker status
+□ Containerele sunt Up?        docker ps
+□ Porturile răspund?           nc -zv localhost 5400
+□ Log-uri container?           docker logs <container>
+□ Wireshark pe interfața bună? vEthernet (WSL)
+□ Network byte order?          '!' în struct.pack
+□ CRC include datele corecte?  antet[0:10] + payload
+```
+
+---
+
+## Când Nimic Nu Funcționează
+
+1. **Repornește totul:**
    ```bash
-   docker logs week4-lab
+   docker compose -f docker/docker-compose.yml down
+   sudo service docker restart
+   docker compose -f docker/docker-compose.yml up -d
    ```
 
-2. **Resetați complet**
+2. **Verifică versiunile:**
    ```bash
-   python scripts/cleanup.py --full
-   python scripts/start_lab.py --rebuild
+   docker --version
+   python3 --version
    ```
 
-3. **Consultați documentația Docker**
-   - https://docs.docker.com/desktop/troubleshoot/
+3. **Citește log-urile complet:**
+   ```bash
+   docker logs saptamana4-text 2>&1 | less
+   ```
 
-4. **Postați pe forum/Moodle**
-   - Includeți output-ul comenzilor de diagnosticare
-   - Descrieți pașii reproduși
+4. **Cere ajutor:** Include în cerere:
+   - Ce ai încercat să faci
+   - Ce ai așteptat să se întâmple
+   - Ce s-a întâmplat de fapt
+   - Output-ul complet al erorilor
+
+---
+
+## Referințe
+
+- [README principal](../README.md)
+- [Ghid Debugging](debugging_guide.md)
+- [FAQ](faq.md)
+- [Documentația Docker](https://docs.docker.com/)
 
 ---
 

@@ -8,180 +8,119 @@
 3. [Tehnici de Încadrare](#tehnici-de-încadrare)
 4. [Detectarea Erorilor](#detectarea-erorilor)
 5. [Protocoale de Laborator](#protocoale-de-laborator)
+6. [Analogii pentru Înțelegere](#analogii-pentru-înțelegere)
 
 ---
 
 ## Nivelul Fizic
 
 ### Definiție
-Nivelul Fizic (Physical Layer) este primul nivel din modelul OSI, responsabil pentru transmisia biților bruti prin mediul fizic de comunicare.
+
+Nivelul Fizic (Physical Layer) este primul nivel din modelul OSI, care transmite biții bruti prin mediul fizic de comunicare.
 
 ### Funcții Principale
-- **Transmisia biților**: Convertirea fluxului de biți în semnale fizice
-- **Sincronizarea**: Coordonarea timpilor de transmisie și recepție
-- **Specificații fizice**: Definirea conectorilor, cablurilor, tensiunilor
-- **Topologia rețelei**: Definirea configurației fizice a rețelei
+
+Nivelul fizic îndeplinește patru funcții: transmisia biților (convertește datele în semnale electrice sau optice), sincronizarea între emițător și receptor pentru coordonarea timing-ului, specificarea caracteristicilor fizice ale mediului (conectori, tensiuni, frecvențe) și definirea topologiei rețelei.
 
 ### Tipuri de Medii de Transmisie
 
-#### Medii Ghidate (Cu Fir)
-- **Cablu coaxial**: Utilizat în rețele mai vechi, rezistent la interferențe
-- **Cablu torsadat (UTP/STP)**: Cel mai comun în rețele LAN moderne
-- **Fibră optică**: Viteze mari, imunitate la interferențe electromagnetice
+**Medii Ghidate (Cu Fir)**
 
-#### Medii Neghidate (Fără Fir)
-- **Unde radio**: WiFi, Bluetooth
-- **Microunde**: Legături punct-la-punct
-- **Infraroșu**: Comunicații pe distanțe scurte
+Cablul coaxial era utilizat în rețelele mai vechi și oferă rezistență bună la interferențe. Cablul torsadat (UTP/STP) este cel mai comun în rețelele LAN moderne datorită costului redus și instalării ușoare. Fibra optică permite viteze foarte mari și imunitate la interferențe electromagnetice, fiind preferată pentru distanțe lungi.
+
+**Medii Neghidate (Fără Fir)**
+
+Undele radio sunt folosite pentru WiFi și Bluetooth. Microundele servesc pentru legături punct-la-punct pe distanțe mari. Infraroșul este limitat la comunicații pe distanțe scurte, cum ar fi telecomenzile.
 
 ### Codificări de Linie
-- **NRZ (Non-Return to Zero)**: Cel mai simplu, probleme de sincronizare
-- **Manchester**: Tranziție la mijlocul fiecărui bit, auto-sincronizare
-- **4B/5B**: Codificare cu redundanță pentru evitarea secvențelor lungi de 0
+
+NRZ (Non-Return to Zero) este cea mai simplă codificare dar are probleme de sincronizare la secvențe lungi de biți identici. Manchester rezolvă problema sincronizării prin tranziție la mijlocul fiecărui bit. 4B/5B adaugă redundanță pentru a evita secvențele problematice.
 
 ---
 
 ## Nivelul Legătură de Date
 
 ### Definiție
-Nivelul Legătură de Date (Data Link Layer) este al doilea nivel din modelul OSI, responsabil pentru transferul fiabil de date între noduri adiacente.
+
+Nivelul Legătură de Date (Data Link Layer) este al doilea nivel din modelul OSI, care transferă date fiabil între noduri adiacente.
 
 ### Sub-niveluri (IEEE 802)
 
-#### LLC (Logical Link Control)
-- Controlul fluxului
-- Multiplexarea protocoalelor
-- Secvențierea cadrelor
+**LLC (Logical Link Control)** se ocupă de controlul fluxului, multiplexarea protocoalelor și secvențierea cadrelor.
 
-#### MAC (Media Access Control)
-- Adresarea fizică (adrese MAC)
-- Controlul accesului la mediu
-- Detectarea coliziunilor
+**MAC (Media Access Control)** gestionează adresarea fizică (adrese MAC), controlul accesului la mediu și detectarea coliziunilor.
 
 ### Funcții Principale
 
-#### 1. Încadrarea (Framing)
-Gruparea biților în unități logice numite cadre (frames).
+**Încadrarea (Framing)** grupează biții în unități logice numite cadre (frames).
 
-#### 2. Adresarea Fizică
-Identificarea unică a dispozitivelor prin adrese MAC (48 biți).
+**Adresarea Fizică** identifică unic dispozitivele prin adrese MAC de 48 biți.
 
-#### 3. Controlul Accesului la Mediu
-Coordonarea accesului când mai multe dispozitive partajează mediul:
-- **CSMA/CD**: Pentru Ethernet cu fir
-- **CSMA/CA**: Pentru rețele wireless
+**Controlul Accesului la Mediu** coordonează accesul când mai multe dispozitive partajează mediul — CSMA/CD pentru Ethernet cu fir, CSMA/CA pentru rețele wireless.
 
-#### 4. Detectarea și Corectarea Erorilor
-Identificarea și opțional corectarea erorilor de transmisie.
+**Detectarea și Corectarea Erorilor** identifică și opțional corectează erorile de transmisie.
 
-#### 5. Controlul Fluxului
-Prevenirea supraîncărcării receptorului.
+**Controlul Fluxului** previne supraîncărcarea receptorului.
 
 ---
 
 ## Tehnici de Încadrare
 
-### 1. Numărare Caractere (Prefix de Lungime)
-Primul câmp al cadrului specifică numărul de caractere/octeți.
+### Numărare Caractere (Prefix de Lungime)
 
-**Avantaje:**
-- Simplu de implementat
-- Eficient (overhead minim)
+Primul câmp al cadrului specifică numărul de caractere/octeți. Această metodă este simplă de implementat și eficientă (overhead minim), dar o eroare în câmpul de lungime poate pierde sincronizarea, iar recuperarea devine dificilă.
 
-**Dezavantaje:**
-- O eroare în câmpul de lungime pierde sincronizarea
-- Recuperarea dificilă după erori
-
-**Exemplu (Protocolul TEXT):**
+Exemplu (Protocolul TEXT):
 ```
 "13 SET cheie val"
  ↑
  Lungime = 13 caractere ("SET cheie val")
 ```
 
-### 2. Delimitatori (Caractere de Bornare)
-Caractere speciale marchează începutul și sfârșitul cadrului.
+### Delimitatori (Caractere de Bornare)
 
-**Avantaje:**
-- Rezistență mai bună la erori
-- Sincronizare ușoară
+Caractere speciale marchează începutul și sfârșitul cadrului. Oferă rezistență mai bună la erori și sincronizare ușoară, dar necesită escaping pentru date care conțin delimitatorul.
 
-**Dezavantaje:**
-- Necesită escaping pentru date care conțin delimitatorul
-- Overhead suplimentar
-
-**Exemplu:**
+Exemplu:
 ```
 FLAG | DATE | FLAG
 0x7E | ...  | 0x7E
 ```
 
-### 3. Inserare de Biți (Bit Stuffing)
-Inserarea automată de biți pentru a preveni confuzia cu delimitatorii.
+### Inserare de Biți (Bit Stuffing)
 
-**Regulă (HDLC):** După 5 biți consecutivi de 1, se inserează un 0.
+Inserarea automată de biți previne confuzia cu delimitatorii. În HDLC, după 5 biți consecutivi de 1 se inserează un 0.
 
-### 4. Câmpuri de Dimensiune Fixă
-Toate cadrele au exact aceeași dimensiune.
+### Câmpuri de Dimensiune Fixă
 
-**Avantaje:**
-- Parsare foarte simplă
-- Bun pentru aplicații real-time
+Toate cadrele au exact aceeași dimensiune. Parsarea devine foarte simplă și metoda e bună pentru aplicații real-time, dar risipește spațiu pentru mesaje scurte și necesită fragmentare pentru date mari.
 
-**Dezavantaje:**
-- Risipă pentru mesaje scurte
-- Necesită fragmentare pentru date mari
-
-**Exemplu (Protocol Senzor UDP):**
-```
-Fiecare datagramă = 23 octeți exact
-```
+Exemplu (Protocol Senzor UDP): fiecare datagramă are exact 23 de octeți.
 
 ---
 
 ## Detectarea Erorilor
 
 ### Tipuri de Erori
-- **Eroare de bit singur**: Un singur bit este inversat
-- **Eroare de rafală (burst)**: Secvență de biți consecutivi afectați
-- **Eroare aleatoare**: Biți afectați în poziții aleatorii
+
+Erorile de bit singur afectează doar un bit. Erorile de rafală (burst) afectează o secvență de biți consecutivi. Erorile aleatorii afectează biți în poziții nepredictibile.
 
 ### Tehnici de Detectare
 
-#### 1. Paritate
-Adăugarea unui bit care face numărul total de 1-uri par sau impar.
+**Paritate** — Adaugă un bit care face numărul total de 1-uri par sau impar. Detectează doar erori de un singur bit.
 
-**Paritate Pară:**
+Exemplu paritate pară:
 ```
 Date: 1010001 → Adaugă 1 → 10100011 (număr par de 1)
 ```
 
-**Limitări:**
-- Detectează doar erori de un singur bit
-- Nu detectează erori de 2 biți
+**Checksum (Sumă de Control)** — Suma tuturor octeților din date. Folosit în IP, TCP, UDP. Simplu și rapid, dar nu detectează reordonarea.
 
-#### 2. Checksum (Sumă de Control)
-Suma tuturor octeților din date.
+**CRC (Cyclic Redundancy Check)** — Tratează datele ca un polinom și calculează restul împărțirii la un polinom generator.
 
-**Utilizare:** IP, TCP, UDP
+CRC32 folosește polinomul 0x04C11DB7 și produce o verificare de 32 de biți. Detectează 100% din erorile de 1 bit, 100% din erorile de 2 biți, 100% din erorile de rafală până la 32 de biți și 99.99999995% din erorile aleatorii.
 
-**Avantaje:** Simplu, rapid
-
-**Dezavantaje:** Nu detectează reordonarea
-
-#### 3. CRC (Cyclic Redundancy Check)
-Tratarea datelor ca un polinom și împărțirea la un polinom generator.
-
-**CRC32:**
-- Polinom: 0x04C11DB7
-- Lungime verificare: 32 biți
-- Detectează:
-  - 100% erori de 1 bit
-  - 100% erori de 2 biți
-  - 100% erori de rafală ≤ 32 biți
-  - 99.99999995% erori aleatorii
-
-**Calcul CRC32 în Python:**
+Calcul CRC32 în Python:
 ```python
 import binascii
 
@@ -190,24 +129,23 @@ crc = binascii.crc32(date) & 0xFFFFFFFF
 print(f"CRC32: 0x{crc:08X}")
 ```
 
-#### 4. Hash-uri Criptografice
-MD5, SHA-1, SHA-256 - pentru verificare integritate cu rezistență la manipulare intenționată.
-
-**Notă:** CRC NU este potrivit pentru securitate!
+**Hash-uri Criptografice** (MD5, SHA-1, SHA-256) oferă verificare integritate cu rezistență la manipulare intenționată. CRC NU este potrivit pentru securitate!
 
 ---
 
 ## Protocoale de Laborator
 
 ### Protocol TEXT (TCP:5400)
+
 Protocol simplu, lizibil de către om.
 
-**Format Mesaj:**
+Format Mesaj:
 ```
 <LUNGIME> <COMANDĂ> [<ARGUMENTE>]
 ```
 
-**Comenzi:**
+Comenzi:
+
 | Comandă | Format | Descriere |
 |---------|--------|-----------|
 | PING | `4 PING` | Test conectivitate |
@@ -219,9 +157,10 @@ Protocol simplu, lizibil de către om.
 | QUIT | `4 QUIT` | Închidere conexiune |
 
 ### Protocol BINAR (TCP:5401)
+
 Protocol eficient cu antet fix.
 
-**Structura Antetului (14 octeți):**
+Structura Antetului (14 octeți):
 ```
 ┌─────────┬──────────┬─────┬────────┬──────────┬───────┐
 │ Magic   │ Versiune │ Tip │ Lungime│ Secvență │ CRC32 │
@@ -229,7 +168,8 @@ Protocol eficient cu antet fix.
 └─────────┴──────────┴─────┴────────┴──────────┴───────┘
 ```
 
-**Tipuri de Mesaje:**
+Tipuri de Mesaje:
+
 | Cod | Nume | Descriere |
 |-----|------|-----------|
 | 0x01 | PING | Verificare conexiune |
@@ -241,9 +181,10 @@ Protocol eficient cu antet fix.
 | 0xFF | ERROR | Eroare |
 
 ### Protocol Senzor UDP (UDP:5402)
+
 Protocol pentru dispozitive IoT cu datagrame fixe.
 
-**Structura Datagramei (23 octeți):**
+Structura Datagramei (23 octeți):
 ```
 ┌──────────┬─────────┬─────────────┬─────────┬───────┬──────────┐
 │ Versiune │ ID Senz │ Temperatură │ Locație │ CRC32 │ Rezervat │
@@ -266,6 +207,99 @@ Protocol pentru dispozitive IoT cu datagrame fixe.
 
 ---
 
+## Analogii pentru Înțelegere
+
+### CRC32 — Cifra de Control
+
+**CONCRET:** Gândește-te la codul numeric personal (CNP) sau la IBAN. Ultima cifră e calculată din celelalte. Dacă greșești o cifră când copiezi, sistemul detectează eroarea. Nu poți "ghici" un cod valid fără să calculezi. DAR: cineva care știe algoritmul poate genera coduri false — de aceea CRC nu oferă securitate!
+
+CRC32 funcționează identic, dar pentru date binare.
+
+**PICTORIAL:**
+```
+Date originale:    [D][A][T][E][ ][ ][ ]
+                         ↓ algoritm CRC32
+Checksum:          [C][R][C][!]
+
+Transmis:          [D][A][T][E][ ][ ][ ][C][R][C][!]
+                   └─────────────────┘ └─────────┘
+                         date           verificare
+                         
+La recepție:
+1. Extrage CRC primit
+2. Recalculează CRC din date
+3. Compară → egal = OK, diferit = EROARE
+```
+
+**ABSTRACT:**
+```python
+crc = binascii.crc32(date) & 0xFFFFFFFF
+```
+
+---
+
+### Antet Protocol BINAR — Plicul Poștal
+
+**CONCRET:** Un plic de scrisoare conține adresa destinatarului (cine primește), adresa expeditorului (cine trimite), timbrul (dovadă că e valid) și înăuntru scrisoarea propriu-zisă.
+
+Antetul binar e "plicul" pentru datele tale.
+
+**PICTORIAL:**
+```
+┌──────────────────────────────────────────────────────┐
+│ PLIC (Antet - 14 octeți)                             │
+│ ┌──────┬──────┬─────┬────────┬────────┬───────────┐ │
+│ │Timbru│Vers. │ Tip │Lungime │Nr.ord. │Semnătură  │ │
+│ │ "NP" │  1   │0x01 │   0    │   1    │ CRC32     │ │
+│ │ 2B   │ 1B   │ 1B  │  2B    │  4B    │   4B      │ │
+│ └──────┴──────┴─────┴────────┴────────┴───────────┘ │
+├──────────────────────────────────────────────────────┤
+│ SCRISOARE (Payload - lungime variabilă)              │
+│ [conținutul efectiv al mesajului]                    │
+└──────────────────────────────────────────────────────┘
+```
+
+**ABSTRACT:**
+```python
+antet = struct.pack('!2sBBHII', b'NP', 1, tip, lungime, seq, crc)
+mesaj = antet + payload
+```
+
+---
+
+### TCP vs UDP — Telefon vs SMS
+
+**CONCRET:**
+
+| TCP = Apel telefonic | UDP = SMS |
+|---------------------|-----------|
+| Suni, aștepți să răspundă | Trimiți direct |
+| "Alo?" - "Da?" (handshake) | Fără confirmare |
+| Vorbești alternativ | Fire-and-forget |
+| Știi când s-a încheiat | Nu știi dacă a ajuns |
+| Dacă nu auzi, ceri repetare | Dacă se pierde, ghinion |
+| Conexiune stabilită | Fără conexiune |
+
+---
+
+### Port Mapping — Apartamente în Bloc
+
+**CONCRET:**
+- Blocul = calculatorul (adresa IP)
+- Scara = interfața de rețea
+- Apartamentul = aplicația (portul)
+- Adresa completă: Bloc 5, Ap. 23 = 192.168.1.5:8080
+
+Docker port mapping `-p 8080:80` înseamnă: "Cine bate la ușa blocului cerând ap. 8080, trimite-l la ap. 80 din interiorul containerului"
+
+```
+                  Exterior              Interior Container
+                  (host)                
+Vizitator → [Bloc:Ap.8080] ──mapping──→ [Container:Ap.80] → Nginx
+```
+
+---
+
 ## Referințe
 
 1. Kurose, J. & Ross, K. (2016). *Computer Networking: A Top-Down Approach*. Pearson.
@@ -273,6 +307,9 @@ Protocol pentru dispozitive IoT cu datagrame fixe.
 3. RFC 793 - Transmission Control Protocol
 4. RFC 768 - User Datagram Protocol
 5. IEEE 802.3 - Ethernet Standard
+
+Pentru mai multe resurse, vezi [Lectură Suplimentară](further_reading.md).
+Pentru comenzi practice, vezi [Fișa de Comenzi](commands_cheatsheet.md).
 
 ---
 

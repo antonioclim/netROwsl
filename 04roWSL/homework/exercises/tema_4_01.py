@@ -1,286 +1,380 @@
 #!/usr/bin/env python3
 """
-Tema 4.01: Protocol TEXT Extins
+Tema 4.01: Client Complet Protocol BINAR
 Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | realizat de Revolvix
 
 OBIECTIV:
-    Extindeți clientul protocolului TEXT cu funcționalități suplimentare.
+    Implementați un client complet pentru protocolul BINAR care să poată
+    interacționa cu un key-value store distribuit.
 
 CERINȚE:
-    1. Implementați comenzile suplimentare (EXPIRE, TTL, INCR, DECR)
-    2. Adăugați logging pentru toate operațiunile
-    3. Implementați reconectare automată
-    4. Adăugați suport pentru comenzi din fișier batch
+    1. Conectare și deconectare de la server
+    2. Implementare operații: PING, SET, GET, DELETE
+    3. Gestionare corectă a numărului de secvență
+    4. Tratare erori și timeout-uri
 
 INSTRUCȚIUNI:
     - Completați funcțiile marcate cu TODO
-    - Nu modificați semnăturile funcțiilor existente
-    - Adăugați comentarii explicative pentru codul vostru
-    - Testați implementarea cu serverul TEXT din laborator
+    - Respectați specificația protocolului din docs/theory_summary.md
+    - Testați cu serverul din container: localhost:5401
 
-PUNCTAJ: 25 puncte
+PUNCTAJ: 50 puncte
 """
 
 import socket
+import struct
+import binascii
 import logging
-import time
-from typing import Optional, List
+from typing import Optional, Tuple, Any
+from dataclasses import dataclass
+from enum import IntEnum
 
-# TODO: Configurați logging-ul
-# Indiciu: Folosiți logging.basicConfig() cu format și nivel corespunzător
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+# Configurare logging
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 
-class ClientTEXTExtins:
-    """
-    Client extins pentru protocolul TEXT.
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_PROTOCOL
+# Scop: Definește valorile fixe ale protocolului BINAR
+# Transferabil la: Orice implementare de protocol cu antet fix
+# ═══════════════════════════════════════════════════════════════════════════════
+
+BINAR_MAGIC = b'NP'
+BINAR_VERSIUNE = 1
+BINAR_DIMENSIUNE_ANTET = 14
+TIMEOUT_IMPLICIT = 5.0  # secunde
+
+
+class TipMesaj(IntEnum):
+    """Tipurile de mesaje suportate de protocolul BINAR."""
+    PING = 0x01
+    PONG = 0x02
+    SET = 0x03
+    GET = 0x04
+    DELETE = 0x05
+    RESPONSE = 0x06
+    ERROR = 0xFF
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STRUCTURI_DATE
+# Scop: Definește tipurile de date pentru mesaje și răspunsuri
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class RaspunsServer:
+    """Răspunsul parsat de la server."""
+    tip: TipMesaj
+    secventa: int
+    payload: bytes
+    crc_valid: bool
     
-    Această clasă extinde funcționalitatea clientului TEXT de bază
-    cu comenzi suplimentare și caracteristici avansate.
+    @property
+    def succes(self) -> bool:
+        """Returnează True dacă răspunsul indică succes."""
+        return self.tip != TipMesaj.ERROR and self.crc_valid
+    
+    @property
+    def valoare(self) -> Optional[str]:
+        """Returnează payload-ul decodat ca string, sau None dacă e eroare."""
+        if self.tip == TipMesaj.ERROR:
+            return None
+        try:
+            return self.payload.decode('utf-8')
+        except UnicodeDecodeError:
+            return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLIENT_BINAR
+# Scop: Implementează clientul pentru protocolul BINAR
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class ClientBinar:
+    """
+    Client pentru protocolul BINAR.
+    
+    Exemplu utilizare:
+        client = ClientBinar('localhost', 5401)
+        if client.conecteaza():
+            raspuns = client.ping()
+            print(f"Server activ: {raspuns.succes}")
+            client.deconecteaza()
     """
     
-    def __init__(self, host: str = 'localhost', port: int = 5400):
+    def __init__(self, host: str, port: int, timeout: float = TIMEOUT_IMPLICIT):
         """
         Inițializează clientul.
         
         Args:
             host: Adresa serverului
             port: Portul serverului
+            timeout: Timeout pentru operații socket (secunde)
         """
         self.host = host
         self.port = port
+        self.timeout = timeout
         self.socket: Optional[socket.socket] = None
-        self.conectat = False
-        self.timeout = 10.0
-        self.incercari_reconectare = 3
+        self.secventa = 0
+    
+    def _urmatoarea_secventa(self) -> int:
+        """
+        Returnează următorul număr de secvență.
+        
+        Secvența crește cu 1 la fiecare mesaj trimis și
+        se resetează la 0 după 0xFFFFFFFF.
+        """
+        # TODO: Implementați incrementarea secvenței
+        # Indiciu: self.secventa trebuie să rămână în range 0 - 0xFFFFFFFF
+        pass
     
     def conecteaza(self) -> bool:
         """
-        Stabilește conexiunea la server.
+        Stabilește conexiunea cu serverul.
+        
+        PREDICȚIE înainte de implementare:
+        - Ce excepție ridică connect() dacă serverul nu există?
+        - Cât e timeout-ul implicit al unui socket nou creat?
+        - Ce returnează connect() la succes? (hint: nimic!)
         
         Returns:
-            True dacă conexiunea a reușit
+            True dacă conexiunea a reușit, False altfel
         """
         # TODO: Implementați conectarea la server
         # Indiciu:
-        # 1. Creați un socket TCP
+        # 1. Creați un socket TCP (AF_INET, SOCK_STREAM)
         # 2. Setați timeout-ul
         # 3. Conectați-vă la (self.host, self.port)
-        # 4. Logați succesul sau eșecul
-        # 5. Actualizați self.conectat
+        # 4. Gestionați excepțiile: socket.timeout, ConnectionRefusedError, OSError
         pass
     
     def deconecteaza(self):
-        """Închide conexiunea."""
+        """
+        Închide conexiunea cu serverul.
+        
+        PREDICȚIE:
+        - Ce se întâmplă dacă apelezi close() pe un socket deja închis?
+        - Socket-ul mai poate fi reutilizat după close()?
+        """
         # TODO: Implementați deconectarea
-        # Indiciu: Închideți socket-ul și actualizați self.conectat
+        # Indiciu: Verificați că socket-ul există înainte de close()
         pass
     
-    def _reconecteaza(self) -> bool:
+    def _construieste_mesaj(self, tip: TipMesaj, payload: bytes = b'') -> bytes:
         """
-        Încearcă reconectarea automată.
+        Construiește un mesaj BINAR complet.
+        
+        PREDICȚIE:
+        - Câți bytes va avea mesajul final pentru un PING (payload gol)?
+        - Care e ordinea bytes-ilor pentru câmpurile numerice?
+        - CRC se calculează peste ce date exact?
+        
+        Structura mesajului (14 bytes antet + payload):
+        - Magic: 2 bytes ('NP')
+        - Versiune: 1 byte
+        - Tip: 1 byte
+        - Lungime payload: 2 bytes (big-endian)
+        - Secvență: 4 bytes (big-endian)
+        - CRC32: 4 bytes (big-endian)
+        - Payload: variabil
+        
+        Args:
+            tip: Tipul mesajului
+            payload: Datele utile (poate fi gol)
         
         Returns:
-            True dacă reconectarea a reușit
+            Mesajul complet ca bytes
         """
-        # TODO: Implementați reconectarea automată
+        # TODO: Implementați construcția mesajului
         # Indiciu:
-        # 1. Încercați de self.incercari_reconectare ori
-        # 2. Așteptați între încercări (ex: 1 secundă)
-        # 3. Logați fiecare încercare
+        # 1. Calculați lungimea payload-ului
+        # 2. Construiți antetul parțial (fără CRC) cu struct.pack('!2sBBHI', ...)
+        # 3. Calculați CRC32 peste antet_partial + payload
+        # 4. Construiți mesajul final cu CRC inclus
         pass
     
-    def _formateaza_mesaj(self, continut: str) -> bytes:
+    def _parseaza_raspuns(self, date: bytes) -> Optional[RaspunsServer]:
         """
-        Formatează un mesaj pentru trimitere.
+        Parsează răspunsul primit de la server.
+        
+        PREDICȚIE:
+        - Ce se întâmplă dacă primești mai puțin de 14 bytes?
+        - Cum verifici că CRC-ul primit e corect?
+        - Payload-ul unde începe în buffer?
         
         Args:
-            continut: Conținutul mesajului
+            date: Buffer-ul de date primit
         
         Returns:
-            Mesaj formatat ca bytes
-        """
-        # TODO: Implementați formatarea mesajului
-        # Format: <LUNGIME> <CONȚINUT>
-        pass
-    
-    def _parseaza_raspuns(self, date: bytes) -> str:
-        """
-        Parsează răspunsul serverului.
-        
-        Args:
-            date: Răspunsul brut
-        
-        Returns:
-            Conținutul răspunsului
+            RaspunsServer parsat sau None dacă datele sunt invalide
         """
         # TODO: Implementați parsarea răspunsului
-        pass
-    
-    def _trimite_comanda(self, comanda: str) -> Optional[str]:
-        """
-        Trimite o comandă și primește răspunsul.
-        
-        Încorporează reconectare automată în caz de eroare.
-        
-        Args:
-            comanda: Comanda de trimis
-        
-        Returns:
-            Răspunsul serverului sau None în caz de eroare
-        """
-        # TODO: Implementați trimiterea comenzii cu reconectare
         # Indiciu:
-        # 1. Verificați conexiunea
-        # 2. Formatați și trimiteți mesajul
-        # 3. Așteptați și parsați răspunsul
-        # 4. În caz de eroare, încercați reconectarea
-        # 5. Logați operațiunea
+        # 1. Verificați că avem minim 14 bytes
+        # 2. Extrageți câmpurile cu struct.unpack('!2sBBHII', date[:14])
+        # 3. Verificați magic-ul
+        # 4. Extrageți payload-ul
+        # 5. Verificați CRC-ul
+        # 6. Returnați un RaspunsServer
         pass
     
-    # =========================================================
-    # Comenzi de bază
-    # =========================================================
-    
-    def ping(self) -> bool:
-        """Verifică conectivitatea cu serverul."""
-        raspuns = self._trimite_comanda("PING")
-        return raspuns == "PONG"
-    
-    def seteaza(self, cheie: str, valoare: str) -> bool:
-        """Setează o valoare pentru o cheie."""
-        raspuns = self._trimite_comanda(f"SET {cheie} {valoare}")
-        return raspuns == "OK"
-    
-    def obtine(self, cheie: str) -> Optional[str]:
-        """Obține valoarea unei chei."""
-        raspuns = self._trimite_comanda(f"GET {cheie}")
-        if raspuns and not raspuns.startswith("ERR"):
-            return raspuns
-        return None
-    
-    def sterge(self, cheie: str) -> bool:
-        """Șterge o cheie."""
-        raspuns = self._trimite_comanda(f"DEL {cheie}")
-        return raspuns == "OK"
-    
-    # =========================================================
-    # Comenzi extinse (DE IMPLEMENTAT)
-    # =========================================================
-    
-    def expire(self, cheie: str, secunde: int) -> bool:
+    def _trimite_si_primeste(self, tip: TipMesaj, payload: bytes = b'') -> Optional[RaspunsServer]:
         """
-        Setează un TTL (Time To Live) pentru o cheie.
-        
-        NOTĂ: Serverul actual nu suportă această comandă nativ.
-        Implementați logica pe partea de client.
+        Trimite un mesaj și așteaptă răspunsul.
         
         Args:
-            cheie: Cheia pentru care se setează TTL
-            secunde: Durata în secunde până la expirare
+            tip: Tipul mesajului de trimis
+            payload: Payload-ul mesajului
         
         Returns:
-            True dacă operațiunea a reușit
+            Răspunsul parsat sau None dacă a eșuat
         """
-        # TODO: Implementați EXPIRE
-        # Indiciu: Puteți stoca timestamp-urile de expirare într-un dicționar local
-        pass
-    
-    def ttl(self, cheie: str) -> int:
-        """
-        Returnează timpul rămas până la expirarea unei chei.
+        if self.socket is None:
+            logger.error("Nu sunteți conectat la server")
+            return None
         
-        Args:
-            cheie: Cheia de verificat
-        
-        Returns:
-            Secunde rămase, -1 dacă nu expiră, -2 dacă nu există
-        """
-        # TODO: Implementați TTL
-        pass
-    
-    def incr(self, cheie: str) -> Optional[int]:
-        """
-        Incrementează valoarea unei chei numerice.
-        
-        Args:
-            cheie: Cheia de incrementat
-        
-        Returns:
-            Noua valoare sau None dacă eroare
-        """
-        # TODO: Implementați INCR
+        # TODO: Implementați trimiterea și recepția
         # Indiciu:
-        # 1. Obțineți valoarea curentă
-        # 2. Convertiți la int și incrementați
-        # 3. Salvați noua valoare
+        # 1. Construiți mesajul cu _construieste_mesaj
+        # 2. Trimiteți cu sendall()
+        # 3. Primiți răspunsul cu recv()
+        # 4. Parsați răspunsul cu _parseaza_raspuns
         pass
     
-    def decr(self, cheie: str) -> Optional[int]:
+    # ═══════════════════════════════════════════════════════════════════════════
+    # OPERAȚII_PROTOCOL
+    # Scop: Implementează operațiile de nivel înalt ale protocolului
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    def ping(self) -> Optional[RaspunsServer]:
         """
-        Decrementează valoarea unei chei numerice.
-        
-        Args:
-            cheie: Cheia de decrementat
+        Trimite un mesaj PING pentru a verifica conexiunea.
         
         Returns:
-            Noua valoare sau None dacă eroare
+            Răspunsul PONG sau None dacă a eșuat
         """
-        # TODO: Implementați DECR
+        logger.info("Trimit PING...")
+        return self._trimite_si_primeste(TipMesaj.PING)
+    
+    def set(self, cheie: str, valoare: str) -> Optional[RaspunsServer]:
+        """
+        Setează o valoare în key-value store.
+        
+        PREDICȚIE:
+        - Cum separi cheia de valoare în payload?
+        - Ce răspuns aștepți de la server la SET reușit?
+        
+        Args:
+            cheie: Cheia de setat
+            valoare: Valoarea de asociat
+        
+        Returns:
+            Răspunsul serverului
+        """
+        # TODO: Implementați operația SET
+        # Indiciu: Payload-ul e format din: cheie + '\0' + valoare
+        # Convertește la bytes cu .encode('utf-8')
         pass
     
-    # =========================================================
-    # Funcționalități suplimentare
-    # =========================================================
-    
-    def executa_batch(self, cale_fisier: str) -> List[str]:
+    def get(self, cheie: str) -> Optional[RaspunsServer]:
         """
-        Execută comenzi dintr-un fișier batch.
-        
-        Formatul fișierului: o comandă pe linie
-        Liniile goale și cele care încep cu # sunt ignorate.
+        Citește o valoare din key-value store.
         
         Args:
-            cale_fisier: Calea către fișierul batch
+            cheie: Cheia de citit
         
         Returns:
-            Lista răspunsurilor pentru fiecare comandă
+            Răspunsul cu valoarea sau eroare
         """
-        # TODO: Implementați execuția batch
-        # Indiciu:
-        # 1. Citiți fișierul linie cu linie
-        # 2. Ignorați comentariile și liniile goale
-        # 3. Executați fiecare comandă
-        # 4. Colectați și returnați răspunsurile
+        # TODO: Implementați operația GET
+        # Indiciu: Payload-ul conține doar cheia
+        pass
+    
+    def delete(self, cheie: str) -> Optional[RaspunsServer]:
+        """
+        Șterge o cheie din key-value store.
+        
+        Args:
+            cheie: Cheia de șters
+        
+        Returns:
+            Răspunsul serverului
+        """
+        # TODO: Implementați operația DELETE
         pass
 
 
-def test_client():
-    """Funcție de test pentru client."""
-    print("=" * 50)
-    print("Test Client TEXT Extins")
-    print("=" * 50)
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEMONSTRAȚIE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def demonstratie():
+    """Demonstrează utilizarea clientului BINAR."""
+    print("=" * 60)
+    print("Demonstrație Client Protocol BINAR")
+    print("=" * 60)
     
-    client = ClientTEXTExtins()
+    # Creați clientul
+    client = ClientBinar('localhost', 5401)
     
-    # TODO: Adăugați teste pentru funcționalitățile implementate
-    # Exemplu:
-    # if client.conecteaza():
-    #     print("✅ Conectat cu succes")
-    #     
-    #     if client.ping():
-    #         print("✅ PING reușit")
-    #     
-    #     # Testați celelalte funcții...
-    #     
-    #     client.deconecteaza()
+    # Conectare
+    print("\n1. Conectare la server...")
+    if not client.conecteaza():
+        print("   EROARE: Nu s-a putut conecta!")
+        print("   Verificați că laboratorul e pornit: python3 scripts/start_lab.py")
+        return
+    print("   Conectat cu succes!")
     
-    print("\nImplementați testele pentru funcționalitățile voastre!")
+    # Test PING
+    print("\n2. Test PING...")
+    raspuns = client.ping()
+    if raspuns and raspuns.succes:
+        print(f"   PONG primit! (secvență: {raspuns.secventa})")
+    else:
+        print("   EROARE la PING!")
+    
+    # Test SET
+    print("\n3. Test SET...")
+    raspuns = client.set("nume", "Student ASE")
+    if raspuns and raspuns.succes:
+        print("   SET reușit!")
+    else:
+        print("   EROARE la SET!")
+    
+    # Test GET
+    print("\n4. Test GET...")
+    raspuns = client.get("nume")
+    if raspuns and raspuns.succes:
+        print(f"   Valoare: {raspuns.valoare}")
+    else:
+        print("   EROARE la GET!")
+    
+    # Test DELETE
+    print("\n5. Test DELETE...")
+    raspuns = client.delete("nume")
+    if raspuns and raspuns.succes:
+        print("   DELETE reușit!")
+    else:
+        print("   EROARE la DELETE!")
+    
+    # Verificare ștergere
+    print("\n6. Verificare ștergere (GET pe cheie ștearsă)...")
+    raspuns = client.get("nume")
+    if raspuns and raspuns.tip == TipMesaj.ERROR:
+        print("   Corect: cheia nu mai există!")
+    else:
+        print("   AVERTISMENT: cheia încă există?!")
+    
+    # Deconectare
+    print("\n7. Deconectare...")
+    client.deconecteaza()
+    print("   Deconectat!")
+    
+    print("\n" + "=" * 60)
+    print("Demonstrație completă!")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
-    test_client()
+    demonstratie()

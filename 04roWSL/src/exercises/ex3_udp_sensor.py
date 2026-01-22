@@ -1,26 +1,38 @@
 #!/usr/bin/env python3
 """
-Exercițiul 3: Client Senzor UDP
+Exercițiu 3: Client Senzor UDP
 Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | realizat de Revolvix
 
-Obiectiv: Implementați un client UDP pentru trimiterea datelor de la senzori.
+OBIECTIV:
+    Implementați un client care trimite date de senzor prin UDP.
 
-Structura datagramei (23 octeți):
-┌──────────┬─────────┬─────────────┬─────────┬───────┬──────────┐
-│ Versiune │ ID Senz │ Temperatură │ Locație │ CRC32 │ Rezervat │
-│ 1 octet  │ 2 oct   │ 4 oct (flt) │ 10 oct  │ 4 oct │ 2 oct    │
-└──────────┴─────────┴─────────────┴─────────┴───────┴──────────┘
+ÎNAINTE DE A ÎNCEPE — Răspunde mental:
+======================================
+1. Ce tip de socket folosești pentru UDP? (SOCK_STREAM sau SOCK_DGRAM?)
+2. Pentru UDP, folosești connect()+send() sau sendto()? De ce?
+3. Datagrama senzorului are exact câți bytes? (hint: dimensiune fixă)
+4. Dacă serverul nu primește datagrama, clientul știe? De ce da/nu?
 
-Caracteristici:
-- Dimensiune fixă: 23 octeți
-- Verificare integritate: CRC32
-- Transport: UDP (fără conexiune)
+Notează răspunsurile și verifică-le după ce termini exercițiul.
 
-Sarcini:
-1. Completați funcția construieste_datagrama()
-2. Completați funcția verifica_datagrama()
-3. Implementați funcția trimite_citire()
-4. Implementați simularea mai multor senzori
+INSTRUCȚIUNI:
+    1. Completați funcțiile marcate cu TODO
+    2. Testați cu serverul din container: localhost:5402
+    3. Observați că UDP nu garantează livrarea!
+
+STRUCTURA DATAGRAMEI (23 bytes):
+    | Offset | Lungime | Câmp        | Format         |
+    |--------|---------|-------------|----------------|
+    | 0      | 1       | Versiune    | uint8          |
+    | 1-2    | 2       | ID Senzor   | uint16 BE      |
+    | 3-6    | 4       | Temperatură | float BE       |
+    | 7-16   | 10      | Locație     | ASCII + padding|
+    | 17-20  | 4       | CRC32       | uint32 BE      |
+    | 21-22  | 2       | Rezervat    | 2x null byte   |
+
+    BE = Big-Endian (Network Byte Order)
+
+PUNCTAJ: 10 puncte
 """
 
 import socket
@@ -28,213 +40,238 @@ import struct
 import binascii
 import time
 import random
-
-# Constante
-HOST = 'localhost'
-PORT = 5402
-VERSIUNE = 1
-DIMENSIUNE_DATAGRAMA = 23
+from typing import Optional
 
 
-def calculeaza_crc(date: bytes) -> int:
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_PROTOCOL
+# Scop: Definește valorile fixe ale protocolului senzor
+# Transferabil la: Orice protocol cu datagrame de dimensiune fixă
+# ═══════════════════════════════════════════════════════════════════════════════
+
+SENZOR_VERSIUNE = 1
+SENZOR_DIMENSIUNE = 23
+SENZOR_LUNGIME_LOCATIE = 10
+
+SERVER_HOST = 'localhost'
+SERVER_PORT = 5402
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCȚII_PROTOCOL
+# Scop: Construcția datagramelor senzor
+# Transferabil la: Orice protocol IoT cu mesaje de dimensiune fixă
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def calculeaza_crc32(date: bytes) -> int:
     """
     Calculează CRC32 pentru date.
     
     Args:
-        date: Datele pentru care se calculează CRC
+        date: Datele pentru CRC
     
     Returns:
-        Valoarea CRC32 (întreg pozitiv pe 32 de biți)
+        CRC32 ca întreg pozitiv pe 32 de biți
     """
     return binascii.crc32(date) & 0xFFFFFFFF
 
 
 def construieste_datagrama(sensor_id: int, temperatura: float, locatie: str) -> bytes:
     """
-    Construiește o datagramă de senzor de 23 de octeți.
+    Construiește o datagramă de senzor.
     
-    SARCINA 1: Completați această funcție
+    PREDICȚIE:
+    - Dacă locația are 3 caractere, cu ce umpli restul până la 10?
+    - Ce se întâmplă dacă locația are mai mult de 10 caractere?
+    - În ce ordine pui bytes-ii pentru float în rețea?
     
     Args:
         sensor_id: ID-ul senzorului (0-65535)
-        temperatura: Valoarea temperaturii (float)
-        locatie: Numele locației (max 10 caractere)
+        temperatura: Temperatura măsurată
+        locatie: Locația senzorului (max 10 caractere)
     
     Returns:
-        Datagramă de exact 23 de octeți
-    
-    Structura:
-    - Octet 0: Versiune (1)
-    - Octeți 1-2: ID Senzor (big-endian, unsigned short)
-    - Octeți 3-6: Temperatură (big-endian, float)
-    - Octeți 7-16: Locație (10 caractere, padding cu null)
-    - Octeți 17-20: CRC32 (peste octeții 0-16)
-    - Octeți 21-22: Rezervat (zerouri)
-    
-    Indicii:
-    - Folosiți struct.pack('!BHf', versiune, sensor_id, temperatura)
-    - Locația trebuie să aibă exact 10 octeți (padding cu b'\\x00')
-    - CRC se calculează peste primii 17 octeți (fără CRC și rezervat)
+        Datagrama de 23 de bytes
     """
-    # TODO: Implementați construirea datagramei
-    
-    # Pas 1: Pregătiți locația (10 octeți)
-    # locatie_bytes = ...
-    
-    # Pas 2: Construiți partea fără CRC (17 octeți)
-    # date_fara_crc = struct.pack('!BHf', ...) + locatie_bytes
-    
-    # Pas 3: Calculați CRC
-    # crc = calculeaza_crc(date_fara_crc)
-    
-    # Pas 4: Asamblați datagrama completă
-    # datagrama = date_fara_crc + struct.pack('!I', crc) + b'\\x00\\x00'
-    
-    pass  # Înlocuiți cu implementarea dvs.
+    # TODO: Implementați construcția datagramei
+    # Pași:
+    # 1. Pregătește locația (10 bytes, padding cu \x00):
+    #    loc_bytes = locatie.encode('utf-8')[:10]
+    #    loc_padded = loc_bytes + b'\x00' * (10 - len(loc_bytes))
+    #
+    # 2. Construiește partea fără CRC (17 bytes):
+    #    parte_fara_crc = struct.pack('!BHf', SENZOR_VERSIUNE, sensor_id, temperatura) + loc_padded
+    #
+    # 3. Calculează CRC32 pentru partea de mai sus
+    #
+    # 4. Construiește datagrama completă (23 bytes):
+    #    datagrama = parte_fara_crc + struct.pack('!I', crc) + b'\x00\x00'
+    #
+    # 5. Verifică lungimea: assert len(datagrama) == 23
+    pass
 
 
-def verifica_datagrama(date: bytes) -> dict:
+def afiseaza_datagrama(datagrama: bytes):
     """
-    Verifică și parsează o datagramă de senzor.
-    
-    SARCINA 2: Completați această funcție
+    Afișează conținutul unei datagrame în format uman.
     
     Args:
-        date: Datagrama primită (ar trebui să aibă 23 de octeți)
+        datagrama: Datagrama de afișat
+    """
+    if len(datagrama) != SENZOR_DIMENSIUNE:
+        print(f"Eroare: lungime invalidă ({len(datagrama)} != {SENZOR_DIMENSIUNE})")
+        return
+    
+    versiune = datagrama[0]
+    sensor_id = struct.unpack('!H', datagrama[1:3])[0]
+    temperatura = struct.unpack('!f', datagrama[3:7])[0]
+    locatie = datagrama[7:17].rstrip(b'\x00').decode('utf-8', errors='replace')
+    crc = struct.unpack('!I', datagrama[17:21])[0]
+    
+    print(f"  Versiune:    {versiune}")
+    print(f"  Sensor ID:   {sensor_id}")
+    print(f"  Temperatură: {temperatura:.2f}°C")
+    print(f"  Locație:     '{locatie}'")
+    print(f"  CRC32:       0x{crc:08X}")
+    print(f"  Hex complet: {datagrama.hex()}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCȚII_REȚEA
+# Scop: Trimitere datagrame prin UDP
+# Transferabil la: Orice comunicare UDP fire-and-forget
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def trimite_datagrama(datagrama: bytes) -> bool:
+    """
+    Trimite o datagramă UDP la server.
+    
+    PREDICȚIE:
+    - UDP necesită connect() înainte de trimitere?
+    - Cum știi dacă serverul a primit datagrama?
+    - Ce se întâmplă dacă serverul nu există?
+    
+    Args:
+        datagrama: Datagrama de trimis
     
     Returns:
-        Dicționar cu:
-        {
-            'valid': bool,           # True dacă dimensiunea e corectă
-            'versiune': int,
-            'sensor_id': int,
-            'temperatura': float,
-            'locatie': str,
-            'crc': int,
-            'crc_valid': bool        # True dacă CRC se potrivește
-        }
-        sau None dacă datagrama e invalidă
-    
-    Indicii:
-    - Verificați mai întâi dimensiunea (trebuie să fie exact 23)
-    - Folosiți struct.unpack() pentru a extrage câmpurile
-    - Recalculați CRC și comparați cu cel primit
+        True dacă trimiterea a reușit (nu garantează recepția!)
     """
-    # TODO: Implementați verificarea datagramei
-    
-    pass  # Înlocuiți cu implementarea dvs.
+    # TODO: Implementați trimiterea UDP
+    # Pași:
+    # 1. Creează socket UDP: socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # 2. Trimite cu sendto(): sock.sendto(datagrama, (SERVER_HOST, SERVER_PORT))
+    # 3. Închide socket-ul
+    # 4. Returnează True (nu avem confirmare de la server!)
+    pass
 
 
-def trimite_citire(sensor_id: int, temperatura: float, locatie: str,
-                   host: str = HOST, port: int = PORT) -> bool:
+def simuleaza_senzor(sensor_id: int, locatie: str, 
+                     temp_baza: float = 22.0, variatie: float = 2.0,
+                     numar_citiri: int = 5, interval: float = 1.0):
     """
-    Trimite o citire de senzor prin UDP.
+    Simulează un senzor care trimite citiri periodice.
     
-    SARCINA 3: Completați această funcție
+    PREDICȚIE:
+    - Dacă trimiți 5 datagrame, câte va primi serverul? (hint: UDP!)
+    - Ce distribuție statistică e mai realistă pentru temperatură?
     
     Args:
         sensor_id: ID-ul senzorului
-        temperatura: Valoarea temperaturii
         locatie: Locația senzorului
-        host: Adresa serverului
-        port: Portul serverului
-    
-    Returns:
-        True dacă trimiterea a reușit
-    
-    Indicii:
-    - Creați un socket UDP: socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    - Folosiți sock.sendto(datagrama, (host, port))
-    - UDP nu garantează livrarea, deci nu așteptăm răspuns
+        temp_baza: Temperatura medie
+        variatie: Variația maximă (+/-)
+        numar_citiri: Numărul de citiri de trimis
+        interval: Timpul între citiri (secunde)
     """
-    # TODO: Implementați trimiterea citirii
+    print(f"\nSimulare senzor #{sensor_id} la '{locatie}'")
+    print(f"Temperatura bază: {temp_baza}°C ± {variatie}°C")
+    print(f"Citiri: {numar_citiri}, interval: {interval}s")
+    print("-" * 40)
     
-    pass  # Înlocuiți cu implementarea dvs.
+    for i in range(numar_citiri):
+        # Generează temperatură cu variație aleatorie
+        temperatura = temp_baza + random.uniform(-variatie, variatie)
+        
+        # Construiește și trimite datagrama
+        datagrama = construieste_datagrama(sensor_id, temperatura, locatie)
+        
+        if datagrama:
+            print(f"\nCitirea {i+1}/{numar_citiri}:")
+            afiseaza_datagrama(datagrama)
+            
+            succes = trimite_datagrama(datagrama)
+            if succes:
+                print("  Status: Trimis (fără confirmare)")
+            else:
+                print("  Status: EROARE la trimitere")
+        
+        # Așteaptă înainte de următoarea citire (exceptând ultima)
+        if i < numar_citiri - 1:
+            time.sleep(interval)
 
 
-def simuleaza_senzori(numar_senzori: int, numar_citiri: int, interval: float = 1.0):
-    """
-    Simulează mai mulți senzori care trimit citiri.
-    
-    SARCINA 4: Completați această funcție
-    
-    Args:
-        numar_senzori: Câți senzori să simuleze
-        numar_citiri: Câte citiri per senzor
-        interval: Pauza între citiri (secunde)
-    
-    Indicii:
-    - Creați o listă de locații (ex: "Lab1", "Lab2", "Hol", etc.)
-    - Pentru fiecare citire:
-      - Alegeți un senzor aleatoriu
-      - Generați o temperatură realistă (ex: 18-28°C cu variație mică)
-      - Trimiteți citirea
-    - Afișați progresul
-    """
-    # TODO: Implementați simularea
-    
-    # Locații posibile
-    locatii = ["Lab1", "Lab2", "Hol", "Birou", "Sala", "Depozit"]
-    
-    print(f"Simulare {numar_senzori} senzori, {numar_citiri} citiri fiecare")
-    print("-" * 50)
-    
-    # TODO: Implementați logica de simulare
-    
-    pass  # Înlocuiți cu implementarea dvs.
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROGRAM_PRINCIPAL
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
-    """Funcția principală pentru testare."""
-    print("=" * 50)
-    print("Exercițiul 3: Client Senzor UDP")
-    print("=" * 50)
+    """Demonstrează utilizarea clientului senzor UDP."""
+    print("=" * 60)
+    print("Client Senzor UDP")
+    print("=" * 60)
     
-    # Test 1: Construire datagramă
-    print("\n1. Test construire datagramă...")
-    datagrama = construieste_datagrama(1, 23.5, "TestLab")
-    
-    if datagrama is None:
-        print("   ⚠️  Funcția construieste_datagrama() nu este implementată")
-    elif len(datagrama) != DIMENSIUNE_DATAGRAMA:
-        print(f"   ❌ Dimensiune greșită: {len(datagrama)} (așteptat {DIMENSIUNE_DATAGRAMA})")
-    else:
-        print(f"   ✅ Datagramă construită: {len(datagrama)} octeți")
-        print(f"   Hex: {datagrama.hex()}")
-    
-    # Test 2: Verificare datagramă
-    print("\n2. Test verificare datagramă...")
+    # Test construcție datagramă
+    print("\n1. Test construcție datagramă...")
+    datagrama = construieste_datagrama(42, 23.5, "Lab1")
     if datagrama:
-        rezultat = verifica_datagrama(datagrama)
-        
-        if rezultat is None:
-            print("   ⚠️  Funcția verifica_datagrama() nu este implementată")
+        if len(datagrama) == SENZOR_DIMENSIUNE:
+            print(f"   ✓ Lungime corectă: {len(datagrama)} bytes")
+            afiseaza_datagrama(datagrama)
         else:
-            print(f"   Versiune: {rezultat.get('versiune')}")
-            print(f"   Senzor ID: {rezultat.get('sensor_id')}")
-            print(f"   Temperatură: {rezultat.get('temperatura')}°C")
-            print(f"   Locație: {rezultat.get('locatie')}")
-            print(f"   CRC Valid: {'✅' if rezultat.get('crc_valid') else '❌'}")
-    
-    # Test 3: Trimitere citire
-    print("\n3. Test trimitere citire...")
-    succes = trimite_citire(1, 25.0, "Lab1")
-    
-    if succes is None:
-        print("   ⚠️  Funcția trimite_citire() nu este implementată")
-    elif succes:
-        print("   ✅ Citire trimisă cu succes!")
-        print(f"   (Verificați serverul pe {HOST}:{PORT})")
+            print(f"   ✗ Lungime greșită: {len(datagrama)} (așteptat {SENZOR_DIMENSIUNE})")
     else:
-        print("   ❌ Trimitere eșuată")
+        print("   ✗ Datagrama nu a fost construită!")
+        print("   Implementați construieste_datagrama() mai întâi.")
+        return
     
-    # Test 4: Simulare (doar dacă celelalte funcții sunt implementate)
-    print("\n4. Test simulare...")
-    if datagrama and succes:
-        print("   Pornire simulare cu 3 senzori, 5 citiri...")
-        simuleaza_senzori(3, 5, interval=0.5)
+    # Test trimitere singulară
+    print("\n2. Test trimitere singulară...")
+    succes = trimite_datagrama(datagrama)
+    if succes:
+        print("   ✓ Datagrama trimisă (verificați log-urile serverului)")
+        print("   docker logs saptamana4-senzor --tail 10")
     else:
-        print("   ⚠️  Completați mai întâi funcțiile anterioare")
+        print("   ✗ Eroare la trimitere!")
+        print("   Implementați trimite_datagrama() mai întâi.")
+        return
+    
+    # Simulare senzor
+    print("\n3. Simulare senzor cu citiri multiple...")
+    simuleaza_senzor(
+        sensor_id=1,
+        locatie="Laborator",
+        temp_baza=22.0,
+        variatie=1.5,
+        numar_citiri=3,
+        interval=0.5
+    )
+    
+    print("\n" + "=" * 60)
+    print("Test complet!")
+    print("=" * 60)
+    
+    print("\nPentru a verifica recepția, rulați:")
+    print("  docker logs saptamana4-senzor --tail 20")
+    
+    # Verificare răspunsuri predicție
+    print("\n" + "-" * 60)
+    print("VERIFICARE PREDICȚII:")
+    print("-" * 60)
+    print("1. UDP folosește SOCK_DGRAM (TCP ar fi SOCK_STREAM)")
+    print("2. Pentru UDP folosești sendto() - nu necesită connect()")
+    print("3. Datagrama senzorului are fix 23 bytes")
+    print("4. UDP = fire-and-forget, clientul NU știe dacă serverul a primit")
 
 
 if __name__ == "__main__":

@@ -1,251 +1,205 @@
 #!/usr/bin/env python3
 """
-Oprire Laborator Săptămâna 4
+Script de Oprire Laborator Săptămâna 4
 Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | realizat de Revolvix
 
-Acest script oprește toate containerele și procesele laboratorului.
+Oprește mediul de laborator într-un mod curat.
 
-IMPORTANT: Portainer NU este oprit - rulează global pe portul 9000!
+Utilizare:
+    python3 scripts/stop_lab.py [--remove-volumes]
+
+Opțiuni:
+    --remove-volumes    Șterge și volumele Docker (date persistente)
 """
 
 import subprocess
 import sys
-import time
 import argparse
-import signal
-import socket
-import os
 from pathlib import Path
 
-# Adaugă rădăcina proiectului la path
-RADACINA_PROIECT = Path(__file__).parent.parent
-sys.path.insert(0, str(RADACINA_PROIECT))
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTS_AND_CONFIGURATION
+# Scop: Încarcă dependențele și setează constantele
+# Transferabil la: Orice script Python care folosește module externe
+# ═══════════════════════════════════════════════════════════════════════════════
 
-from scripts.utils.docker_utils import ManagerDocker
-from scripts.utils.logger import configureaza_logger
-
-logger = configureaza_logger("stop_lab")
-
-# Credențiale standard
-PORTAINER_PORT = 9000
-PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
-
-# Containere care NU trebuie oprite (rulează global)
-CONTAINERE_EXCLUSE = ["portainer"]
+SCRIPT_DIR = Path(__file__).parent.absolute()
+BASE_DIR = SCRIPT_DIR.parent
+DOCKER_DIR = BASE_DIR / "docker"
+COMPOSE_FILE = DOCKER_DIR / "docker-compose.yml"
 
 
-def verifica_portainer_status() -> bool:
-    """Verifică dacă Portainer rulează pe portul 9000."""
+# ═══════════════════════════════════════════════════════════════════════════════
+# SERVICE_SHUTDOWN
+# Scop: Oprește containerele în mod controlat
+# Transferabil la: Orice orchestrare de servicii
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def opreste_containere(remove_volumes: bool = False) -> bool:
+    """
+    Oprește containerele folosind docker-compose down.
+    
+    Args:
+        remove_volumes: Dacă True, șterge și volumele
+    
+    Returns:
+        True dacă oprirea a reușit, False altfel
+    """
+    print("Oprire containere...")
+    
+    cmd = ["docker", "compose", "-f", str(COMPOSE_FILE), "down"]
+    
+    if remove_volumes:
+        cmd.append("--volumes")
+        print("  (inclusiv volumele)")
+    
     try:
-        rezultat = subprocess.run(
-            ["docker", "ps", "--filter", "name=portainer", "--format", "{{.Status}}"],
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            cwd=str(BASE_DIR)
+        )
+        
+        if result.returncode != 0:
+            print(f"EROARE la oprire containere:")
+            print(result.stderr)
+            return False
+        
+        return True
+        
+    except subprocess.TimeoutExpired:
+        print("EROARE: Timeout la oprirea containerelor")
+        print("Încercați: docker compose -f docker/docker-compose.yml down")
+        return False
+    except FileNotFoundError:
+        print("EROARE: Docker nu este instalat")
+        return False
+
+
+def verifica_containere_oprite() -> bool:
+    """
+    Verifică că nu mai rulează containere din acest laborator.
+    
+    Returns:
+        True dacă nu mai sunt containere active, False altfel
+    """
+    try:
+        result = subprocess.run(
+            ["docker", "ps", "--filter", "name=saptamana4", "-q"],
             capture_output=True,
             text=True,
             timeout=10
         )
-        if rezultat.returncode == 0 and "Up" in rezultat.stdout:
-            return True
         
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(2)
-            result = sock.connect_ex(('localhost', PORTAINER_PORT))
-            sock.close()
-            return result == 0
-        except Exception:
-            return False
-            
-    except Exception:
+        # Dacă output-ul e gol, nu mai sunt containere
+        return len(result.stdout.strip()) == 0
+        
+    except (subprocess.TimeoutExpired, FileNotFoundError):
         return False
 
 
-def este_container_exclus(nume_container: str) -> bool:
-    """Verifică dacă un container este în lista de excluderi."""
-    return any(exclus in nume_container.lower() for exclus in CONTAINERE_EXCLUSE)
-
-
-def opreste_procese_native():
-    """Oprește procesele Python native (serverele protocol)."""
-    procese_oprite = 0
-    
-    # Caută și oprește procesele server
-    scripturi_server = [
-        "text_proto_server.py",
-        "binary_proto_server.py",
-        "udp_sensor_server.py"
-    ]
-    
+def afiseaza_containere_ramase():
+    """Afișează containerele care încă rulează."""
     try:
-        # Pe Windows/WSL
-        if sys.platform == "win32":
-            for script in scripturi_server:
-                subprocess.run(
-                    ["taskkill", "/F", "/IM", "python.exe", "/FI", f"WINDOWTITLE eq *{script}*"],
-                    capture_output=True
-                )
-        else:
-            # Pe Linux/Unix
-            rezultat = subprocess.run(
-                ["pgrep", "-f", "proto_server"],
-                capture_output=True
-            )
-            if rezultat.returncode == 0:
-                pids = rezultat.stdout.decode().strip().split('\n')
-                for pid in pids:
-                    if pid:
-                        try:
-                            os.kill(int(pid), signal.SIGTERM)
-                            procese_oprite += 1
-                            logger.info(f"  Proces oprit: PID {pid}")
-                        except ProcessLookupError:
-                            pass
-                        except Exception as e:
-                            logger.warning(f"  Nu s-a putut opri PID {pid}: {e}")
-    except Exception as e:
-        logger.debug(f"Eroare la oprirea proceselor native: {e}")
-    
-    return procese_oprite
-
-
-def opreste_containere_docker(force: bool = False, timeout: int = 10):
-    """Oprește containerele Docker (exclusiv Portainer)."""
-    docker = ManagerDocker(RADACINA_PROIECT / "docker")
-    
-    try:
-        # Obține lista containerelor saptamana4 (exclude portainer)
-        rezultat = subprocess.run(
-            ["docker", "ps", "--filter", "name=saptamana4", "--format", "{{.Names}}"],
+        result = subprocess.run(
+            ["docker", "ps", "--filter", "name=saptamana4", 
+             "--format", "{{.Names}}: {{.Status}}"],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=10
         )
         
-        containere = [
-            c.strip() for c in rezultat.stdout.strip().split("\n") 
-            if c.strip() and not este_container_exclus(c.strip())
-        ]
+        if result.stdout.strip():
+            print("Containere încă active:")
+            for line in result.stdout.strip().split('\n'):
+                print(f"  - {line}")
         
-        if not containere:
-            logger.info("  Nu există containere de laborator active.")
-            return True
-        
-        logger.info(f"  Se opresc {len(containere)} containere de laborator...")
-        logger.info("  (Portainer va rămâne activ)")
-        
-        if force:
-            logger.info("Oprire forțată a containerelor...")
-            subprocess.run(
-                ["docker", "compose", "-f", str(RADACINA_PROIECT / "docker" / "docker-compose.yml"),
-                 "kill"],
-                capture_output=True,
-                timeout=30
-            )
-        else:
-            logger.info(f"Oprire grațioasă a containerelor (timeout: {timeout}s)...")
-            docker.compose_down(volumes=False)
-        
-        return True
-    except Exception as e:
-        logger.error(f"Eroare la oprirea containerelor: {e}")
-        return False
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass
 
 
-def verifica_servicii_oprite() -> bool:
-    """Verifică dacă toate serviciile de laborator sunt oprite."""
-    porturi = [5400, 5401, 5402]  # Fără 9000 (Portainer)
-    toate_oprite = True
-    
-    for port in porturi:
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(1)
-                rezultat = s.connect_ex(('localhost', port))
-                if rezultat == 0:
-                    toate_oprite = False
-                    logger.warning(f"  Portul {port} încă activ")
-        except Exception:
-            pass
-    
-    return toate_oprite
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLEANUP_OPERATIONS
+# Scop: Curăță resursele rămase
+# Transferabil la: Orice script de cleanup
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def curata_retele_orfane():
+    """Curăță rețelele Docker neutilizate."""
+    try:
+        subprocess.run(
+            ["docker", "network", "prune", "-f"],
+            capture_output=True,
+            timeout=30
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN_ORCHESTRATION
+# Scop: Coordonează întregul proces de oprire
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def afiseaza_banner():
+    """Afișează banner-ul de oprire."""
+    print("=" * 60)
+    print("Oprire Mediu Laborator Săptămâna 4")
+    print("Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică")
+    print("=" * 60)
 
 
 def main():
-    """Funcția principală."""
+    """Funcția principală de oprire."""
+    # Parsare argumente
     parser = argparse.ArgumentParser(
-        description="Oprire Laborator Săptămâna 4",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Exemple:
-  python3 scripts/stop_lab.py            # Oprire grațioasă
-  python3 scripts/stop_lab.py --force    # Oprire forțată
-  python3 scripts/stop_lab.py --timeout 30  # Oprire cu timeout personalizat
-
-NOTĂ: Portainer NU este oprit - rulează global pe portul 9000.
-        """
+        description="Oprește mediul de laborator pentru Săptămâna 4"
     )
-    parser.add_argument("--force", "-f", action="store_true",
-                        help="Oprire forțată (kill în loc de stop)")
-    parser.add_argument("--timeout", "-t", type=int, default=10,
-                        help="Timeout pentru oprire grațioasă (implicit: 10s)")
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="Afișează informații detaliate")
+    parser.add_argument(
+        "--remove-volumes",
+        action="store_true",
+        help="Șterge și volumele Docker (date persistente)"
+    )
     
     args = parser.parse_args()
     
-    logger.info("=" * 60)
-    logger.info("Oprire Mediu Laborator Săptămâna 4")
-    logger.info("(Portainer rămâne activ pe portul 9000)")
-    logger.info("=" * 60)
+    # Banner
+    afiseaza_banner()
     
-    # Oprește procesele native
-    logger.info("\nOprire procese native...")
-    procese_oprite = opreste_procese_native()
-    if procese_oprite > 0:
-        logger.info(f"  {procese_oprite} procese native oprite")
-    else:
-        logger.info("  Niciun proces nativ activ")
+    # Verifică dacă fișierul compose există
+    if not COMPOSE_FILE.exists():
+        print(f"EROARE: Fișierul {COMPOSE_FILE} nu există")
+        print("Încercați să opriți manual: docker stop $(docker ps -q --filter name=saptamana4)")
+        return 1
     
-    # Oprește containerele Docker (fără Portainer)
-    logger.info("\nOprire containere Docker...")
-    opreste_containere_docker(args.force, args.timeout)
-    
-    # Așteaptă puțin pentru oprire completă
-    time.sleep(2)
+    # Oprire containere
+    if not opreste_containere(remove_volumes=args.remove_volumes):
+        return 1
     
     # Verificare
-    logger.info("\nVerificare stare finală...")
-    if verifica_servicii_oprite():
-        logger.info("  ✓ Toate serviciile de laborator sunt oprite")
+    if verifica_containere_oprite():
+        print()
+        print("✓ Toate containerele au fost oprite cu succes!")
     else:
-        logger.warning("  ⚠ Unele servicii încă rulează")
-        logger.info("    Încercați: python3 scripts/stop_lab.py --force")
+        print()
+        print("AVERTISMENT: Unele containere încă rulează:")
+        afiseaza_containere_ramase()
+        print()
+        print("Pentru a forța oprirea:")
+        print("  docker stop $(docker ps -q --filter name=saptamana4)")
     
-    # Verifică și afișează status Portainer
-    if verifica_portainer_status():
-        logger.info(f"  ✓ Portainer continuă să ruleze pe {PORTAINER_URL}")
-    else:
-        logger.warning(f"  ⚠ Portainer nu rulează")
+    # Curățare rețele
+    curata_retele_orfane()
     
-    # Verificare containere Docker
-    try:
-        rezultat = subprocess.run(
-            ["docker", "ps", "--filter", "name=saptamana4", "-q"],
-            capture_output=True,
-            timeout=5
-        )
-        if rezultat.stdout.strip():
-            logger.warning("  ⚠ Unele containere Docker încă rulează")
-            logger.info("    Rulați: docker ps pentru detalii")
-        else:
-            logger.info("  ✓ Niciun container Docker saptamana4 activ")
-    except Exception:
-        pass
-    
-    logger.info("\n" + "=" * 60)
-    logger.info("Oprire completă!")
-    logger.info("")
-    logger.info("Pentru a relua laboratorul:")
-    logger.info("  python3 scripts/start_lab.py")
-    logger.info("=" * 60)
+    print()
+    print("=" * 60)
+    print("Mediul de laborator a fost oprit.")
+    print()
+    print("Notă: Portainer rămâne activ pentru utilizare viitoare.")
+    print("Pentru a opri și Portainer: docker stop portainer")
+    print("=" * 60)
     
     return 0
 

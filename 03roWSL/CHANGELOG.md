@@ -24,7 +24,7 @@ Formatul se bazează pe [Keep a Changelog](https://keepachangelog.com/ro/1.0.0/)
 - Profiluri Docker pentru servicii opționale
 
 ### Documentație
-- README.md comprehensiv cu obiective de învățare
+- README.md complet cu obiective de învățare
 - Rezumat teoretic al conceptelor cheie
 - Referințe RFC și bibliografice
 - Rezultate așteptate pentru verificare
