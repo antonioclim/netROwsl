@@ -2,6 +2,48 @@
 
 > Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 
+---
+
+## Diferențe PowerShell vs Bash
+
+Când lucrezi cu WSL, e important să știi în ce shell te afli. Comenzile diferă!
+
+### Cum să Știi Unde Ești
+
+| Indicator | PowerShell (Windows) | Bash (WSL/Linux) |
+|-----------|---------------------|------------------|
+| **Prompt** | `PS C:\Users\stud>` | `stud@PC:~$` |
+| **Căi** | `C:\Users\stud` | `/home/stud` |
+| **Separator cale** | `\` (backslash) | `/` (slash) |
+
+**Regulă de aur:** Dacă vezi `C:\` sau `D:\`, ești în Windows. Dacă vezi `/home/` sau `/mnt/`, ești în Linux.
+
+### Comenzi Echivalente
+
+| Acțiune | PowerShell (Windows) | Bash (WSL/Linux) |
+|---------|---------------------|------------------|
+| Afișează directorul curent | `Get-Location` sau `pwd` | `pwd` |
+| Listează fișiere | `Get-ChildItem` sau `dir` | `ls -la` |
+| Schimbă director | `cd D:\RETELE` | `cd /mnt/d/RETELE` |
+| Creează director | `mkdir D:\RETELE` | `mkdir -p /mnt/d/RETELE` |
+| Șterge fișier | `Remove-Item file.txt` | `rm file.txt` |
+| Copiază fișier | `Copy-Item src dest` | `cp src dest` |
+| Variabilă de mediu | `$env:PATH` | `$PATH` |
+| Comentariu | `# comentariu` | `# comentariu` |
+| Continuare linie | `` ` `` (backtick) | `\` (backslash) |
+| Pipe | `\|` (obiecte .NET) | `\|` (text) |
+
+### Căi Cross-Platform
+
+| Din | Către | Cale |
+|-----|-------|------|
+| Windows | D:\RETELE | `D:\RETELE` |
+| WSL | D:\RETELE | `/mnt/d/RETELE` |
+| Windows | /home/stud | `\\wsl$\Ubuntu\home\stud` |
+| WSL | /home/stud | `/home/stud` |
+
+---
+
 ## Configurare Interfețe de Rețea
 
 ### Afișare Interfețe
@@ -11,7 +53,7 @@
 ip addr show
 ip a                          # Formă scurtă
 
-# Format compact (recomandat)
+# Format compact (recomandat pentru verificare rapidă)
 ip -br addr show
 ip -br a
 
@@ -42,17 +84,19 @@ ip route get 8.8.8.8
 ### Vecinii ARP
 
 ```bash
-# Tabelul ARP (vecini cunoscuți)
+# Tabelul ARP (vecini cunoscuți la Layer 2)
 ip neigh show
 ip n                          # Formă scurtă
 ```
+
+---
 
 ## Testare Conectivitate
 
 ### Ping (ICMP Echo)
 
 ```bash
-# Ping de bază (4 pachete)
+# Ping de bază (4 pachete — ca la examen)
 ping -c 4 192.168.1.1
 
 # Ping continuu (Ctrl+C pentru oprire)
@@ -61,17 +105,17 @@ ping 192.168.1.1
 # Ping cu interval personalizat (0.5 secunde)
 ping -i 0.5 -c 10 192.168.1.1
 
-# Ping cu dimensiune pachet specificată
+# Ping cu dimensiune pachet specificată (testare MTU)
 ping -s 1000 -c 4 192.168.1.1
 
-# Ping rapid (flood) - necesită root
-ping -f -c 100 192.168.1.1
+# Ping rapid (flood) — necesită root
+sudo ping -f -c 100 192.168.1.1
 ```
 
 ### Rezolvare DNS
 
 ```bash
-# Folosind getent (recomandat)
+# Metodă rapidă
 getent hosts google.com
 
 # Folosind nslookup
@@ -82,22 +126,24 @@ dig google.com
 dig google.com +short        # Doar adresa IP
 dig @8.8.8.8 google.com      # Server DNS specific
 
-# Rezolvare inversă
+# Rezolvare inversă (IP → nume)
 dig -x 8.8.8.8
 ```
 
 ### Traceroute
 
 ```bash
-# Trasare rută (ICMP)
+# Trasare rută (ICMP implicit)
 traceroute 8.8.8.8
 
-# Cu TCP în loc de ICMP
+# Cu TCP în loc de ICMP (trece prin firewall-uri)
 traceroute -T 8.8.8.8
 
 # Cu număr maxim de hopuri
 traceroute -m 15 8.8.8.8
 ```
+
+---
 
 ## Inspectare Socket-uri
 
@@ -115,7 +161,7 @@ ss -tunap
 #   -p  Process (arată PID și nume proces)
 #   -l  Listen (doar socket-uri în ascultare)
 
-# Doar socket-uri în ascultare
+# Doar socket-uri în ascultare (servere)
 ss -tlnp
 
 # Conexiuni TCP stabilite
@@ -129,7 +175,7 @@ ss -tlnp 'sport = :9090'
 ss -tn 'dst 192.168.1.1'
 ```
 
-### Comanda netstat (legacy)
+### Comanda netstat (legacy, dar încă utilă)
 
 ```bash
 # Echivalent ss -tunap
@@ -139,7 +185,9 @@ netstat -tunap
 netstat -tlnp
 ```
 
-## Netcat (nc) - Cuțitul Elvețian al Rețelelor
+---
+
+## Netcat (nc) — Cuțitul Elvețian al Rețelelor
 
 ### Server și Client TCP
 
@@ -151,9 +199,9 @@ nc -l -p 9090
 nc localhost 9090
 nc 192.168.1.100 9090
 
-# Trimite fișier
-nc -l -p 9090 > fisier_primit.txt    # Server
-nc localhost 9090 < fisier.txt        # Client
+# Trimite fișier prin rețea
+nc -l -p 9090 > fisier_primit.txt    # Server (receptor)
+nc localhost 9090 < fisier.txt        # Client (emițător)
 
 # Trimite mesaj și închide
 echo "Salut!" | nc -q 1 localhost 9090
@@ -181,9 +229,11 @@ nc -zv localhost 9090
 # Scanare interval de porturi
 nc -zv localhost 80-90
 
-# Timeout la scanare
+# Cu timeout (util pentru servere lente)
 nc -zv -w 2 192.168.1.1 22
 ```
+
+---
 
 ## Captura de Pachete
 
@@ -194,7 +244,7 @@ nc -zv -w 2 192.168.1.1 22
 tcpdump -i eth0
 tcpdump -i any                # Toate interfețele
 
-# Salvare în fișier PCAP
+# Salvare în fișier PCAP (pentru Wireshark)
 tcpdump -i eth0 -w captura.pcap
 
 # Citire din fișier PCAP
@@ -211,6 +261,9 @@ tcpdump -i eth0 -c 100
 # Afișare conținut pachet (hex și ASCII)
 tcpdump -i eth0 -X
 tcpdump -i eth0 -XX           # Include header Ethernet
+
+# Scriere imediată (fără buffering)
+tcpdump -i eth0 -w captura.pcap -U
 ```
 
 ### tshark (Wireshark CLI)
@@ -225,7 +278,7 @@ tshark -i eth0 -w captura.pcap
 # Citire și afișare pachete
 tshark -r captura.pcap
 
-# Export câmpuri specifice
+# Export câmpuri specifice (util pentru analiză)
 tshark -r captura.pcap \
     -T fields \
     -e frame.number \
@@ -241,6 +294,8 @@ tshark -r captura.pcap -q -z conv,ip
 ```
 
 ### Filtre BPF (Berkeley Packet Filter)
+
+Funcționează cu tcpdump și tshark pentru captură:
 
 ```bash
 # Filtrare după port
@@ -267,9 +322,9 @@ tcpdump -i eth0 'tcp and port 9090 and not host 127.0.0.1'
 
 ### Filtre Wireshark Display
 
-```
-# Filtre pentru Wireshark (nu pentru tcpdump)
+Funcționează în Wireshark pentru vizualizare (sintaxă diferită de BPF!):
 
+```
 # După protocol
 tcp
 udp
@@ -287,16 +342,19 @@ ip.addr == 192.168.1.1
 ip.src == 192.168.1.1
 ip.dst == 192.168.1.1
 
-# Flag-uri TCP
+# Flag-uri TCP (important pentru handshake)
 tcp.flags.syn == 1
 tcp.flags.ack == 1
-tcp.flags.syn == 1 and tcp.flags.ack == 0  # Doar SYN
+tcp.flags.syn == 1 and tcp.flags.ack == 0  # Doar SYN (conexiuni noi)
+tcp.flags.fin == 1
 
 # Conține text
 http contains "password"
 ```
 
-## Docker - Comenzi Esențiale
+---
+
+## Docker — Comenzi Esențiale
 
 ### Managementul Containerelor
 
@@ -307,7 +365,7 @@ docker ps
 # Toate containerele (inclusiv oprite)
 docker ps -a
 
-# Pornire container
+# Pornire container existent
 docker start week1_lab
 
 # Oprire container
@@ -318,7 +376,7 @@ docker restart week1_lab
 
 # Ștergere container
 docker rm week1_lab
-docker rm -f week1_lab        # Forțat
+docker rm -f week1_lab        # Forțat (chiar dacă rulează)
 
 # Executare comandă în container
 docker exec -it week1_lab bash
@@ -328,13 +386,13 @@ docker exec week1_lab ip addr
 ### Docker Compose
 
 ```bash
-# Pornire servicii
+# Pornire servicii (în fundal)
 docker compose up -d
 
 # Oprire servicii
 docker compose down
 
-# Reconstruire imagini
+# Reconstruire imagini (fără cache)
 docker compose build --no-cache
 
 # Vizualizare jurnale
@@ -346,11 +404,30 @@ docker compose logs week1_lab # Un singur serviciu
 docker compose ps
 ```
 
-## Python - One-Liners pentru Rețele
+### Diagnosticare Docker
+
+```bash
+# Informații despre un container
+docker inspect week1_lab
+
+# Rețele Docker
+docker network ls
+docker network inspect week1_network
+
+# Spațiu utilizat
+docker system df
+
+# Curățare resurse neutilizate
+docker system prune -a
+```
+
+---
+
+## Python — One-Liners pentru Rețele
 
 ```bash
 # Server TCP simplu (echo)
-python -c "
+python3 -c "
 import socket
 s = socket.socket()
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -366,7 +443,7 @@ c.close()
 "
 
 # Client TCP simplu
-python -c "
+python3 -c "
 import socket
 s = socket.socket()
 s.connect(('localhost', 9090))
@@ -375,9 +452,11 @@ print(s.recv(1024))
 s.close()
 "
 
-# Server HTTP simplu
-python -m http.server 8080
+# Server HTTP simplu (servește fișierele din directorul curent)
+python3 -m http.server 8080
 ```
+
+---
 
 ## Referință Rapidă
 
@@ -394,7 +473,9 @@ python -m http.server 8080
 | Captură trafic | `tcpdump -i <iface> -w <fisier.pcap>` |
 | Analiză PCAP | `tshark -r <fisier.pcap>` |
 | Acces container | `docker exec -it week1_lab bash` |
+| Pornire lab | `docker compose up -d` |
+| Oprire lab | `docker compose down` |
 
 ---
 
-*Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix*
+*Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix | 2025*

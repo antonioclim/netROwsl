@@ -2,9 +2,24 @@
 
 > Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 
+## Cuprins
+
+- [Analogii pentru Concepte Cheie (CPA)](#0-analogii-pentru-concepte-cheie-cpa)
+- [Clasificarea Rețelelor](#1-clasificarea-rețelelor-de-calculatoare)
+- [Modelul TCP/IP](#2-modelul-tcpip)
+- [Adresarea IP](#3-adresarea-ip-ipv4)
+- [Protocoale de Transport](#4-protocoale-de-transport)
+- [Programarea Socket-urilor](#5-programarea-socket-urilor)
+- [Porturi Comune](#6-porturi-comune)
+- [Comenzi Esențiale Linux](#7-comenzi-esențiale-linux)
+- [Întârzierea în Rețele](#8-întârzierea-în-rețele)
+- [Referințe](#referințe)
+
+---
+
 ## 0. Analogii pentru Concepte Cheie (CPA)
 
-Înainte de a intra în detalii tehnice, iată cum să-ți imaginezi conceptele. Metoda CPA (Concret-Pictorial-Abstract) te ajută să construiești intuiția pas cu pas.
+Înainte de detaliile tehnice, iată cum să-ți imaginezi conceptele. Metoda CPA (Concret-Pictorial-Abstract) te ajută să construiești intuiția pas cu pas.
 
 | Concept | 🎯 Imaginează-ți că... | 📊 Vizual | 💻 În practică |
 |---------|------------------------|-----------|----------------|
@@ -17,12 +32,15 @@
 | **TCP Handshake** | Când suni pe cineva: tu zici "Alo?" (SYN), el zice "Da, te aud, tu mă auzi?" (SYN-ACK), tu zici "Da, te aud" (ACK). Abia apoi vorbiți. | `SYN → SYN-ACK → ACK → DATA` | `connect() → accept()` |
 | **UDP** | Trimiți o scrisoare fără confirmare de primire. Rapid, dar nu știi 100% dacă a ajuns. Bun pentru mesaje unde viteza contează mai mult decât certitudinea. | `Send → ? → Maybe received` | `socket.SOCK_DGRAM` |
 | **Socket** | Priza din perete. Fiecare priză are o adresă (IP) și un număr (port). Conectezi "cablul" aplicației tale la priză pentru a comunica. | `App ← Socket(IP:Port) → Network` | `bind(('0.0.0.0', 9090))` |
-| **Wireshark** | Camera de supraveghere pentru traficul de rețea. Vezi tot ce trece pe "drum" - cine trimite, cine primește, ce conțin pachetele. | `Capture → Filter → Analyze` | Captură pe `vEthernet (WSL)` |
+| **Wireshark** | Camera de supraveghere pentru traficul de rețea. Vezi tot ce trece pe "drum" — cine trimite, cine primește, ce conțin pachetele. | `Capture → Filter → Analyze` | Captură pe `vEthernet (WSL)` |
 
 **Cum să folosești acest tabel:**
 1. Citește coloana "Imaginează-ți" pentru a înțelege conceptul intuitiv
 2. Privește coloana "Vizual" pentru a-ți forma o imagine mentală
 3. Exersează cu coloana "În practică" în terminal
+
+**Vezi și:**
+- `intrebari_peer_instruction.md` — Întrebări bazate pe aceste concepte (PI #1: Port Mapping, PI #5: Network Bridge)
 
 ---
 
@@ -46,6 +64,8 @@ Fiecare topologie are avantaje și dezavantaje:
 - **Inel (Ring)**: Fiecare dispozitiv conectat la două vecine. Folosit în rețele industriale.
 - **Plasă (Mesh)**: Conexiuni multiple între dispozitive. Redundanță maximă, cost ridicat.
 - **Arbore (Tree)**: Structură ierarhică. Folosită în rețele mari de enterprise.
+
+---
 
 ## 2. Modelul TCP/IP
 
@@ -88,6 +108,8 @@ Modelul TCP/IP este arhitectura fundamentală a Internetului, organizată în pa
 - Controlul accesului la mediu
 - Tehnologii: Ethernet, WiFi, fibră optică
 
+---
+
 ## 3. Adresarea IP (IPv4)
 
 ### Structura Adresei IPv4
@@ -121,12 +143,19 @@ Notația CIDR specifică numărul de biți pentru partea de rețea:
 | B | 172.16.0.0 - 172.31.255.255 | 172.16.0.0/12 | Rețele medii |
 | C | 192.168.0.0 - 192.168.255.255 | 192.168.0.0/16 | Rețele mici |
 
+**Notă:** Laboratorul folosește 172.20.1.0/24 — în intervalul clasei B private.
+
 ### Adrese IP Speciale
 
-- **0.0.0.0**: Adresa "orice" sau "toate rețelele"
-- **127.0.0.1**: Loopback (localhost) - datele nu părăsesc mașina
+- **0.0.0.0**: Adresa "orice" sau "toate rețelele" (folosită la bind)
+- **127.0.0.1**: Loopback (localhost) — datele nu părăsesc mașina
 - **255.255.255.255**: Broadcast global
-- **169.254.x.x**: Link-local (APIPA) - când DHCP nu funcționează
+- **169.254.x.x**: Link-local (APIPA) — când DHCP nu funcționează
+
+**Vezi și:**
+- `README.md` Exercițiul 1 — Verificarea adresei IP a containerului (172.20.1.2)
+
+---
 
 ## 4. Protocoale de Transport
 
@@ -134,7 +163,7 @@ Notația CIDR specifică numărul de biți pentru partea de rețea:
 
 **Caracteristici:**
 - Orientat pe conexiune (connection-oriented)
-- Fiabil - garantează livrarea și ordinea
+- Fiabil — garantează livrarea și ordinea
 - Control al fluxului și congestiei
 - Full-duplex
 
@@ -159,11 +188,15 @@ Client                          Server
 - `TIME_WAIT`: Așteaptă pachete întârziate (durează ~60s)
 - `CLOSE_WAIT`: Așteaptă închiderea aplicației
 
+**Vezi și:**
+- `src/exercises/ex_1_02_tcp_server_client.py` — Implementare practică handshake
+- `intrebari_peer_instruction.md` Q3 — Stări socket după close()
+
 ### UDP (User Datagram Protocol)
 
 **Caracteristici:**
 - Fără conexiune (connectionless)
-- Nefiabil - nu garantează livrarea
+- Nefiabil — nu garantează livrarea
 - Fără control al fluxului
 - Overhead minim (8 octeți antet)
 - Rapid și eficient pentru streaming
@@ -178,6 +211,11 @@ Client                          Server
 | Overhead antet | 20+ octeți | 8 octeți |
 | Viteză | Mai lent | Mai rapid |
 | Utilizare | Web, email, FTP | DNS, streaming, gaming |
+
+**Vezi și:**
+- `intrebari_peer_instruction.md` Întrebarea 2 — De ce TCP are mai multe pachete decât UDP?
+
+---
 
 ## 5. Programarea Socket-urilor
 
@@ -240,6 +278,12 @@ response = client.recv(1024)
 client.close()
 ```
 
+**Vezi și:**
+- `src/exercises/ex_1_02_tcp_server_client.py` — Versiune completă cu logging și culori
+- `fisa_comenzi.md` secțiunea "Python One-Liners" — Versiuni scurte pentru terminal
+
+---
+
 ## 6. Porturi Comune
 
 | Port | Protocol | Serviciu |
@@ -256,6 +300,13 @@ client.close()
 | 443 | TCP | HTTPS |
 | 3306 | TCP | MySQL |
 | 5432 | TCP | PostgreSQL |
+
+**De reținut pentru laborator:**
+- **9000** — Portainer (management containere)
+- **9090** — Exerciții TCP din acest laborator
+- **9091** — Exerciții UDP din acest laborator
+
+---
 
 ## 7. Comenzi Esențiale Linux
 
@@ -313,6 +364,12 @@ tcpdump -i eth0 -w captura.pcap
 tcpdump -i eth0 port 80
 ```
 
+**Vezi și:**
+- `fisa_comenzi.md` — Referință completă cu toate opțiunile
+- `README.md` Exercițiul 4 — Captură practică cu tcpdump
+
+---
+
 ## 8. Întârzierea în Rețele
 
 ### Componentele Întârzierii Totale
@@ -337,6 +394,12 @@ d_total = d_transmisie + d_propagare + d_procesare + d_așteptare
 - Timp petrecut în coada de așteptare
 - Variabil, depinde de congestionarea rețelei
 
+**Vezi și:**
+- `src/exercises/ex_1_01_latenta_ping.py` — Măsurare practică RTT
+- `src/exercises/ex_1_05_intarziere_transmisie.py` — Calcule de întârziere
+
+---
+
 ## Referințe
 
 1. Kurose, J. F., & Ross, K. W. (2016). *Computer Networking: A Top-Down Approach* (7th ed.). Pearson.
@@ -347,11 +410,11 @@ d_total = d_transmisie + d_propagare + d_procesare + d_așteptare
 
 4. Rhodes, B., & Goetzen, J. (2014). *Foundations of Python Network Programming* (3rd ed.). Apress.
 
-5. RFC 791 - Internet Protocol (IP)
-6. RFC 793 - Transmission Control Protocol (TCP)
-7. RFC 768 - User Datagram Protocol (UDP)
-8. RFC 1918 - Address Allocation for Private Internets
+5. RFC 791 — Internet Protocol (IP)
+6. RFC 793 — Transmission Control Protocol (TCP)
+7. RFC 768 — User Datagram Protocol (UDP)
+8. RFC 1918 — Address Allocation for Private Internets
 
 ---
 
-*Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix*
+*Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix | 2025*

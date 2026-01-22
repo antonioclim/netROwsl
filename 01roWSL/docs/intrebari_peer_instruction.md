@@ -12,7 +12,7 @@
 4. **Revot** (30 sec): Votează din nou după discuție
 5. **Explicație** (2 min): Profesorul explică răspunsul corect
 
-**Notă:** Întrebările sunt concepute să aibă un "distractor plauzibil" - o opțiune greșită care pare corectă la prima vedere.
+Întrebările sunt concepute să aibă un "distractor plauzibil" — o opțiune greșită care pare corectă la prima vedere. Asta e intenționat!
 
 ---
 
@@ -58,7 +58,7 @@ services:
 
 ---
 
-## 🗳️ Întrebarea 2: TCP vs UDP - Număr de Pachete
+## Întrebarea 2: TCP vs UDP — Câte Pachete?
 
 **Scenariu:** 
 Trimiți exact 5 mesaje identice ("Hello") folosind:
@@ -71,10 +71,10 @@ Capturezi traficul cu Wireshark în ambele cazuri.
 
 | Opțiune | Răspuns |
 |---------|---------|
-| A) TCP comprimă datele, necesitând pachete suplimentare pentru metadate de decompresie | |
-| B) TCP are handshake (SYN, SYN-ACK, ACK) și trimite confirmări (ACK) pentru fiecare segment | |
+| A) TCP comprimă datele, necesitând pachete suplimentare pentru metadate | |
+| B) TCP are handshake și trimite confirmări (ACK) pentru fiecare segment | |
 | C) UDP pierde pachete pe drum, deci par mai puține | |
-| D) Pachetele TCP sunt mai mici, deci trebuie mai multe pentru aceleași date | |
+| D) Pachetele TCP sunt mai mici, deci trebuie mai multe | |
 
 <details>
 <summary><b>Click pentru răspuns și explicație</b></summary>
@@ -92,7 +92,7 @@ Capturezi traficul cu Wireshark în ambele cazuri.
   
   Pentru 5 mesaje: ~3 (handshake) + 5 (date) + 5 (ACK-uri) + 4 (închidere) = ~17 pachete
 
-- **C)** ❌ — UDP nu "pierde" pachete în mod sistematic. Dacă pierde, nu e din cauza protocolului, ci a rețelei. În plus, Wireshark capturează ce pleacă, nu ce ajunge.
+- **C)** ❌ — UDP nu "pierde" pachete în mod sistematic. Dacă pierde, nu e din cauza protocolului, ci a rețelei. Plus, Wireshark capturează ce pleacă, nu ce ajunge.
 
 - **D)** ❌ — Headerul TCP (20+ bytes) este mai MARE decât headerul UDP (8 bytes). Deci pachetele TCP sunt mai mari, nu mai mici.
 
@@ -104,7 +104,7 @@ Capturezi traficul cu Wireshark în ambele cazuri.
 
 ---
 
-## 🗳️ Întrebarea 3: Stări Socket TCP
+## 🗳️ Q3: Stări Socket TCP
 
 **Scenariu:**
 Un server TCP acceptă o conexiune. Clientul trimite date, serverul răspunde, apoi clientul apelează `close()`.
@@ -140,13 +140,13 @@ Un server TCP acceptă o conexiune. Clientul trimite date, serverul răspunde, a
 
 **De ce TIME_WAIT durează?**
 - Evită ca pachete vechi întârziate să fie confundate cu o nouă conexiune
-- Durată tipică: 60-120 secunde (2×MSL - Maximum Segment Lifetime)
+- Durată tipică: 60-120 secunde (2×MSL — Maximum Segment Lifetime)
 
 </details>
 
 ---
 
-## 🗳️ Întrebarea 4: Căi Fișiere WSL
+## Întrebarea 4: Unde-s Fișierele în WSL?
 
 **Scenariu:**
 Ai creat un fișier Python în Ubuntu WSL:
@@ -178,11 +178,11 @@ stud@PC:~$ echo "print('Hello')" > /home/stud/script.py
   - Restul căii urmează structura Linux
   - Poți lipi această cale în Windows Explorer sau în File > Open din orice aplicație
 
-- **C) `D:\WSL\...`** ❌ — WSL nu creează un folder explicit pe D:. Confuzie cu locația imaginii VHDX (care e în AppData, nu accesibilă direct).
+- **C) `D:\WSL\...`** ❌ — WSL nu creează un folder explicit pe D:. Confuzie cu locația imaginii VHDX (care e în AppData, nu direct accesibilă).
 
 - **D) Nu se poate** ❌ — Se poate! Microsoft a adăugat integrarea `\\wsl$\` tocmai pentru asta.
 
-**Bonus - și invers funcționează:**
+**Bonus — și invers funcționează:**
 - Din WSL, accesezi `D:\RETELE\` ca `/mnt/d/RETELE/`
 - Drive-urile Windows sunt montate în `/mnt/`
 
@@ -190,7 +190,7 @@ stud@PC:~$ echo "print('Hello')" > /home/stud/script.py
 
 ---
 
-## 🗳️ Întrebarea 5: Izolare Rețele Docker
+## 🗳️ PI #5: Izolarea Rețelelor Docker
 
 **Scenariu:**
 Ai două containere definite în `docker-compose.yml`:
@@ -272,10 +272,18 @@ networks:
 
 ### Instrumente pentru Vot
 
-- **Low-tech:** Ridicat mâna / Cartonașe colorate (A/B/C/D)
-- **Mid-tech:** Google Forms cu răspuns live
-- **High-tech:** Mentimeter, Kahoot, Poll Everywhere
+**Low-tech:** Ridicat mâna sau cartonașe colorate (A/B/C/D)
+
+**Mid-tech:** Google Forms cu răspuns live
+
+**High-tech:** Mentimeter, Kahoot, Poll Everywhere
 
 ---
 
-*Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix*
+**Vezi și:**
+- `rezumat_teoretic.md` — Teoria din spatele acestor întrebări
+- `README.md` — Exercițiile practice care folosesc aceste concepte
+
+---
+
+*Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix | 2025*
