@@ -6,6 +6,7 @@ CLI pentru alocarea VLSM și manipularea adreselor IPv6.
 
 Utilizare:
     python ex_5_02_vlsm_ipv6.py vlsm 172.16.0.0/16 --cerinte 500,120,60,30,2
+    python ex_5_02_vlsm_ipv6.py invata-vlsm 192.168.0.0/24 --cerinte 60,20,10,2
     python ex_5_02_vlsm_ipv6.py ipv6-comprimare "2001:0db8:0000:0000:0000:0000:0000:0001"
     python ex_5_02_vlsm_ipv6.py ipv6-expandare "2001:db8::1"
     python ex_5_02_vlsm_ipv6.py subretele-ipv6 "2001:db8:abcd::/48" --numar 8
@@ -18,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import logging
 from pathlib import Path
 from typing import List, Optional
 
@@ -34,6 +36,9 @@ from src.utils.net_utils import (
     prefix_pentru_gazde,
     interval_gazde_ipv4,
 )
+
+# Configurare logging
+logger = logging.getLogger(__name__)
 
 
 # Coduri culori ANSI
@@ -57,9 +62,12 @@ def coloreaza(text: str, culoare: str) -> str:
 
 def cmd_vlsm(baza: str, cerinte: List[int], ca_json: bool = False) -> int:
     """Alocă subrețele folosind VLSM pentru cerințele date."""
+    logger.debug(f"VLSM: {baza} cu cerințe {cerinte}")
+    
     try:
         alocari = aloca_vlsm(baza, cerinte)
     except ValueError as e:
+        logger.error(f"Eroare VLSM: {e}")
         print(coloreaza(f"Eroare: {e}", Culori.ROSU), file=sys.stderr)
         return 1
     
@@ -133,6 +141,168 @@ def cmd_vlsm(baza: str, cerinte: List[int], ca_json: bool = False) -> int:
     print()
     
     return 0
+
+
+def cmd_invata_vlsm(baza: str, cerinte: List[int]) -> int:
+    """
+    Mod interactiv de învățare VLSM cu predicții.
+    
+    Studentul face predicții pentru fiecare pas al algoritmului VLSM,
+    apoi primește feedback imediat.
+    """
+    print()
+    print(coloreaza("═" * 60, Culori.GALBEN))
+    print(coloreaza("  Mod Învățare: VLSM cu Predicții", Culori.BOLD))
+    print(coloreaza("═" * 60, Culori.GALBEN))
+    print()
+    print(f"  Rețea de bază: {coloreaza(baza, Culori.VERDE)}")
+    print(f"  Cerințe originale: {coloreaza(str(cerinte), Culori.VERDE)}")
+    print()
+    
+    # Calculează rezultatele în avans
+    try:
+        alocari = aloca_vlsm(baza, cerinte)
+    except ValueError as e:
+        print(coloreaza(f"Eroare: {e}", Culori.ROSU), file=sys.stderr)
+        return 1
+    
+    scor = 0
+    total_intrebari = 0
+    
+    # Cerințele sortate
+    cerinte_sortate = sorted(cerinte, reverse=True)
+    
+    # ─────────────────────────────────────────────────────
+    # Predicția 1: Ordinea de sortare
+    # ─────────────────────────────────────────────────────
+    print(coloreaza("─" * 60, Culori.CYAN))
+    print(f"  {coloreaza('PASUL 1:', Culori.BOLD)} În ce ordine trebuie procesate cerințele în VLSM?")
+    print()
+    print("  Hint: VLSM alocă întâi subrețelele care au nevoie de mai mult spațiu")
+    print()
+    
+    total_intrebari += 1
+    try:
+        raspuns = input("  Răspunsul tău (numerele separate prin virgulă): ").strip()
+        raspuns_lista = [int(x.strip()) for x in raspuns.split(',') if x.strip()]
+        
+        if raspuns_lista == cerinte_sortate:
+            print(coloreaza("  ✓ Corect! Sortăm descrescător pentru aliniere optimă.", Culori.VERDE))
+            scor += 1
+        else:
+            print(coloreaza(f"  ✗ Răspuns corect: {cerinte_sortate}", Culori.ROSU))
+            print("    Explicație: Alocăm întâi cerințele mari pentru a evita fragmentarea.")
+    except (ValueError, EOFError):
+        print(coloreaza(f"  → Răspunsul corect era: {cerinte_sortate}", Culori.GALBEN))
+    print()
+    
+    # ─────────────────────────────────────────────────────
+    # Predicția 2: Prefix pentru prima cerință (cea mai mare)
+    # ─────────────────────────────────────────────────────
+    prima_cerinta = cerinte_sortate[0]
+    prefix_corect = prefix_pentru_gazde(prima_cerinta)
+    
+    print(coloreaza("─" * 60, Culori.CYAN))
+    print(f"  {coloreaza('PASUL 2:', Culori.BOLD)} Ce prefix CIDR e necesar pentru {prima_cerinta} gazde?")
+    print()
+    print("  Formula: prefix = 32 - ceil(log2(gazde + 2))")
+    print(f"  Calculează: 32 - ceil(log2({prima_cerinta} + 2))")
+    print()
+    
+    total_intrebari += 1
+    try:
+        raspuns = input("  Prefixul necesar (doar numărul, ex: 26): ").strip()
+        if raspuns.startswith('/'):
+            raspuns = raspuns[1:]
+        
+        if int(raspuns) == prefix_corect:
+            gazde_disp = 2 ** (32 - prefix_corect) - 2
+            print(coloreaza(f"  ✓ Corect! /{prefix_corect} oferă {gazde_disp} gazde.", Culori.VERDE))
+            scor += 1
+        else:
+            print(coloreaza(f"  ✗ Răspuns corect: /{prefix_corect}", Culori.ROSU))
+            import math
+            calc = math.ceil(math.log2(prima_cerinta + 2))
+            print(f"    Calcul: ceil(log2({prima_cerinta + 2})) = {calc}, prefix = 32 - {calc} = {prefix_corect}")
+    except (ValueError, EOFError):
+        print(coloreaza(f"  → Răspunsul corect era: /{prefix_corect}", Culori.GALBEN))
+    print()
+    
+    # ─────────────────────────────────────────────────────
+    # Predicția 3: Adresa primei subrețele
+    # ─────────────────────────────────────────────────────
+    prima_subretea = alocari[0]['subretea']
+    
+    print(coloreaza("─" * 60, Culori.CYAN))
+    print(f"  {coloreaza('PASUL 3:', Culori.BOLD)} Care este prima subrețea alocată?")
+    print()
+    print(f"  Rețeaua de bază este: {baza}")
+    print(f"  Prefixul necesar este: /{prefix_corect}")
+    print()
+    
+    total_intrebari += 1
+    try:
+        raspuns = input("  Prima subrețea (ex: 192.168.0.0/26): ").strip()
+        
+        if raspuns == str(prima_subretea):
+            print(coloreaza("  ✓ Corect!", Culori.VERDE))
+            scor += 1
+        else:
+            print(coloreaza(f"  ✗ Răspuns corect: {prima_subretea}", Culori.ROSU))
+    except EOFError:
+        print(coloreaza(f"  → Răspunsul corect era: {prima_subretea}", Culori.GALBEN))
+    print()
+    
+    # ─────────────────────────────────────────────────────
+    # Predicția 4: Eficiența
+    # ─────────────────────────────────────────────────────
+    total_cerut = sum(cerinte)
+    total_alocat = sum(a['subretea'].num_addresses - 2 for a in alocari)
+    eficienta_reala = round((total_cerut / total_alocat) * 100)
+    
+    print(coloreaza("─" * 60, Culori.CYAN))
+    print(f"  {coloreaza('PASUL 4:', Culori.BOLD)} Estimează eficiența totală a alocării.")
+    print()
+    print(f"  Total gazde cerute: {total_cerut}")
+    print("  Eficiența = (gazde cerute / gazde alocate) × 100%")
+    print()
+    
+    total_intrebari += 1
+    try:
+        raspuns = input("  Eficiența estimată (ex: 75): ").strip()
+        raspuns = int(raspuns.replace('%', ''))
+        
+        # Acceptă răspuns în intervalul ±10%
+        if abs(raspuns - eficienta_reala) <= 10:
+            print(coloreaza(f"  ✓ Apropiat! Eficiența reală: {eficienta_reala}%", Culori.VERDE))
+            scor += 1
+        else:
+            print(coloreaza(f"  ✗ Eficiența reală: {eficienta_reala}%", Culori.ROSU))
+            print(f"    Calcul: {total_cerut} / {total_alocat} × 100 = {eficienta_reala}%")
+    except (ValueError, EOFError):
+        print(coloreaza(f"  → Eficiența reală: {eficienta_reala}%", Culori.GALBEN))
+    print()
+    
+    # ─────────────────────────────────────────────────────
+    # Rezultat final
+    # ─────────────────────────────────────────────────────
+    print(coloreaza("═" * 60, Culori.GALBEN))
+    print(f"  {coloreaza('REZULTAT:', Culori.BOLD)} {scor}/{total_intrebari} răspunsuri corecte")
+    
+    if scor == total_intrebari:
+        print(coloreaza("  Excelent! Ai înțeles algoritmul VLSM.", Culori.VERDE))
+    elif scor >= total_intrebari // 2:
+        print(coloreaza("  Bine! Mai exersează cu alte cerințe.", Culori.GALBEN))
+    else:
+        print(coloreaza("  Recitește teoria VLSM și încearcă din nou.", Culori.ROSU))
+    
+    print(coloreaza("═" * 60, Culori.GALBEN))
+    print()
+    
+    # Afișează alocarea completă
+    print(coloreaza("  Alocarea VLSM completă:", Culori.BOLD))
+    print()
+    return cmd_vlsm(baza, cerinte, ca_json=False)
 
 
 def cmd_comprimare_ipv6(adresa: str, ca_json: bool = False) -> int:
@@ -289,6 +459,7 @@ def construieste_parser() -> argparse.ArgumentParser:
         epilog="""
 Exemple:
   %(prog)s vlsm 172.16.0.0/16 --cerinte 500,120,60,30,2
+  %(prog)s invata-vlsm 192.168.0.0/24 --cerinte 60,20,10,2
   %(prog)s ipv6-comprimare "2001:0db8:0000:0000:0000:0000:0000:0001"
   %(prog)s ipv6-expandare "2001:db8::1"
   %(prog)s subretele-ipv6 "2001:db8:abcd::/48" --numar 8
@@ -316,6 +487,21 @@ Exemple:
         "--json", "-j",
         action="store_true",
         help="Ieșire în format JSON"
+    )
+    
+    # Subcomanda invata-vlsm (NOU!)
+    p_invata = subparsers.add_parser(
+        "invata-vlsm",
+        help="Mod învățare VLSM interactiv cu predicții"
+    )
+    p_invata.add_argument(
+        "baza",
+        help="Rețea de bază în format CIDR (ex: 192.168.0.0/24)"
+    )
+    p_invata.add_argument(
+        "--cerinte", "-c",
+        required=True,
+        help="Lista de cerințe de gazde, separate prin virgulă (ex: 60,20,10,2)"
     )
     
     # Subcomanda comprimare IPv6
@@ -391,6 +577,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.comanda == "vlsm":
         cerinte = [int(x.strip()) for x in args.cerinte.split(',')]
         return cmd_vlsm(args.baza, cerinte, getattr(args, 'json', False))
+    elif args.comanda == "invata-vlsm":
+        cerinte = [int(x.strip()) for x in args.cerinte.split(',')]
+        return cmd_invata_vlsm(args.baza, cerinte)
     elif args.comanda == "ipv6-comprimare":
         return cmd_comprimare_ipv6(args.adresa, getattr(args, 'json', False))
     elif args.comanda == "ipv6-expandare":

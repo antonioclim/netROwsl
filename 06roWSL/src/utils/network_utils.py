@@ -19,11 +19,12 @@ Planul de IP-uri Săptămâna 6:
     H3 = 10.0.6.13
     SERVER = 10.0.6.100
 
-Revolvix&Hypotheticalandrei | Licență MIT | ASE-CSIE 2025-2026
+ing. dr. Antonio Clim | Licență MIT | ASE-CSIE 2025-2026
 """
 
 from __future__ import annotations
 
+import argparse
 import logging
 import socket
 import sys
@@ -76,13 +77,20 @@ def configureaza_logging(
     """
     Configurează jurnalizare consecventă pentru aplicații.
     
-    Argumente:
-        nume: Numele logger-ului
-        nivel: Nivelul de jurnalizare (implicit: INFO)
-        format_msg: Formatul mesajului
+    Creează un logger cu handler pentru stdout și formatare standardizată.
+    Dacă logger-ul are deja handlere, nu adaugă altele noi.
     
-    Returnează:
-        Logger configurat
+    Args:
+        nume: Numele logger-ului (folosit pentru identificare în loguri)
+        nivel: Nivelul de jurnalizare (implicit: INFO)
+        format_msg: Formatul mesajului de log
+    
+    Returns:
+        Logger configurat și gata de folosit
+    
+    Example:
+        >>> logger = configureaza_logging("server_tcp")
+        >>> logger.info("Serverul a pornit pe portul 9090")
     """
     logger = logging.getLogger(nume)
     logger.setLevel(nivel)
@@ -101,7 +109,16 @@ def configureaza_logging(
 
 @dataclass
 class ConfigSocket:
-    """Configurare socket."""
+    """
+    Configurare pentru crearea socket-urilor.
+    
+    Attributes:
+        host: Adresa de bind/conectare (implicit: 0.0.0.0 pentru toate interfețele)
+        port: Portul de folosit (implicit: TCP_APP_PORT)
+        timeout: Timeout pentru operații în secunde (0 = fără timeout)
+        dimensiune_buffer: Dimensiunea buffer-ului de recepție în bytes
+        reutilizeaza_adresa: Permite reutilizarea imediată a adresei (SO_REUSEADDR)
+    """
     host: str = "0.0.0.0"
     port: int = TCP_APP_PORT
     timeout: float = TIMEOUT_IMPLICIT
@@ -113,11 +130,19 @@ def creeaza_socket_tcp(config: Optional[ConfigSocket] = None) -> socket.socket:
     """
     Creează un socket TCP configurat.
     
-    Argumente:
-        config: Configurare socket (opțional)
+    Socket-ul este creat cu opțiunile specificate în config.
+    Dacă config nu este furnizat, se folosesc valorile implicite.
     
-    Returnează:
-        Socket TCP configurat
+    Args:
+        config: Configurare socket (opțional, se folosesc implicit valorile din ConfigSocket)
+    
+    Returns:
+        Socket TCP (SOCK_STREAM) configurat și gata de bind/connect
+    
+    Example:
+        >>> sock = creeaza_socket_tcp()
+        >>> sock.bind(("0.0.0.0", 9090))
+        >>> sock.listen(5)
     """
     if config is None:
         config = ConfigSocket()
@@ -137,11 +162,19 @@ def creeaza_socket_udp(config: Optional[ConfigSocket] = None) -> socket.socket:
     """
     Creează un socket UDP configurat.
     
-    Argumente:
+    Socket-ul este creat cu opțiunile specificate în config.
+    Portul implicit pentru UDP este UDP_APP_PORT (9091).
+    
+    Args:
         config: Configurare socket (opțional)
     
-    Returnează:
-        Socket UDP configurat
+    Returns:
+        Socket UDP (SOCK_DGRAM) configurat și gata de bind
+    
+    Example:
+        >>> sock = creeaza_socket_udp()
+        >>> sock.bind(("0.0.0.0", 9091))
+        >>> data, addr = sock.recvfrom(4096)
     """
     if config is None:
         config = ConfigSocket(port=UDP_APP_PORT)
@@ -162,7 +195,15 @@ def creeaza_socket_udp(config: Optional[ConfigSocket] = None) -> socket.socket:
 # ═══════════════════════════════════════════════════════════════════════════
 
 def este_ip_valid(ip: str) -> bool:
-    """Verifică dacă un string este o adresă IPv4 validă."""
+    """
+    Verifică dacă un string este o adresă IPv4 validă.
+    
+    Args:
+        ip: String-ul de verificat (ex: "192.168.1.1")
+    
+    Returns:
+        True dacă este o adresă IPv4 validă, False altfel
+    """
     try:
         socket.inet_aton(ip)
         return True
@@ -171,12 +212,30 @@ def este_ip_valid(ip: str) -> bool:
 
 
 def este_port_valid(port: int) -> bool:
-    """Verifică dacă un port este în intervalul valid."""
+    """
+    Verifică dacă un port este în intervalul valid (1-65535).
+    
+    Args:
+        port: Numărul portului de verificat
+    
+    Returns:
+        True dacă portul este valid, False altfel
+    """
     return 1 <= port <= 65535
 
 
 def este_port_saptamana(port: int) -> bool:
-    """Verifică dacă portul este în intervalul personalizat al săptămânii."""
+    """
+    Verifică dacă portul este în intervalul personalizat al săptămânii.
+    
+    Pentru Săptămâna 6, intervalul este 5600-5699.
+    
+    Args:
+        port: Numărul portului de verificat
+    
+    Returns:
+        True dacă portul este în intervalul săptămânii, False altfel
+    """
     return port in WEEK_PORT_RANGE
 
 
@@ -184,20 +243,24 @@ def este_port_saptamana(port: int) -> bool:
 # AJUTOARE ARGPARSE
 # ═══════════════════════════════════════════════════════════════════════════
 
-def adauga_argumente_comune(parser, include_port: bool = True, include_host: bool = True):
+def adauga_argumente_comune(
+    parser: argparse.ArgumentParser,
+    include_port: bool = True,
+    include_host: bool = True
+) -> None:
     """
     Adaugă argumente comune la un parser argparse.
     
-    Argumente:
-        parser: Instanță ArgumentParser
-        include_port: Include argumentul --port
-        include_host: Include argumentul --host/--bind
+    Args:
+        parser: Instanță ArgumentParser la care se adaugă argumentele
+        include_port: Include argumentul --port (implicit: True)
+        include_host: Include argumentul --host/--bind (implicit: True)
     """
     if include_host:
         parser.add_argument(
             "--host", "--bind",
             default="0.0.0.0",
-            help=f"Adresa de bind/conectare (implicit: 0.0.0.0)"
+            help="Adresa de bind/conectare (implicit: 0.0.0.0)"
         )
     
     if include_port:
@@ -226,8 +289,13 @@ def adauga_argumente_comune(parser, include_port: bool = True, include_host: boo
 # INFORMAȚII SĂPTĂMÂNĂ
 # ═══════════════════════════════════════════════════════════════════════════
 
-def afiseaza_info_saptamana():
-    """Afișează informații despre configurarea săptămânii."""
+def afiseaza_info_saptamana() -> None:
+    """
+    Afișează informații despre configurarea săptămânii curente.
+    
+    Afișează un banner formatat cu toate constantele relevante:
+    planul de IP-uri și planul de porturi pentru Săptămâna 6.
+    """
     print(f"""
 ╔══════════════════════════════════════════════════════════╗
 ║  Săptămâna {SAPTAMANA}: SDN - Rețele definite prin software       ║

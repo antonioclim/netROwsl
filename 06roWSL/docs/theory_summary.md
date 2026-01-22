@@ -1,20 +1,20 @@
 # Săptămâna 6: Sumar concepte teoretice
 
-> Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+> Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de ing. dr. Antonio Clim
 
 ## Network Address Translation (NAT)
 
 ### Problema epuizării IPv4
 
-Creșterea explozivă a Internetului în anii 1990 a revelat o limitare fundamentală: spațiul de adrese IPv4 pe 32 de biți (aproximativ 4,3 miliarde de adrese) nu putea acomoda numărul proiectat de dispozitive. Deși IPv6 a fost dezvoltat ca soluție pe termen lung, NAT a apărut ca o măsură practică de tranziție care rămâne ubicuă astăzi.
+Creșterea explozivă a Internetului în anii 1990 a revelat o limitare fundamentală: spațiul de adrese IPv4 pe 32 de biți (aproximativ 4,3 miliarde de adrese) nu putea acomoda numărul proiectat de dispozitive. NAT a apărut ca o măsură practică de tranziție care rămâne folosită și astăzi.
 
 ### Variante NAT
 
-**NAT Static** stabilește o mapare permanentă unu-la-unu între o adresă internă și una externă. Acesta este utilizat când serverele interne necesită accesibilitate externă consistentă (de exemplu, servere web în spatele unui firewall).
+**NAT Static** stabilește o mapare permanentă unu-la-unu între o adresă internă și una externă. Acesta este folosit când serverele interne necesită accesibilitate externă consistentă.
 
 **NAT Dinamic** menține un pool de adrese externe și le alocă hosturilor interne după necesitate. Când un host inițiază o conexiune, o adresă externă disponibilă este alocată și eliberată când conexiunea se termină.
 
-**PAT (Port Address Translation)**, cunoscut și ca NAT Overload sau NAPT, permite mai multor hosturi interne să partajeze o singură adresă IP externă prin multiplexare prin numere de port. Aceasta este cea mai comună formă de NAT în routerele de acasă și în mediile enterprise.
+**PAT (Port Address Translation)**, cunoscut și ca NAT Overload sau NAPT, permite mai multor hosturi interne să partajeze o singură adresă IP externă prin multiplexare prin numere de port. Aceasta este cea mai comună formă de NAT.
 
 ### Funcționarea PAT
 
@@ -29,9 +29,11 @@ Când un host intern (192.168.1.10:45678) se conectează la un server extern (8.
 ### Limitările NAT
 
 - **Întrerupe conectivitatea end-to-end**: Hosturile externe nu pot iniția conexiuni către hosturi interne fără port forwarding
-- **Complicații de protocol**: Protocoalele care încorporează adrese IP în payload (FTP, SIP) necesită Application Layer Gateways (ALG-uri)
-- **Dependența de stare**: Dispozitivul NAT trebuie să mențină starea sesiunii, creând un singur punct de eșec
+- **Complicații de protocol**: Protocoalele care încorporează adrese IP în payload necesită Application Layer Gateways
+- **Dependența de stare**: Dispozitivul NAT trebuie să mențină starea sesiunii
 - **Overhead de performanță**: Procesarea traducerii adaugă latență
+
+---
 
 ## Protocoale suport
 
@@ -40,37 +42,33 @@ Când un host intern (192.168.1.10:45678) se conectează la un server extern (8.
 ARP rezolvă adresele IPv4 în adrese MAC într-un segment de rețea local. Când un host trebuie să trimită un cadru dar cunoaște doar IP-ul destinație, transmite broadcast o cerere ARP. Hostul cu IP-ul corespunzător răspunde cu adresa sa MAC.
 
 Concepte cheie:
-- **Cache ARP**: Hosturile mențin un cache al rezoluțiilor recente pentru a minimiza traficul broadcast
+- **Cache ARP**: Hosturile mențin un cache al rezoluțiilor recente
 - **Proxy ARP**: Un router poate răspunde cererilor ARP în numele hosturilor din subrețele diferite
-- **Gratuitous ARP**: Un host își anunță propria legătură IP-MAC, util pentru scenarii de failover
+- **Gratuitous ARP**: Un host își anunță propria legătură IP-MAC
 
 ### DHCP (Dynamic Host Configuration Protocol)
 
-DHCP automatizează configurația IP pentru hosturile care se conectează la o rețea. Procesul DORA:
+DHCP automatizează configurația IP. Procesul DORA:
 
 1. **Discover**: Clientul transmite broadcast căutând servere DHCP
 2. **Offer**: Serverele răspund cu oferte de configurație
 3. **Request**: Clientul solicită o ofertă specifică
 4. **Acknowledge**: Serverul confirmă și comite lease-ul
 
-DHCP furnizează: adresa IP, masca de subrețea, gateway-ul implicit, serverele DNS și durata lease-ului.
-
 ### ICMP (Internet Control Message Protocol)
 
-ICMP facilitează diagnosticarea rețelei și raportarea erorilor. Tipuri cheie de mesaje:
+ICMP facilitează diagnosticarea rețelei și raportarea erorilor. Tipuri cheie:
 
-- **Echo Request/Reply (Tip 8/0)**: Utilizat de ping
+- **Echo Request/Reply (Tip 8/0)**: Folosit de ping
 - **Destination Unreachable (Tip 3)**: Indică eșecuri de rutare
-- **Time Exceeded (Tip 11)**: TTL expirat, utilizat de traceroute
+- **Time Exceeded (Tip 11)**: TTL expirat, folosit de traceroute
 - **Redirect (Tip 5)**: Sugerează o rută mai bună
 
 ### NDP (Neighbor Discovery Protocol)
 
-Înlocuitorul ARP pentru IPv6, furnizând:
-- **Router Discovery**: Hosturile localizează gateway-urile implicite
-- **Prefix Discovery**: Hosturile învață subrețelele disponibile
-- **Neighbor Discovery**: Rezolvă IPv6 în adrese de nivel legătură
-- **SLAAC**: Autoconfigurare de adrese fără stare
+Înlocuitorul ARP pentru IPv6, furnizând: Router Discovery, Prefix Discovery, Neighbor Discovery și SLAAC.
+
+---
 
 ## Software-Defined Networking (SDN)
 
@@ -97,13 +95,14 @@ SDN separă fundamental controlul rețelei de redirecționarea datelor:
 OpenFlow definește cum comunică controllerele cu switch-urile. Concepte cheie:
 
 **Tabel de fluxuri**: Fiecare switch menține una sau mai multe tabele de fluxuri conținând reguli
+
 **Intrare de flux**: Criterii de potrivire asociate cu acțiuni
 - **Câmpuri de potrivire**: IP sursă/destinație, porturi, protocoale, VLAN-uri etc.
 - **Acțiuni**: Ieșire pe port, drop, modificare headere, trimitere la controller
 - **Prioritate**: Regulile cu prioritate mai mare se potrivesc primele
 - **Contoare**: Statistici pachete/octeți
 
-**Table-Miss**: Pachetele care nu se potrivesc cu nicio regulă declanșează acțiunea implicită (de obicei trimitere la controller)
+**Table-Miss**: Pachetele care nu se potrivesc cu nicio regulă declanșează acțiunea implicită
 
 ### Beneficiile SDN
 
@@ -120,6 +119,8 @@ OpenFlow definește cum comunică controllerele cu switch-urile. Concepte cheie:
 - **Latență**: Primele pachete ale fluxurilor implică round-trip la controller
 - **Securitate**: Controller-ul devine o țintă critică de atac
 
+---
+
 ## Referințe
 
 1. Kurose, J. & Ross, K. (2016). *Computer Networking: A Top-Down Approach* (ediția a 7-a). Pearson.
@@ -131,4 +132,4 @@ OpenFlow definește cum comunică controllerele cu switch-urile. Concepte cheie:
 
 ---
 
-*Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix*
+*Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de ing. dr. Antonio Clim*

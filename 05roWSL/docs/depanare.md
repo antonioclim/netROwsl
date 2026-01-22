@@ -1,287 +1,401 @@
 # Ghid de Depanare – Săptămâna 5
 
-> Laborator Rețele de Calculatoare – ASE, Informatică Economică
-> realizat de Revolvix
-
-## Probleme Frecvente și Soluții
-
-### 1. Docker
-
-#### Problemă: Docker Desktop nu pornește
-
-**Simptome:**
-- Pictograma Docker rămâne în starea "Starting..."
-- Mesaj "Docker Desktop is starting..."
-
-**Soluții:**
-1. Reporniți Docker Desktop
-2. Verificați că WSL2 este instalat și actualizat:
-   ```powershell
-   wsl --update
-   ```
-3. Verificați virtualizarea în BIOS (trebuie activată)
-4. Reinstalați Docker Desktop
-
-#### Problemă: Containerele nu pornesc
-
-**Simptome:**
-- `docker compose up` afișează erori
-- Containerele sunt în starea "Exited"
-
-**Soluții:**
-1. Verificați jurnalele:
-   ```powershell
-   docker compose -f docker/docker-compose.yml logs
-   ```
-2. Verificați că porturile nu sunt ocupate:
-   ```powershell
-   netstat -an | findstr 9999
-   ```
-3. Reconstruiți imaginile:
-   ```powershell
-   docker compose -f docker/docker-compose.yml build --no-cache
-   ```
-
-#### Problemă: Eroare "network not found"
-
-**Simptome:**
-- Mesaj despre rețea inexistentă
-
-**Soluții:**
-```powershell
-# Eliminați rețelele vechi
-docker network prune
-
-# Recreați
-docker compose -f docker/docker-compose.yml up -d
-```
-
-### 2. Python
-
-#### Problemă: ModuleNotFoundError
-
-**Simptome:**
-- `ModuleNotFoundError: No module named 'src'`
-
-**Soluții:**
-1. Rulați din directorul rădăcină al kitului:
-   ```powershell
-   cd WEEK5_WSLkit_RO
-   python src/exercises/ex_5_01_cidr_flsm.py analizeaza 192.168.10.14/26
-   ```
-
-2. Setați PYTHONPATH:
-   ```powershell
-   $env:PYTHONPATH = "."
-   python src/exercises/ex_5_01_cidr_flsm.py analizeaza 192.168.10.14/26
-   ```
-
-#### Problemă: Versiune Python incompatibilă
-
-**Simptome:**
-- Erori de sintaxă sau funcții lipsă
-
-**Soluții:**
-1. Verificați versiunea:
-   ```powershell
-   python --version
-   ```
-2. Dacă aveți mai multe versiuni, specificați explicit:
-   ```powershell
-   py -3.11 src/exercises/ex_5_01_cidr_flsm.py analizeaza 192.168.10.14/26
-   ```
-
-### 3. Conectivitate Rețea
-
-#### Problemă: Containerele nu comunică între ele
-
-**Simptome:**
-- `ping` între containere eșuează
-- Conexiuni UDP respinse
-
-**Soluții:**
-1. Verificați că toate containerele sunt pe aceeași rețea:
-   ```powershell
-   docker network inspect week5_labnet
-   ```
-
-2. Verificați adresele IP:
-   ```powershell
-   docker exec week5_python ip addr
-   docker exec week5_udp-server ip addr
-   ```
-
-3. Testați conectivitatea din container:
-   ```powershell
-   docker exec week5_python ping -c 3 10.5.0.20
-   ```
-
-#### Problemă: Nu se poate accesa Portainer
-
-**Simptome:**
-- https://localhost:9443 nu răspunde
-
-**Soluții:**
-1. Verificați că portul este disponibil:
-   ```powershell
-   netstat -an | findstr 9443
-   ```
-
-2. Încercați cu HTTP în loc de HTTPS (dacă certificatul nu este configurat)
-
-3. Verificați firewall-ul Windows
-
-### 4. Captură de Pachete
-
-#### Problemă: tcpdump nu funcționează
-
-**Simptome:**
-- Eroare de permisiuni
-- "Operation not permitted"
-
-**Soluții:**
-1. Verificați că containerul are capabilitățile necesare:
-   ```yaml
-   cap_add:
-     - NET_ADMIN
-     - NET_RAW
-   ```
-
-2. Reporniți containerele după modificarea docker-compose.yml
-
-#### Problemă: Wireshark nu vede interfețele
-
-**Simptome:**
-- Lista de interfețe este goală
-
-**Soluții:**
-1. Instalați Npcap (vine cu Wireshark)
-2. Rulați Wireshark ca Administrator
-3. Reinstalați Wireshark cu opțiunea "Install Npcap"
-
-### 5. WSL2
-
-#### Problemă: WSL nu pornește
-
-**Simptome:**
-- Eroare la comanda `wsl`
-- Docker raportează probleme cu backend-ul
-
-**Soluții:**
-1. Actualizați WSL:
-   ```powershell
-   wsl --update
-   ```
-
-2. Setați versiunea implicită:
-   ```powershell
-   wsl --set-default-version 2
-   ```
-
-3. Reporniți serviciul WSL:
-   ```powershell
-   wsl --shutdown
-   ```
-
-### 6. Erori de Calcul
-
-#### Problemă: Rezultate CIDR incorecte
-
-**Verificare:**
-- Asigurați-vă că folosiți prefixul corect
-- Verificați că adresa de intrare este validă
-
-**Exemplu corect:**
-```
-192.168.10.14/26
-- Adresa de rețea: 192.168.10.0 (NU 192.168.10.14)
-- Broadcast: 192.168.10.63
-- Gazde: 62 (NU 64)
-```
-
-#### Problemă: VLSM nu alocă suficiente adrese
-
-**Verificare:**
-- Asigurați-vă că rețeaua de bază este suficient de mare
-- Verificați suma cerințelor vs. spațiul disponibil
-
-## Comenzi de Diagnosticare
-
-### Verificare Generală
-
-```powershell
-# Stare Docker
-docker info
-
-# Stare containere
-docker ps -a
-
-# Utilizare resurse
-docker stats --no-stream
-
-# Spațiu disc Docker
-docker system df
-```
-
-### Verificare Rețea
-
-```powershell
-# Listează rețelele Docker
-docker network ls
-
-# Detalii rețea
-docker network inspect week5_labnet
-
-# Conectivitate
-docker exec week5_python ping -c 1 10.5.0.20
-```
-
-### Verificare Jurnale
-
-```powershell
-# Jurnale toate serviciile
-docker compose -f docker/docker-compose.yml logs
-
-# Jurnale serviciu specific
-docker compose -f docker/docker-compose.yml logs python
-
-# Ultimele 50 linii
-docker logs --tail 50 week5_python
-```
-
-## Resetare Completă
-
-Dacă nimic nu funcționează, efectuați o resetare completă:
-
-```powershell
-# 1. Opriți totul
-docker compose -f docker/docker-compose.yml down -v
-
-# 2. Eliminați resursele week5
-docker rm -f $(docker ps -aq --filter "name=week5")
-docker network rm week5_labnet
-docker volume rm $(docker volume ls -q --filter "name=week5")
-
-# 3. Curățați sistemul
-docker system prune -f
-
-# 4. Reporniți
-docker compose -f docker/docker-compose.yml up -d --build
-```
-
-## Obținere Ajutor
-
-Dacă problema persistă:
-
-1. **Verificați documentația**: Consultați README.md și docs/
-2. **Colectați informații**:
-   - Versiunea Python (`python --version`)
-   - Versiunea Docker (`docker --version`)
-   - Mesajele de eroare complete
-   - Sistemul de operare
-
-3. **Contactați asistentul de laborator** cu informațiile colectate
+> Soluții pentru problemele frecvente în laborator
+> ASE, Informatică Economică | realizat de Revolvix
 
 ---
 
-*Material didactic pentru Laborator Rețele de Calculatoare – ASE Bucuresti*
+## Probleme Docker
+
+### Docker nu pornește
+
+**Simptome:**
+- Comanda `docker ps` returnează eroare
+- Mesaj: "Cannot connect to the Docker daemon"
+
+**Soluție:**
+```bash
+# Pornește serviciul Docker
+sudo service docker start
+
+# Verifică status
+sudo service docker status
+
+# Dacă nu merge, repornește
+sudo service docker restart
+```
+
+**Dacă tot nu funcționează:**
+```bash
+# Verifică dacă Docker e instalat
+which docker
+docker --version
+
+# Verifică log-urile
+sudo journalctl -u docker
+```
+
+---
+
+### Containerele nu pornesc
+
+**Simptome:**
+- `docker compose up` eșuează
+- Containerele intră în starea "Exited"
+
+**Soluție:**
+```bash
+# Verifică log-urile containerului
+docker logs week5_python
+
+# Reconstruiește imaginea
+docker compose build --no-cache
+
+# Pornește cu output vizibil
+docker compose up  # fără -d pentru a vedea erorile
+```
+
+**Cauze comune:**
+- Port deja ocupat → Schimbă portul în docker-compose.yml
+- Eroare în Dockerfile → Verifică sintaxa
+- Lipsă dependențe → Verifică requirements.txt
+
+---
+
+### Portainer nu răspunde
+
+**Simptome:**
+- http://localhost:9000 nu se încarcă
+- Timeout la accesare
+
+**Soluție:**
+```bash
+# Verifică dacă Portainer e pornit
+docker ps | grep portainer
+
+# Dacă nu e pornit, pornește-l
+docker start portainer
+
+# Dacă nu există, creează-l
+docker run -d \
+  --name portainer \
+  -p 9000:9000 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data \
+  --restart always \
+  portainer/portainer-ce:latest
+```
+
+---
+
+### Containerele nu comunică între ele
+
+**Simptome:**
+- Ping între containere eșuează
+- Conexiune refuzată pe porturi
+
+**Soluție:**
+```bash
+# Verifică că sunt pe aceeași rețea
+docker network inspect week5_labnet
+
+# Verifică IP-urile
+docker exec week5_python ip addr
+docker exec week5_udp-server ip addr
+
+# Verifică conectivitatea
+docker exec week5_python ping -c 3 10.5.0.20
+
+# Dacă rețeaua nu există, creează-o
+docker network create \
+  --driver bridge \
+  --subnet 10.5.0.0/24 \
+  --gateway 10.5.0.1 \
+  week5_labnet
+```
+
+---
+
+## Probleme Python
+
+### ModuleNotFoundError
+
+**Simptome:**
+```
+ModuleNotFoundError: No module named 'src'
+ModuleNotFoundError: No module named 'src.utils'
+```
+
+**Soluție:**
+```bash
+# Navighează în directorul corect
+cd /mnt/d/RETELE/SAPT5/05roWSL
+
+# Setează PYTHONPATH
+export PYTHONPATH=.
+
+# Sau rulează cu -m
+python3 -m src.exercises.ex_5_01_cidr_flsm analizeaza 192.168.1.0/24
+```
+
+**Alternativ, adaugă în ~/.bashrc:**
+```bash
+echo 'export PYTHONPATH="/mnt/d/RETELE/SAPT5/05roWSL:$PYTHONPATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
+
+### Eroare la import ipaddress
+
+**Simptome:**
+```
+AttributeError: 'str' object has no attribute 'network_address'
+```
+
+**Cauză:** Ai pasat un string în loc de obiect IPv4Network.
+
+**Soluție:**
+```python
+import ipaddress
+
+# Greșit
+retea = "192.168.1.0/24"
+print(retea.network_address)  # Eroare!
+
+# Corect
+retea = ipaddress.ip_network("192.168.1.0/24")
+print(retea.network_address)  # 192.168.1.0
+```
+
+---
+
+### ValueError la CIDR
+
+**Simptome:**
+```
+ValueError: '192.168.1.100/24' has host bits set
+```
+
+**Cauză:** Adresa IP nu e adresa de rețea pentru prefixul dat.
+
+**Soluție:**
+```python
+import ipaddress
+
+# Opțiunea 1: Folosește strict=False
+retea = ipaddress.ip_network("192.168.1.100/24", strict=False)
+
+# Opțiunea 2: Folosește ip_interface pentru a păstra adresa originală
+interfata = ipaddress.ip_interface("192.168.1.100/24")
+print(interfata.ip)      # 192.168.1.100
+print(interfata.network) # 192.168.1.0/24
+```
+
+---
+
+## Probleme WSL
+
+### WSL nu găsește unitatea D:
+
+**Simptome:**
+```
+-bash: cd: /mnt/d: No such file or directory
+```
+
+**Soluție:**
+```bash
+# Verifică unitățile montate
+ls /mnt/
+
+# Montează manual
+sudo mkdir -p /mnt/d
+sudo mount -t drvfs D: /mnt/d
+
+# Pentru montare permanentă, editează /etc/fstab
+echo "D: /mnt/d drvfs defaults 0 0" | sudo tee -a /etc/fstab
+```
+
+---
+
+### Permisiuni fișiere Windows
+
+**Simptome:**
+- Nu poți executa scripturi
+- Erori de permisiune la salvare
+
+**Soluție:**
+```bash
+# Dă permisiuni de execuție
+chmod +x scripts/*.py
+
+# Pentru toate fișierele Python
+find . -name "*.py" -exec chmod +x {} \;
+```
+
+---
+
+### WSL foarte lent
+
+**Cauze posibile:**
+- Antivirus scanează fișierele
+- Operații pe /mnt/ sunt lente
+
+**Soluție:**
+```bash
+# Lucrează în sistemul de fișiere Linux (mai rapid)
+cp -r /mnt/d/RETELE/SAPT5/05roWSL ~/laborator
+cd ~/laborator
+
+# Excludă folderul WSL din antivirus (în Windows):
+# Windows Security → Virus & threat protection → Manage settings
+# → Add an exclusion → Folder → \\wsl$
+```
+
+---
+
+## Probleme Wireshark
+
+### Nu văd interfața vEthernet (WSL)
+
+**Soluție:**
+1. Rulează Wireshark ca Administrator
+2. Instalează Npcap cu opțiunea "Support raw 802.11 traffic"
+3. Repornește Wireshark
+
+---
+
+### Nu capturez trafic Docker
+
+**Cauze:**
+- Interfața greșită selectată
+- Traficul e doar local în WSL
+
+**Soluție:**
+- Selectează **vEthernet (WSL)** pentru trafic între containere
+- Pentru trafic localhost, selectează **Loopback**
+
+---
+
+### Filtru nu funcționează
+
+**Simptome:**
+- Filtrul apare cu fundal roșu
+- Nu afișează nimic
+
+**Soluții:**
+```
+# Filtre corecte
+ip.addr == 10.5.0.10       # Corect
+ip.addr = 10.5.0.10        # GREȘIT (un singur =)
+ip.address == 10.5.0.10    # GREȘIT (numele câmpului)
+
+# Verifică sintaxa pe wiki.wireshark.org/DisplayFilters
+```
+
+---
+
+## Probleme Generale
+
+### Scriptul nu găsește fișierele
+
+**Simptome:**
+```
+FileNotFoundError: [Errno 2] No such file or directory
+```
+
+**Soluție:**
+```bash
+# Verifică directorul curent
+pwd
+
+# Navighează în directorul corect
+cd /mnt/d/RETELE/SAPT5/05roWSL
+
+# Verifică structura
+ls -la
+```
+
+---
+
+### Erori de codificare (UTF-8)
+
+**Simptome:**
+```
+UnicodeDecodeError: 'utf-8' codec can't decode byte
+```
+
+**Soluție:**
+```bash
+# Setează locale-ul corect
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# Sau adaugă în script
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+```
+
+---
+
+### Git clone eșuează
+
+**Simptome:**
+- Timeout la clone
+- Eroare de autentificare
+
+**Soluție:**
+```bash
+# Verifică conexiunea la GitHub
+ping github.com
+
+# Folosește HTTPS în loc de SSH
+git clone https://github.com/antonioclim/netROwsl.git
+
+# Dacă e problema de proxy
+git config --global http.proxy http://proxy:port
+```
+
+---
+
+## Verificare Rapidă a Mediului
+
+Rulează acest script pentru a verifica toate componentele:
+
+```bash
+cd /mnt/d/RETELE/SAPT5/05roWSL
+python3 setup/verifica_mediu.py
+```
+
+Sau manual:
+
+```bash
+echo "=== Verificare Docker ===" && docker --version && docker ps
+echo "=== Verificare Python ===" && python3 --version
+echo "=== Verificare Rețea ===" && docker network ls | grep week5
+echo "=== Verificare Containere ===" && docker ps | grep week5
+```
+
+---
+
+## Documente Înrudite
+
+- [README Principal](../README.md) — Ghid de pornire
+- [Fișa de Comenzi](fisa_comenzi.md) — Referință rapidă
+- [Rezumat Teoretic](rezumat_teorie.md) — Concepte de bază
+- [Arhitectura Cod](arhitectura.md) — Structura proiectului
+
+---
+
+## Încă ai probleme?
+
+1. Verifică secțiunea de [Issues pe GitHub](https://github.com/antonioclim/netROwsl/issues)
+2. Deschide un Issue nou cu:
+   - Descrierea problemei
+   - Comanda exactă executată
+   - Mesajul de eroare complet
+   - Output-ul comenzii `docker ps` și `python3 --version`
+
+---
+
+*Laborator Rețele de Calculatoare – ASE București*

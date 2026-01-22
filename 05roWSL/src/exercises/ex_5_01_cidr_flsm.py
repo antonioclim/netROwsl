@@ -6,6 +6,7 @@ CLI pentru calcularea parametrilor de rețea și împărțirea în subrețele eg
 
 Utilizare:
     python ex_5_01_cidr_flsm.py analizeaza 192.168.10.14/26 [--detaliat] [--json]
+    python ex_5_01_cidr_flsm.py invata 192.168.10.14/26
     python ex_5_01_cidr_flsm.py flsm 192.168.100.0/24 4
     python ex_5_01_cidr_flsm.py binar 192.168.10.14
 
@@ -17,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import logging
 from pathlib import Path
 from typing import List, Optional
 
@@ -34,6 +36,9 @@ from src.utils.net_utils import (
     prefix_la_masca,
     masca_la_prefix,
 )
+
+# Configurare logging
+logger = logging.getLogger(__name__)
 
 
 # Coduri culori ANSI
@@ -58,9 +63,12 @@ def coloreaza(text: str, culoare: str) -> str:
 
 def cmd_analizeaza(tinta: str, detaliat: bool = False, ca_json: bool = False) -> int:
     """Analizează o adresă IPv4 cu prefix CIDR."""
+    logger.debug(f"Analiză CIDR pentru: {tinta}")
+    
     try:
         info = analizeaza_interfata_ipv4(tinta)
     except ValueError as e:
+        logger.error(f"Eroare la analiza {tinta}: {e}")
         print(coloreaza(f"Eroare: {e}", Culori.ROSU), file=sys.stderr)
         return 1
     
@@ -158,11 +166,149 @@ def cmd_analizeaza(tinta: str, detaliat: bool = False, ca_json: bool = False) ->
     return 0
 
 
+def cmd_invata(tinta: str) -> int:
+    """
+    Mod interactiv de învățare cu predicții.
+    
+    Studentul face predicții înainte de a vedea rezultatul,
+    apoi primește feedback imediat.
+    """
+    print()
+    print(coloreaza("═" * 55, Culori.GALBEN))
+    print(coloreaza("  Mod Învățare: Analiză CIDR cu Predicții", Culori.BOLD))
+    print(coloreaza("═" * 55, Culori.GALBEN))
+    print()
+    print(f"  Adresa de analizat: {coloreaza(tinta, Culori.VERDE)}")
+    print()
+    
+    # Calculează rezultatele în avans
+    try:
+        info = analizeaza_interfata_ipv4(tinta)
+    except ValueError as e:
+        print(coloreaza(f"Eroare: {e}", Culori.ROSU), file=sys.stderr)
+        return 1
+    
+    scor = 0
+    total = 4
+    
+    # ─────────────────────────────────────────────────────
+    # Predicția 1: Gazde utilizabile
+    # ─────────────────────────────────────────────────────
+    print(coloreaza("─" * 55, Culori.CYAN))
+    print(f"  {coloreaza('PREDICȚIA 1:', Culori.BOLD)} Câte gazde utilizabile are această rețea?")
+    print()
+    print(f"  Hint: Formula este 2^(32-prefix) - 2")
+    print(f"        Prefixul este /{info.retea.prefixlen}")
+    print()
+    
+    try:
+        raspuns = input("  Răspunsul tău: ").strip()
+        if raspuns and int(raspuns) == info.gazde_utilizabile:
+            print(coloreaza("  ✓ Corect!", Culori.VERDE))
+            scor += 1
+        else:
+            print(coloreaza(f"  ✗ Răspuns corect: {info.gazde_utilizabile}", Culori.ROSU))
+            biti_gazda = 32 - info.retea.prefixlen
+            print(f"    Explicație: 2^{biti_gazda} - 2 = {2**biti_gazda} - 2 = {info.gazde_utilizabile}")
+    except (ValueError, EOFError):
+        print(coloreaza(f"  → Răspunsul corect era: {info.gazde_utilizabile}", Culori.GALBEN))
+    print()
+    
+    # ─────────────────────────────────────────────────────
+    # Predicția 2: Adresa de rețea
+    # ─────────────────────────────────────────────────────
+    print(coloreaza("─" * 55, Culori.CYAN))
+    print(f"  {coloreaza('PREDICȚIA 2:', Culori.BOLD)} Care este adresa de rețea?")
+    print()
+    print(f"  Hint: Aplică masca pe adresa IP (operația AND)")
+    print()
+    
+    try:
+        raspuns = input("  Răspunsul tău: ").strip()
+        if raspuns == str(info.retea.network_address):
+            print(coloreaza("  ✓ Corect!", Culori.VERDE))
+            scor += 1
+        else:
+            print(coloreaza(f"  ✗ Răspuns corect: {info.retea.network_address}", Culori.ROSU))
+    except EOFError:
+        print(coloreaza(f"  → Răspunsul corect era: {info.retea.network_address}", Culori.GALBEN))
+    print()
+    
+    # ─────────────────────────────────────────────────────
+    # Predicția 3: Adresa de broadcast
+    # ─────────────────────────────────────────────────────
+    print(coloreaza("─" * 55, Culori.CYAN))
+    print(f"  {coloreaza('PREDICȚIA 3:', Culori.BOLD)} Care este adresa de broadcast?")
+    print()
+    print(f"  Hint: Ultimii {32 - info.retea.prefixlen} biți sunt toți 1")
+    print()
+    
+    try:
+        raspuns = input("  Răspunsul tău: ").strip()
+        if raspuns == str(info.broadcast):
+            print(coloreaza("  ✓ Corect!", Culori.VERDE))
+            scor += 1
+        else:
+            print(coloreaza(f"  ✗ Răspuns corect: {info.broadcast}", Culori.ROSU))
+    except EOFError:
+        print(coloreaza(f"  → Răspunsul corect era: {info.broadcast}", Culori.GALBEN))
+    print()
+    
+    # ─────────────────────────────────────────────────────
+    # Predicția 4: Tip adresă
+    # ─────────────────────────────────────────────────────
+    print(coloreaza("─" * 55, Culori.CYAN))
+    print(f"  {coloreaza('PREDICȚIA 4:', Culori.BOLD)} Este aceasta o adresă privată sau publică?")
+    print()
+    print(f"  Adrese private: 10.x.x.x, 172.16-31.x.x, 192.168.x.x")
+    print()
+    
+    try:
+        raspuns = input("  Răspunsul tău (privată/publică): ").strip().lower()
+        corect = "privată" if info.este_privata else "publică"
+        if raspuns in ["privata", "privată"] and info.este_privata:
+            print(coloreaza("  ✓ Corect!", Culori.VERDE))
+            scor += 1
+        elif raspuns in ["publica", "publică"] and not info.este_privata:
+            print(coloreaza("  ✓ Corect!", Culori.VERDE))
+            scor += 1
+        else:
+            print(coloreaza(f"  ✗ Răspuns corect: {corect}", Culori.ROSU))
+    except EOFError:
+        corect = "privată" if info.este_privata else "publică"
+        print(coloreaza(f"  → Răspunsul corect era: {corect}", Culori.GALBEN))
+    print()
+    
+    # ─────────────────────────────────────────────────────
+    # Rezultat final
+    # ─────────────────────────────────────────────────────
+    print(coloreaza("═" * 55, Culori.GALBEN))
+    print(f"  {coloreaza('REZULTAT:', Culori.BOLD)} {scor}/{total} răspunsuri corecte")
+    
+    if scor == total:
+        print(coloreaza("  Excelent! Ai prins conceptele.", Culori.VERDE))
+    elif scor >= total // 2:
+        print(coloreaza("  Bine! Mai exersează cu alte adrese.", Culori.GALBEN))
+    else:
+        print(coloreaza("  Recitește teoria și încearcă din nou.", Culori.ROSU))
+    
+    print(coloreaza("═" * 55, Culori.GALBEN))
+    print()
+    
+    # Afișează analiza completă la final
+    print(coloreaza("  Analiza completă:", Culori.BOLD))
+    print()
+    return cmd_analizeaza(tinta, detaliat=True, ca_json=False)
+
+
 def cmd_flsm(baza: str, n_subretele: int, ca_json: bool = False) -> int:
     """Împarte o rețea în N subrețele egale."""
+    logger.debug(f"FLSM: {baza} în {n_subretele} subrețele")
+    
     try:
         subretele = imparte_flsm(baza, n_subretele)
     except ValueError as e:
+        logger.error(f"Eroare FLSM: {e}")
         print(coloreaza(f"Eroare: {e}", Culori.ROSU), file=sys.stderr)
         return 1
     
@@ -295,6 +441,7 @@ Exemple:
   %(prog)s analizeaza 192.168.10.14/26           Analizează adresa
   %(prog)s analizeaza 192.168.10.14/26 --detaliat Cu explicații detaliate
   %(prog)s analizeaza 192.168.10.14/26 --json    Ieșire JSON
+  %(prog)s invata 192.168.10.14/26               Mod învățare cu predicții
   %(prog)s flsm 192.168.100.0/24 4               Împarte în 4 subrețele
   %(prog)s flsm 10.0.0.0/24 8                    Împarte în 8 subrețele
   %(prog)s binar 192.168.1.1                     Conversie binară
@@ -322,6 +469,16 @@ Exemple:
         "--json", "-j",
         action="store_true",
         help="Ieșire în format JSON"
+    )
+    
+    # Subcomanda invata (NOU!)
+    p_invata = subparsers.add_parser(
+        "invata",
+        help="Mod învățare interactiv cu predicții"
+    )
+    p_invata.add_argument(
+        "tinta",
+        help="Adresă IPv4 cu prefix (ex: 192.168.10.14/26)"
     )
     
     # Subcomanda FLSM
@@ -370,6 +527,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     
     if args.comanda == "analizeaza":
         return cmd_analizeaza(args.tinta, args.detaliat, args.json)
+    elif args.comanda == "invata":
+        return cmd_invata(args.tinta)
     elif args.comanda == "flsm":
         return cmd_flsm(args.baza, args.n, args.json)
     elif args.comanda == "binar":

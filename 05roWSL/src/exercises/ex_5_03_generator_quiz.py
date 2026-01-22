@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import random
 import sys
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -26,6 +27,9 @@ import ipaddress
 RADACINA = Path(__file__).resolve().parents[2]
 if str(RADACINA) not in sys.path:
     sys.path.insert(0, str(RADACINA))
+
+# Configurare logging
+logger = logging.getLogger(__name__)
 
 
 # Coduri culori ANSI
@@ -55,6 +59,53 @@ class Intrebare:
     dificultate: str
 
 
+# Mesaje variate pentru feedback (evită repetitivitate)
+MESAJE_CORECT = [
+    "Corect!",
+    "Exact!",
+    "Așa e!",
+    "Foarte bine!",
+    "Perfect!",
+    "Răspuns corect!",
+]
+
+MESAJE_GRESIT = [
+    "Nu e chiar așa.",
+    "Mai încearcă data viitoare.",
+    "Răspunsul corect era altul.",
+    "Nu exact, dar ești pe drumul bun.",
+    "Aproape! Verifică din nou.",
+]
+
+MESAJE_FINAL_EXCELENT = [
+    "Ai înțeles foarte bine subnetarea!",
+    "Rezultat de nota 10!",
+    "Ești pregătit pentru examen!",
+    "Cunoștințe solide, felicitări!",
+]
+
+MESAJE_FINAL_BINE = [
+    "Destul de bine! Mai repetă câteva concepte.",
+    "Rezultat bun, dar poți mai mult.",
+    "Pe drumul cel bun! Continuă să exersezi.",
+    "Solid, dar lasă loc de îmbunătățire.",
+]
+
+MESAJE_FINAL_SATISFACATOR = [
+    "Trebuie să mai lucrezi la teorie.",
+    "Revizuiește formulele de calcul.",
+    "Mai ai de exersat, dar nu-i nimic grav.",
+    "Recitește secțiunea despre CIDR.",
+]
+
+MESAJE_FINAL_SLAB = [
+    "Necesită mai multă atenție la teorie.",
+    "Începe cu rezumatul teoretic înainte de quiz.",
+    "Nu te descuraja! Încearcă din nou după ce repeți.",
+    "Citește documentația și revino.",
+]
+
+
 class GeneratorQuiz:
     """Generator de întrebări pentru quiz de subnetare."""
     
@@ -67,18 +118,18 @@ class GeneratorQuiz:
     def __init__(self, dificultate: str = 'mediu'):
         self.dificultate = dificultate
         self.config = self.DIFICULTATI.get(dificultate, self.DIFICULTATI['mediu'])
+        logger.debug(f"Quiz inițializat cu dificultate: {dificultate}")
     
     def _genereaza_ip_aleatoriu(self) -> str:
         """Generează o adresă IP aleatorie."""
         if self.config['retele_private']:
-            # Folosește rețele private
             retele = [
                 (10, range(0, 256), range(0, 256)),
                 (172, range(16, 32), range(0, 256)),
                 (192, [168], range(0, 256)),
             ]
             retea = random.choice(retele)
-            return f"{retea[0]}.{random.choice(retea[1])}.{random.choice(retea[2])}.{random.randint(1, 254)}"
+            return f"{retea[0]}.{random.choice(list(retea[1]))}.{random.choice(list(retea[2]))}.{random.randint(1, 254)}"
         else:
             return f"{random.randint(1, 223)}.{random.randint(0, 255)}.{random.randint(0, 255)}.{random.randint(1, 254)}"
     
@@ -97,8 +148,8 @@ class GeneratorQuiz:
         return Intrebare(
             text=f"Care este adresa de rețea pentru {cidr}?",
             raspuns_corect=str(retea.network_address),
-            explicatie=f"Pentru /{retea.prefixlen}, masca este {retea.netmask}. "
-                       f"Aplicând operația AND între IP și mască obținem adresa de rețea.",
+            explicatie=f"Masca /{retea.prefixlen} = {retea.netmask}. "
+                       f"Operația AND între IP și mască dă adresa de rețea.",
             dificultate=self.dificultate
         )
     
@@ -109,8 +160,8 @@ class GeneratorQuiz:
         return Intrebare(
             text=f"Care este adresa de broadcast pentru {cidr}?",
             raspuns_corect=str(retea.broadcast_address),
-            explicatie=f"Adresa de broadcast are toți biții de gazdă setați pe 1. "
-                       f"Pentru /{retea.prefixlen}, avem {32-retea.prefixlen} biți de gazdă.",
+            explicatie=f"Broadcast-ul are biții de gazdă pe 1. "
+                       f"Cu {32-retea.prefixlen} biți de gazdă, rezultă {retea.broadcast_address}.",
             dificultate=self.dificultate
         )
     
@@ -119,11 +170,18 @@ class GeneratorQuiz:
         cidr, retea = self._genereaza_cidr_aleatoriu()
         gazde = max(0, retea.num_addresses - 2)
         
+        # Variații în formularea întrebării
+        formulari = [
+            f"Câte gazde utilizabile sunt în rețeaua {cidr}?",
+            f"Câte dispozitive pot primi adrese IP în {cidr}?",
+            f"Care e numărul maxim de gazde pentru {cidr}?",
+        ]
+        
         return Intrebare(
-            text=f"Câte gazde utilizabile sunt în rețeaua {cidr}?",
+            text=random.choice(formulari),
             raspuns_corect=str(gazde),
-            explicatie=f"Formula: 2^(32-prefix) - 2 = 2^{32-retea.prefixlen} - 2 = {gazde}. "
-                       f"Scădem 2 pentru adresa de rețea și broadcast.",
+            explicatie=f"Formula: 2^(32-{retea.prefixlen}) - 2 = 2^{32-retea.prefixlen} - 2 = {gazde}. "
+                       f"Scădem adresa de rețea și broadcast.",
             dificultate=self.dificultate
         )
     
@@ -149,7 +207,7 @@ class GeneratorQuiz:
         return Intrebare(
             text=f"Care este ultima gazdă utilizabilă în {cidr}?",
             raspuns_corect=ultima,
-            explicatie=f"Ultima gazdă = adresa de broadcast - 1 = {retea.broadcast_address} - 1 = {ultima}",
+            explicatie=f"Ultima gazdă = broadcast - 1 = {retea.broadcast_address} - 1 = {ultima}",
             dificultate=self.dificultate
         )
     
@@ -158,10 +216,16 @@ class GeneratorQuiz:
         prefix = random.choice(self.config['prefixe'])
         retea = ipaddress.ip_network(f"10.0.0.0/{prefix}", strict=False)
         
+        formulari = [
+            f"Care este masca de rețea pentru prefixul /{prefix}?",
+            f"Convertește /{prefix} în mască zecimală cu punct.",
+            f"Ce mască corespunde prefixului /{prefix}?",
+        ]
+        
         return Intrebare(
-            text=f"Care este masca de rețea pentru prefixul /{prefix}?",
+            text=random.choice(formulari),
             raspuns_corect=str(retea.netmask),
-            explicatie=f"/{prefix} înseamnă {prefix} biți de 1 urmați de {32-prefix} biți de 0 în mască.",
+            explicatie=f"/{prefix} = {prefix} biți de 1, apoi {32-prefix} biți de 0.",
             dificultate=self.dificultate
         )
     
@@ -170,16 +234,41 @@ class GeneratorQuiz:
         import math
         gazde_necesare = random.choice([10, 25, 50, 100, 200, 500, 1000])
         
-        # Calculează prefixul minim
         biti_gazda = math.ceil(math.log2(gazde_necesare + 2))
         prefix = 32 - biti_gazda
         gazde_disponibile = (2 ** biti_gazda) - 2
         
+        formulari = [
+            f"Care este cel mai lung prefix care poate acomoda {gazde_necesare} gazde?",
+            f"Ce prefix CIDR alegi pentru o rețea cu {gazde_necesare} dispozitive?",
+            f"Pentru {gazde_necesare} gazde, care e prefixul optim?",
+        ]
+        
         return Intrebare(
-            text=f"Care este cel mai lung prefix care poate acomoda {gazde_necesare} gazde?",
+            text=random.choice(formulari),
             raspuns_corect=f"/{prefix}",
-            explicatie=f"Avem nevoie de cel puțin {gazde_necesare}+2={gazde_necesare+2} adrese. "
-                       f"2^{biti_gazda}={2**biti_gazda} ≥ {gazde_necesare+2}, deci /{prefix} cu {gazde_disponibile} gazde.",
+            explicatie=f"Necesari {gazde_necesare}+2={gazde_necesare+2} adrese. "
+                       f"2^{biti_gazda}={2**biti_gazda} >= {gazde_necesare+2}, deci /{prefix} cu {gazde_disponibile} gazde.",
+            dificultate=self.dificultate
+        )
+    
+    def intrebare_tip_adresa(self) -> Intrebare:
+        """Generează o întrebare despre tipul adresei (privată/publică)."""
+        # Generăm și private și publice
+        if random.choice([True, False]):
+            # Adresă privată
+            retele_private = ["10.45.67.89", "172.20.100.50", "192.168.1.100"]
+            ip = random.choice(retele_private)
+            corect = "privată"
+        else:
+            # Adresă publică
+            ip = f"{random.randint(1, 9)}.{random.randint(0, 255)}.{random.randint(0, 255)}.{random.randint(1, 254)}"
+            corect = "publică"
+        
+        return Intrebare(
+            text=f"Adresa {ip} este privată sau publică?",
+            raspuns_corect=corect,
+            explicatie="Adrese private: 10.x.x.x, 172.16-31.x.x, 192.168.x.x (RFC 1918)",
             dificultate=self.dificultate
         )
     
@@ -193,6 +282,7 @@ class GeneratorQuiz:
             self.intrebare_ultima_gazda,
             self.intrebare_masca,
             self.intrebare_prefix_pentru_gazde,
+            self.intrebare_tip_adresa,
         ]
         
         intrebari = []
@@ -218,9 +308,9 @@ def ruleaza_quiz(intrebari: List[Intrebare]) -> Tuple[int, int]:
     print(coloreaza("  Quiz Interactiv de Subnetare", Culori.BOLD))
     print(coloreaza("═" * 60, Culori.ALBASTRU))
     print()
-    print(f"  Total întrebări: {total}")
-    print(f"  Tastați răspunsul și apăsați Enter.")
-    print(f"  Tastați 'renunt' pentru a ieși.")
+    print(f"  Ai {total} întrebări de răspuns.")
+    print(f"  Scrie răspunsul și apasă Enter.")
+    print(f"  Pentru a ieși, scrie 'renunt'.")
     print()
     
     for i, intrebare in enumerate(intrebari, 1):
@@ -230,26 +320,31 @@ def ruleaza_quiz(intrebari: List[Intrebare]) -> Tuple[int, int]:
         print()
         
         try:
-            raspuns = input(coloreaza("  Răspunsul dumneavoastră: ", Culori.GALBEN)).strip()
+            raspuns = input(coloreaza("  Răspunsul tău: ", Culori.GALBEN)).strip()
         except (EOFError, KeyboardInterrupt):
             print("\n\nQuiz întrerupt.")
             break
         
         if raspuns.lower() == 'renunt':
-            print("\nQuiz abandonat.")
+            print("\nAi ieșit din quiz.")
             break
         
         # Verifică răspunsul (normalizare)
         raspuns_normalizat = raspuns.replace(" ", "").lower()
         corect_normalizat = intrebare.raspuns_corect.replace(" ", "").lower()
         
+        # Acceptă și variante (privata/privată, publica/publică)
+        raspuns_normalizat = raspuns_normalizat.replace("ă", "a").replace("â", "a")
+        corect_normalizat = corect_normalizat.replace("ă", "a").replace("â", "a")
+        
         if raspuns_normalizat == corect_normalizat:
             corecte += 1
-            print(coloreaza("  ✓ Corect!", Culori.VERDE))
+            print(coloreaza(f"  ✓ {random.choice(MESAJE_CORECT)}", Culori.VERDE))
         else:
-            print(coloreaza(f"  ✗ Incorect. Răspunsul corect: {intrebare.raspuns_corect}", Culori.ROSU))
+            print(coloreaza(f"  ✗ {random.choice(MESAJE_GRESIT)}", Culori.ROSU))
+            print(coloreaza(f"    Răspunsul era: {intrebare.raspuns_corect}", Culori.ROSU))
         
-        print(coloreaza(f"  ℹ {intrebare.explicatie}", Culori.CYAN))
+        print(coloreaza(f"  → {intrebare.explicatie}", Culori.CYAN))
         print()
     
     return corecte, total
@@ -272,13 +367,13 @@ def afiseaza_rezultat(corecte: int, total: int):
     print()
     
     if procent >= 90:
-        print(coloreaza("  🎉 Excelent! Stăpânești perfect subnetarea!", Culori.VERDE))
+        print(coloreaza(f"  {random.choice(MESAJE_FINAL_EXCELENT)}", Culori.VERDE))
     elif procent >= 70:
-        print(coloreaza("  👍 Foarte bine! Mai exersează puțin.", Culori.VERDE))
+        print(coloreaza(f"  {random.choice(MESAJE_FINAL_BINE)}", Culori.VERDE))
     elif procent >= 50:
-        print(coloreaza("  📚 Satisfăcător. Revizuiește teoria.", Culori.GALBEN))
+        print(coloreaza(f"  {random.choice(MESAJE_FINAL_SATISFACATOR)}", Culori.GALBEN))
     else:
-        print(coloreaza("  📖 Necesită mai multă practică. Recitește materialul.", Culori.ROSU))
+        print(coloreaza(f"  {random.choice(MESAJE_FINAL_SLAB)}", Culori.ROSU))
     
     print()
 
@@ -318,7 +413,7 @@ Exemple:
     corecte, total = ruleaza_quiz(intrebari)
     afiseaza_rezultat(corecte, total)
     
-    return 0 if corecte == total else 1
+    return 0
 
 
 if __name__ == "__main__":

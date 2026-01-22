@@ -1,40 +1,49 @@
-# Jurnal de modificări
+# Changelog - Săptămâna 6
 
-Toate modificările notabile la Kit-ul WSL Săptămâna 6 vor fi documentate în acest fișier.
+> Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de ing. dr. Antonio Clim
 
-Formatul se bazează pe [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-iar acest proiect aderă la [Versionare Semantică](https://semver.org/spec/v2.0.0.html).
+Toate modificările notabile ale materialelor Săptămânii 6 sunt documentate în acest fișier.
 
-## [1.0.0] - 2025-2026
+## [2.0.0] - 2026-01-22
 
-### Adăugate
+### Îmbunătățiri pedagogice majore
 
-- Mediu de laborator complet compatibil WSL2 pentru Săptămâna 6
-- Configurare Docker Compose cu suport pentru containere privilegiate
-- Scripturi de gestionare bazate pe Python (start_lab.py, stop_lab.py, cleanup.py)
-- Topologie NAT/PAT cu demonstrație MASQUERADE
-- Topologie SDN cu politici OpenFlow 1.3
-- Aplicații echo TCP/UDP pentru testarea conectivității
-- Aplicație observator NAT pentru vizualizarea traducerii PAT
-- Implementare controller politici SDN (OS-Ken)
-- README comprehensiv cu obiective de învățare și exerciții
-- Teste automate rapide și verificare exerciții
-- Documentație de depanare
+#### Adăugat
+- 6 prompt-uri de predicție integrate în exerciții
+- 3 întrebări Peer Instruction complete cu distractori și explicații
+- 3 analogii CPA noi (Port Mapping, Tabele de Fluxuri, Conntrack)
+- 2 exerciții noi nivel EVALUATE și CREATE în teme
+- Diagrame flux pentru NAT și instalare OpenFlow
+- Arbori de decizie pentru troubleshooting
+- Secțiuni extinse de debugging avansat
 
-### Infrastructură
+#### Modificat
+- README.md restructurat cu pedagogie îmbunătățită
+- Reducere emoji în headings (de la 87% la ~25%)
+- Înlocuire termeni AI-sounding ("complet" în loc de "comprehensiv")
+- Docstrings complete Google-style în network_utils.py
+- Type hints adăugate în toate funcțiile publice
+- Autor actualizat în toate fișierele
 
-- Dockerfile cu bază Ubuntu 22.04
-- Integrare Mininet și Open vSwitch
-- Suport Portainer pentru administrarea containerelor
-- Integrare Wireshark pentru capturarea pachetelor
-
-### Documentație
-
-- Sumar teoretic pentru concepte NAT/PAT și SDN
-- Fișă de comenzi pentru operațiuni comune
-- Documentație pentru output-urile așteptate
-- Referințe pentru lectură suplimentară
+#### Remediat
+- Eliminat pattern-uri de vocabular AI
+- Structură consecventă a paragrafelor
 
 ---
 
-Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+## [1.0.0] - 2025-01-15
+
+### Prima versiune
+
+#### Adăugat
+- Structura inițială a laboratorului
+- Topologii NAT și SDN
+- Controller SDN cu politici de bază
+- Aplicații echo TCP/UDP
+- Observator NAT
+- Scripturi de automatizare
+- Documentație de bază
+
+---
+
+*Disciplina REȚELE DE CALCULATOARE - ASE, Informatică Economică | de ing. dr. Antonio Clim*
