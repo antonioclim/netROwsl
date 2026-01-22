@@ -18,6 +18,12 @@
 
 Nivelul Fizic (Physical Layer) este primul nivel din modelul OSI, care transmite biții bruti prin mediul fizic de comunicare.
 
+---
+**PREDICȚIE:** Înainte de a continua:
+1. Ce crezi că se întâmplă cu un semnal electric când parcurge un cablu de 100m?
+2. De ce crezi că fibra optică poate transmite pe distanțe mai mari decât cablul de cupru?
+---
+
 ### Funcții Principale
 
 Nivelul fizic îndeplinește patru funcții: transmisia biților (convertește datele în semnale electrice sau optice), sincronizarea între emițător și receptor pentru coordonarea timing-ului, specificarea caracteristicilor fizice ale mediului (conectori, tensiuni, frecvențe) și definirea topologiei rețelei.
@@ -66,6 +72,12 @@ Nivelul Legătură de Date (Data Link Layer) este al doilea nivel din modelul OS
 
 ## Tehnici de Încadrare
 
+---
+**PREDICȚIE:** Înainte de a citi despre încadrare:
+1. Cum ar ști receptorul unde se termină un mesaj și unde începe următorul?
+2. Ce probleme pot apărea dacă datele conțin aceleași caractere ca delimitatorii?
+---
+
 ### Numărare Caractere (Prefix de Lungime)
 
 Primul câmp al cadrului specifică numărul de caractere/octeți. Această metodă este simplă de implementat și eficientă (overhead minim), dar o eroare în câmpul de lungime poate pierde sincronizarea, iar recuperarea devine dificilă.
@@ -100,6 +112,13 @@ Exemplu (Protocol Senzor UDP): fiecare datagramă are exact 23 de octeți.
 ---
 
 ## Detectarea Erorilor
+
+---
+**PREDICȚIE:** Înainte de a studia CRC:
+1. De ce CRC32 nu este potrivit pentru securitate, deși detectează erori foarte bine?
+2. Care e diferența dintre detectare și corectare de erori?
+3. Ce tip de erori crezi că sunt mai frecvente: biți singulari sau rafale?
+---
 
 ### Tipuri de Erori
 
@@ -279,6 +298,21 @@ mesaj = antet + payload
 | Știi când s-a încheiat | Nu știi dacă a ajuns |
 | Dacă nu auzi, ceri repetare | Dacă se pierde, ghinion |
 | Conexiune stabilită | Fără conexiune |
+
+**PICTORIAL - Handshake TCP:**
+```
+┌────────┐                          ┌────────┐
+│ Client │                          │ Server │
+└───┬────┘                          └───┬────┘
+    │                                   │
+    │ ─────── SYN (seq=x) ──────────>   │
+    │                                   │
+    │ <─── SYN-ACK (seq=y, ack=x+1) ──  │
+    │                                   │
+    │ ─────── ACK (ack=y+1) ─────────>  │
+    │                                   │
+    │         [Conexiune stabilită]     │
+```
 
 ---
 

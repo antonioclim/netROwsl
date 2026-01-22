@@ -47,7 +47,7 @@
 
 **Unix Network Programming, Volume 1: Sockets Networking API**
 - Autor: W. Richard Stevens
-- *Pentru înțelegerea profundă a API-ului socket*
+- *Pentru înțelegerea detaliată a API-ului socket*
 
 ---
 
@@ -63,7 +63,7 @@
 **RFC 793 - Transmission Control Protocol (TCP)**
 - https://www.rfc-editor.org/rfc/rfc793
 - Protocol complex, ~85 pagini
-- Esențial pentru înțelegerea TCP în profunzime
+- Esențial pentru înțelegerea completă a TCP
 
 **RFC 1122 - Requirements for Internet Hosts**
 - https://www.rfc-editor.org/rfc/rfc1122
@@ -174,18 +174,10 @@ def client_tcp_simplu(host: str, port: int, mesaj: str) -> str:
         Răspunsul serverului
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        # Conectare
         sock.connect((host, port))
-        
-        # Setare timeout
         sock.settimeout(5.0)
-        
-        # Trimitere
         sock.sendall(mesaj.encode())
-        
-        # Recepție
         raspuns = sock.recv(4096)
-        
         return raspuns.decode()
 
 
@@ -217,51 +209,33 @@ def construieste_mesaj_binar(tip: int, payload: bytes, secventa: int) -> bytes:
     versiune = 1
     lungime = len(payload)
     
-    # Împachetare fără CRC
     antet_partial = struct.pack('!2sBBHI',
-        magic,
-        versiune,
-        tip,
-        lungime,
-        secventa
+        magic, versiune, tip, lungime, secventa
     )
     
-    # Calculare CRC peste antet + payload
     crc = binascii.crc32(antet_partial + payload) & 0xFFFFFFFF
     
-    # Mesaj complet
     mesaj = struct.pack('!2sBBHII',
-        magic,
-        versiune,
-        tip,
-        lungime,
-        secventa,
-        crc
+        magic, versiune, tip, lungime, secventa, crc
     ) + payload
     
     return mesaj
 
 
 def parseaza_mesaj_binar(date: bytes) -> dict:
-    """
-    Parsează un mesaj binar și verifică CRC.
-    """
+    """Parsează un mesaj binar și verifică CRC."""
     if len(date) < 14:
         raise ValueError("Mesaj prea scurt")
     
-    # Extrage antetul
     magic, versiune, tip, lungime, secventa, crc = struct.unpack(
         '!2sBBHII', date[:14]
     )
     
-    # Verifică magic
     if magic != b'NP':
         raise ValueError(f"Magic invalid: {magic}")
     
-    # Extrage payload
     payload = date[14:14+lungime]
     
-    # Verifică CRC
     antet_fara_crc = date[:10]
     crc_calculat = binascii.crc32(antet_fara_crc + payload) & 0xFFFFFFFF
     
@@ -304,9 +278,7 @@ def crc32_manual(date: bytes) -> int:
     Implementare manuală a CRC32 pentru înțelegere.
     Utilizați binascii.crc32() în practică.
     """
-    # Polinom CRC-32 IEEE 802.3
     POLINOM = 0xEDB88320
-    
     crc = 0xFFFFFFFF
     
     for octet in date:
@@ -349,40 +321,23 @@ print(f"Potrivire: {crc_manual == crc_biblioteca}")
 
 ### 1. Protocol de Retransmisie
 
-Implementați ARQ (Automatic Repeat reQuest):
-- Trimiteți mesaje cu numere de secvență
-- Așteptați confirmări (ACK)
-- Retransmiteți după timeout
-- Gestionați ACK-uri duplicate
+Implementați ARQ (Automatic Repeat reQuest): trimiteți mesaje cu numere de secvență, așteptați confirmări (ACK), retransmiteți după timeout și gestionați ACK-uri duplicate.
 
 ### 2. Fereastră Glisantă
 
-Extindeți protocolul cu fereastră glisantă:
-- Permiteți mai multe mesaje în zbor
-- Implementați controlul fluxului
-- Gestionați recepția în afara ordinii
+Extindeți protocolul cu fereastră glisantă: permiteți mai multe mesaje în zbor, implementați controlul fluxului și gestionați recepția în afara ordinii.
 
 ### 3. Transfer Fiabil peste UDP
 
-Construiți un protocol de transfer de fișiere fiabil:
-- Fragmentare și reasamblare
-- Detectarea erorilor cu CRC32
-- Retransmisie selectivă
-- Verificare integritate SHA-256
+Construiți un protocol de transfer de fișiere fiabil: fragmentare și reasamblare, detectarea erorilor cu CRC32, retransmisie selectivă și verificare integritate SHA-256.
 
 ### 4. Protocol Binar Comprimat
 
-Extindeți protocolul BINAR:
-- Adăugați câmp de flaguri pentru compresie
-- Implementați compresie zlib pentru payload
-- Măsurați economia de bandă
+Extindeți protocolul BINAR: adăugați câmp de flaguri pentru compresie, implementați compresie zlib pentru payload și măsurați economia de bandă.
 
 ### 5. Multiplexare Conexiuni
 
-Implementați un protocol care:
-- Multiplexează mai multe canale logice pe o conexiune TCP
-- Oferă identificatori de canal în antet
-- Permite prioritizare
+Implementați un protocol care multiplexează mai multe canale logice pe o conexiune TCP, oferă identificatori de canal în antet și permite prioritizare.
 
 ---
 
@@ -407,13 +362,7 @@ Implementați un protocol care:
 
 ## Următorii Pași
 
-După acest laborator, puteți explora:
-
-1. **Nivelul Rețea** - Routing, IP, ICMP
-2. **Nivelul Transport** - TCP în detaliu, congestion control
-3. **Securitate** - TLS, criptare, autentificare
-4. **Protocoale Moderne** - HTTP/2, QUIC, WebSocket
-5. **Rețele Definite prin Software (SDN)**
+După acest laborator, puteți explora: Nivelul Rețea (Routing, IP, ICMP), Nivelul Transport (TCP detaliat, congestion control), Securitate (TLS, criptare, autentificare), Protocoale Moderne (HTTP/2, QUIC, WebSocket) și Rețele Definite prin Software (SDN).
 
 ---
 

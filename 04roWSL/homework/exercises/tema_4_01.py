@@ -87,6 +87,24 @@ class RaspunsServer:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE_CRC
+# Scop: Calcul și verificare CRC32
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def calculeaza_crc32(date: bytes) -> int:
+    """
+    Calculează CRC32 pentru un șir de bytes.
+    
+    Args:
+        date: Datele pentru care se calculează CRC
+        
+    Returns:
+        Valoarea CRC32 ca întreg pozitiv pe 32 biți
+    """
+    return binascii.crc32(date) & 0xFFFFFFFF
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # CLIENT_BINAR
 # Scop: Implementează clientul pentru protocolul BINAR
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -118,25 +136,43 @@ class ClientBinar:
         self.socket: Optional[socket.socket] = None
         self.secventa = 0
     
+    # ═══════════════════════════════════════════════════════════════════════════
+    # GESTIONARE_SECVENTA
+    # ═══════════════════════════════════════════════════════════════════════════
+    
     def _urmatoarea_secventa(self) -> int:
         """
         Returnează următorul număr de secvență.
         
         Secvența crește cu 1 la fiecare mesaj trimis și
         se resetează la 0 după 0xFFFFFFFF.
+        
+        ---
+        PREDICȚIE înainte de implementare:
+        1. Ce valoare maximă poate avea secvența? (hint: 4 bytes unsigned)
+        2. Ce operator folosești pentru wrap-around? (hint: modulo sau AND)
+        3. De ce e important să incrementezi ÎNAINTE de returnare?
+        ---
         """
         # TODO: Implementați incrementarea secvenței
         # Indiciu: self.secventa trebuie să rămână în range 0 - 0xFFFFFFFF
+        # Soluție posibilă: self.secventa = (self.secventa + 1) & 0xFFFFFFFF
         pass
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # CONECTARE_DECONECTARE
+    # ═══════════════════════════════════════════════════════════════════════════
     
     def conecteaza(self) -> bool:
         """
         Stabilește conexiunea cu serverul.
         
+        ---
         PREDICȚIE înainte de implementare:
-        - Ce excepție ridică connect() dacă serverul nu există?
-        - Cât e timeout-ul implicit al unui socket nou creat?
-        - Ce returnează connect() la succes? (hint: nimic!)
+        1. Ce excepție ridică connect() dacă serverul nu există?
+        2. Cât e timeout-ul implicit al unui socket nou creat?
+        3. Ce returnează connect() la succes? (hint: nimic!)
+        ---
         
         Returns:
             True dacă conexiunea a reușit, False altfel
@@ -144,31 +180,39 @@ class ClientBinar:
         # TODO: Implementați conectarea la server
         # Indiciu:
         # 1. Creați un socket TCP (AF_INET, SOCK_STREAM)
-        # 2. Setați timeout-ul
+        # 2. Setați timeout-ul cu settimeout()
         # 3. Conectați-vă la (self.host, self.port)
         # 4. Gestionați excepțiile: socket.timeout, ConnectionRefusedError, OSError
         pass
     
-    def deconecteaza(self):
+    def deconecteaza(self) -> None:
         """
         Închide conexiunea cu serverul.
         
+        ---
         PREDICȚIE:
-        - Ce se întâmplă dacă apelezi close() pe un socket deja închis?
-        - Socket-ul mai poate fi reutilizat după close()?
+        1. Ce se întâmplă dacă apelezi close() pe un socket deja închis?
+        2. Socket-ul mai poate fi reutilizat după close()?
+        ---
         """
         # TODO: Implementați deconectarea
         # Indiciu: Verificați că socket-ul există înainte de close()
         pass
     
+    # ═══════════════════════════════════════════════════════════════════════════
+    # CONSTRUIRE_MESAJE
+    # ═══════════════════════════════════════════════════════════════════════════
+    
     def _construieste_mesaj(self, tip: TipMesaj, payload: bytes = b'') -> bytes:
         """
         Construiește un mesaj BINAR complet.
         
+        ---
         PREDICȚIE:
-        - Câți bytes va avea mesajul final pentru un PING (payload gol)?
-        - Care e ordinea bytes-ilor pentru câmpurile numerice?
-        - CRC se calculează peste ce date exact?
+        1. Câți bytes va avea mesajul final pentru un PING (payload gol)?
+        2. Care e ordinea bytes-ilor pentru câmpurile numerice?
+        3. CRC se calculează peste ce date exact?
+        ---
         
         Structura mesajului (14 bytes antet + payload):
         - Magic: 2 bytes ('NP')
@@ -194,14 +238,20 @@ class ClientBinar:
         # 4. Construiți mesajul final cu CRC inclus
         pass
     
+    # ═══════════════════════════════════════════════════════════════════════════
+    # PARSARE_RASPUNSURI
+    # ═══════════════════════════════════════════════════════════════════════════
+    
     def _parseaza_raspuns(self, date: bytes) -> Optional[RaspunsServer]:
         """
         Parsează răspunsul primit de la server.
         
+        ---
         PREDICȚIE:
-        - Ce se întâmplă dacă primești mai puțin de 14 bytes?
-        - Cum verifici că CRC-ul primit e corect?
-        - Payload-ul unde începe în buffer?
+        1. Ce se întâmplă dacă primești mai puțin de 14 bytes?
+        2. Cum verifici că CRC-ul primit e corect?
+        3. Payload-ul unde începe în buffer?
+        ---
         
         Args:
             date: Buffer-ul de date primit
@@ -218,6 +268,10 @@ class ClientBinar:
         # 5. Verificați CRC-ul
         # 6. Returnați un RaspunsServer
         pass
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # COMUNICARE_RETEA
+    # ═══════════════════════════════════════════════════════════════════════════
     
     def _trimite_si_primeste(self, tip: TipMesaj, payload: bytes = b'') -> Optional[RaspunsServer]:
         """
@@ -261,9 +315,11 @@ class ClientBinar:
         """
         Setează o valoare în key-value store.
         
+        ---
         PREDICȚIE:
-        - Cum separi cheia de valoare în payload?
-        - Ce răspuns aștepți de la server la SET reușit?
+        1. Cum separi cheia de valoare în payload?
+        2. Ce răspuns aștepți de la server la SET reușit?
+        ---
         
         Args:
             cheie: Cheia de setat
@@ -273,8 +329,9 @@ class ClientBinar:
             Răspunsul serverului
         """
         # TODO: Implementați operația SET
-        # Indiciu: Payload-ul e format din: cheie + '\0' + valoare
-        # Convertește la bytes cu .encode('utf-8')
+        # Indiciu: Payload format din: lungime_cheie (2 bytes) + cheie + valoare
+        # lung_cheie = len(cheie.encode('utf-8'))
+        # payload = struct.pack('!H', lung_cheie) + cheie.encode() + valoare.encode()
         pass
     
     def get(self, cheie: str) -> Optional[RaspunsServer]:
@@ -374,6 +431,23 @@ def demonstratie():
     print("\n" + "=" * 60)
     print("Demonstrație completă!")
     print("=" * 60)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTO-EVALUARE (completează înainte de predare)
+# ═══════════════════════════════════════════════════════════════════════════════
+# □ Codul rulează fără erori de sintaxă
+# □ Toate funcțiile marcate cu TODO sunt implementate
+# □ Am testat cu serverul din container (localhost:5401)
+# □ PING funcționează și primesc PONG
+# □ SET funcționează (verific cu GET)
+# □ GET returnează valoarea corectă
+# □ DELETE funcționează (GET după DELETE returnează eroare)
+# □ CRC-ul se calculează corect (verificat în Wireshark)
+# □ Am înțeles de ce folosim '!' în struct.pack (network byte order)
+# □ Am înțeles diferența dintre antet și payload
+# □ Secvența se incrementează corect la fiecare mesaj
+# ═══════════════════════════════════════════════════════════════════════════════
 
 
 if __name__ == "__main__":

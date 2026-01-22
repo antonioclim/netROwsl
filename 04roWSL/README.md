@@ -35,8 +35,9 @@ Credențiale standard:
 4. [Wireshark](#wireshark)
 5. [Exerciții de Laborator](#exerciții-de-laborator)
 6. [Protocoale](#protocoale)
-7. [Depanare](#depanare)
-8. [Curățare](#curățare)
+7. [Erori Comune și Soluții Rapide](#erori-comune-și-soluții-rapide)
+8. [Depanare](#depanare)
+9. [Curățare](#curățare)
 
 Pentru detalii teoretice, vezi [Rezumat Teoretic](docs/theory_summary.md).
 Pentru depanare detaliată, consultă [Ghid Troubleshooting](docs/troubleshooting.md).
@@ -477,6 +478,28 @@ Pentru senzori IoT pe baterie care trimit date la fiecare câteva secunde:
 - O citire pierdută nu e critică (vine alta imediat)
 - Overhead-ul mic economisește energie
 - Implementarea e mai simplă (fără handshake, fără stare)
+
+---
+
+## Erori Comune și Soluții Rapide
+
+Tabel de referință rapidă pentru cele mai frecvente probleme:
+
+| Simptom | Cauză Probabilă | Soluție Rapidă |
+|---------|-----------------|----------------|
+| `Connection refused` | Server nu rulează | `docker compose up -d` |
+| `Cannot connect to Docker daemon` | Docker oprit | `sudo service docker start` |
+| CRC invalid | Lipsește `!` în struct | Adaugă `!` pentru network byte order |
+| Wireshark gol | Interfață greșită | Selectează `vEthernet (WSL)` |
+| `Address in use` | Port ocupat | `docker compose down` apoi `up` |
+| Timeout la conectare | Firewall sau server mort | Verifică `docker ps` și `ufw status` |
+| `struct.error: unpack requires X bytes` | Date insuficiente | Verifică `len(date)` înainte de unpack |
+| Filtru Wireshark roșu | Sintaxă greșită | Folosește `==` nu `=` |
+| Portainer nu răspunde | Container oprit | `docker start portainer` |
+| WSL nu vede D:\ | Drive nemount-at | `sudo mount -t drvfs D: /mnt/d` |
+
+Pentru debugging detaliat, vezi [Ghid Debugging](docs/debugging_guide.md).
+Pentru întrebări frecvente, vezi [FAQ](docs/faq.md).
 
 ---
 

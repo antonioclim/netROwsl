@@ -6,6 +6,47 @@ Acest ghid te ajută să rezolvi problemele comune întâlnite în laboratorul d
 
 ---
 
+## Flux de Diagnosticare
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    PROBLEMA APĂRUTĂ                             │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────────┐
+│  1. Docker rulează?  ──NO──► sudo service docker start        │
+│     docker ps                                                 │
+└───────────────────────────┬───────────────────────────────────┘
+                           YES
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────────┐
+│  2. Containerele Up?  ──NO──► docker compose up -d            │
+│     docker ps | grep saptamana4                               │
+└───────────────────────────┬───────────────────────────────────┘
+                           YES
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────────┐
+│  3. Port răspunde?  ──NO──► verifică firewall, port mapping   │
+│     nc -zv localhost 5400                                     │
+└───────────────────────────┬───────────────────────────────────┘
+                           YES
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────────┐
+│  4. Codul trimite corect?  ──NO──► verifică CRC, byte order   │
+│     Wireshark, print debugging                                │
+└───────────────────────────┬───────────────────────────────────┘
+                           YES
+                            │
+                            ▼
+                    [PROBLEMA REZOLVATĂ]
+```
+
+---
+
 ## Problema: Clientul nu se conectează
 
 ### Pas 1: Verifică dacă serverul rulează
@@ -16,9 +57,9 @@ docker ps | grep saptamana4
 
 **Output așteptat:**
 ```
-abc123def456   saptamana4-text    "/usr/bin/python3 ..."   Up 2 minutes   0.0.0.0:5400->5400/tcp
-def456abc123   saptamana4-binar   "/usr/bin/python3 ..."   Up 2 minutes   0.0.0.0:5401->5401/tcp
-ghi789jkl012   saptamana4-senzor  "/usr/bin/python3 ..."   Up 2 minutes   0.0.0.0:5402->5402/udp
+abc123   saptamana4-text    Up 2 minutes   0.0.0.0:5400->5400/tcp
+def456   saptamana4-binar   Up 2 minutes   0.0.0.0:5401->5401/tcp
+ghi789   saptamana4-senzor  Up 2 minutes   0.0.0.0:5402->5402/udp
 ```
 
 **Dacă nu vezi containerele:**
@@ -27,77 +68,81 @@ cd /mnt/d/RETELE/SAPT4/04roWSL
 docker compose -f docker/docker-compose.yml up -d
 ```
 
-**Dacă containerele sunt "Exited":**
-```bash
-# Vezi de ce a ieșit
-docker logs saptamana4-text
-
-# Repornește
-docker restart saptamana4-text
-```
-
 ### Pas 2: Verifică portul
 
 ```bash
-# Verifică că portul ascultă
 nc -zv localhost 5400
 ```
 
-**Output așteptat:**
-```
-Connection to localhost 5400 port [tcp/*] succeeded!
-```
-
-**Dacă eșuează:**
-```bash
-# Verifică ce proces folosește portul
-sudo ss -tlnp | grep 5400
-
-# Sau pe Windows (PowerShell ca Administrator)
-netstat -ano | findstr 5400
-```
+**Output așteptat:** `Connection to localhost 5400 port [tcp/*] succeeded!`
 
 ### Pas 3: Test minimal Python
 
 ```python
 import socket
 
-# Test de conectare minimal
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.settimeout(5)
 
 try:
     s.connect(('localhost', 5400))
     print("Conectat cu succes!")
-    
     s.sendall(b'4 PING')
     raspuns = s.recv(100)
     print(f"Răspuns: {raspuns}")
-    
 except socket.timeout:
     print("EROARE: Timeout la conectare")
 except ConnectionRefusedError:
     print("EROARE: Conexiune refuzată - serverul nu rulează")
-except Exception as e:
-    print(f"EROARE: {e}")
 finally:
     s.close()
-```
-
-### Pas 4: Verifică firewallul (dacă pașii anteriori au eșuat)
-
-```bash
-# În WSL Ubuntu
-sudo ufw status
-# Dacă e activ, adaugă excepție:
-sudo ufw allow 5400/tcp
-sudo ufw allow 5401/tcp
-sudo ufw allow 5402/udp
 ```
 
 ---
 
 ## Problema: CRC invalid
+
+### Diagramă: Flux Verificare CRC
+
+```
+┌─────────────────┐                      ┌─────────────────┐
+│    EMIȚĂTOR     │                      │    RECEPTOR     │
+└────────┬────────┘                      └────────┬────────┘
+         │                                        │
+    ┌────▼────┐                                   │
+    │  Date   │                                   │
+    │originale│                                   │
+    └────┬────┘                                   │
+         │                                        │
+    ┌────▼────────┐                               │
+    │ Calculează  │                               │
+    │   CRC32     │                               │
+    └────┬────────┘                               │
+         │                                        │
+    ┌────▼────────────────┐     TRANSMISIE   ┌───▼───────────────┐
+    │ Date + CRC ─────────│─────────────────►│ Date + CRC primit │
+    └─────────────────────┘                  └───┬───────────────┘
+                                                 │
+                                            ┌────▼────────┐
+                                            │ Extrage     │
+                                            │ CRC primit  │
+                                            └────┬────────┘
+                                                 │
+                                            ┌────▼────────┐
+                                            │ Recalculează│
+                                            │ CRC32       │
+                                            └────┬────────┘
+                                                 │
+                                            ┌────▼────────────┐
+                                            │ CRC primit ==   │
+                                            │ CRC calculat?   │
+                                            └───┬─────────┬───┘
+                                               YES        NO
+                                                │          │
+                                            ┌───▼───┐  ┌───▼───┐
+                                            │ VALID │  │EROARE │
+                                            └───────┘  └───────┘
+```
 
 ### Pas 1: Verifică ordinea bytes (Network Byte Order)
 
@@ -106,67 +151,48 @@ import struct
 
 valoare = 0x12345678
 
-# GREȘIT - ordinea sistemului (little-endian pe x86):
+# GREȘIT (ordinea sistemului):
 pachet_gresit = struct.pack('I', valoare)
 print(f"Greșit: {pachet_gresit.hex()}")  # 78563412
 
-# CORECT - network byte order (big-endian):
+# CORECT (network order):
 pachet_corect = struct.pack('!I', valoare)
 print(f"Corect: {pachet_corect.hex()}")  # 12345678
 ```
 
-**Regula de aur:** Folosește ÎNTOTDEAUNA `!` în format string pentru date de rețea:
-- `'!H'` pentru 2 bytes (unsigned short)
-- `'!I'` pentru 4 bytes (unsigned int)
-- `'!f'` pentru float
+**Regula de aur:** Folosește ÎNTOTDEAUNA `!` în format string pentru date de rețea.
 
 ### Pas 2: Verifică ce date include CRC
 
-```python
-import struct
-import binascii
+```
+Antetul BINAR (14 bytes):
+┌──────────────────────────────────────────────────────────────┐
+│ [0:2]   Magic "NP"    │  INCLUS în CRC                       │
+│ [2]     Versiune      │  INCLUS în CRC                       │
+│ [3]     Tip           │  INCLUS în CRC                       │
+│ [4:6]   Lungime       │  INCLUS în CRC                       │
+│ [6:10]  Secvență      │  INCLUS în CRC                       │
+├──────────────────────────────────────────────────────────────┤
+│ [10:14] CRC32         │  NU se include! (ar fi recursiv)     │
+└──────────────────────────────────────────────────────────────┘
+│ [14:...]  Payload     │  INCLUS în CRC                       │
+└──────────────────────────────────────────────────────────────┘
 
-# Antetul BINAR are 14 bytes:
-# [0:2]   Magic "NP"
-# [2]     Versiune
-# [3]     Tip
-# [4:6]   Lungime
-# [6:10]  Secvență  
-# [10:14] CRC32  <-- ACEST câmp NU se include în calcul!
-
-# CRC se calculează peste:
-# - Antet FĂRĂ câmpul CRC (primii 10 bytes)
-# - PLUS payload-ul complet
-
-antet_partial = struct.pack('!2sBBHI',
-    b'NP',      # Magic
-    1,          # Versiune
-    0x01,       # Tip (PING)
-    0,          # Lungime payload
-    1           # Secvență
-)  # = 10 bytes
-
-payload = b''  # PING nu are payload
-
-# Calculează CRC peste antet_partial + payload
-crc = binascii.crc32(antet_partial + payload) & 0xFFFFFFFF
-print(f"CRC calculat: 0x{crc:08X}")
-
-# Mesaj complet
-mesaj = antet_partial + struct.pack('!I', crc) + payload
-print(f"Mesaj complet ({len(mesaj)} bytes): {mesaj.hex()}")
+CRC = crc32(bytes[0:10] + payload)
 ```
 
 ### Pas 3: Debug cu afișare detaliată
 
 ```python
+import struct
+import binascii
+
 def debug_crc(mesaj: bytes):
     """Analizează un mesaj BINAR și verifică CRC."""
     if len(mesaj) < 14:
-        print(f"EROARE: Mesaj prea scurt ({len(mesaj)} bytes, minim 14)")
+        print(f"EROARE: Mesaj prea scurt ({len(mesaj)} bytes)")
         return
     
-    # Extrage componentele
     magic = mesaj[0:2]
     versiune = mesaj[2]
     tip = mesaj[3]
@@ -175,13 +201,12 @@ def debug_crc(mesaj: bytes):
     crc_primit = struct.unpack('!I', mesaj[10:14])[0]
     payload = mesaj[14:14+lungime]
     
-    print(f"Magic:     {magic} ({'OK' if magic == b'NP' else 'INVALID'})")
-    print(f"Versiune:  {versiune}")
-    print(f"Tip:       0x{tip:02X}")
-    print(f"Lungime:   {lungime}")
-    print(f"Secvență:  {secventa}")
+    print(f"Magic:      {magic} ({'OK' if magic == b'NP' else 'INVALID'})")
+    print(f"Versiune:   {versiune}")
+    print(f"Tip:        0x{tip:02X}")
+    print(f"Lungime:    {lungime}")
+    print(f"Secvență:   {secventa}")
     print(f"CRC primit: 0x{crc_primit:08X}")
-    print(f"Payload:   {payload.hex() if payload else '(gol)'}")
     
     # Recalculează CRC
     date_pentru_crc = mesaj[0:10] + payload
@@ -192,178 +217,134 @@ def debug_crc(mesaj: bytes):
         print("✓ CRC VALID")
     else:
         print("✗ CRC INVALID!")
-        print(f"  Date pentru CRC: {date_pentru_crc.hex()}")
 ```
 
 ---
 
 ## Problema: UDP nu primește date
 
+### Diagramă: Flux UDP (Fire-and-Forget)
+
+```
+┌─────────────┐                           ┌─────────────┐
+│   SENZOR    │                           │   SERVER    │
+│   (client)  │                           │  (receptor) │
+└──────┬──────┘                           └──────┬──────┘
+       │                                         │
+       │ ────── Datagramă 23 bytes ──────────►   │
+       │         (fără confirmare!)              │
+       │                                         │
+       │ ────── Datagramă 23 bytes ──────────►   │
+       │                                         │
+       │ ────── Datagramă 23 bytes ──────────►   │
+       │                                         │
+                                                 
+Notă: UDP nu garantează:
+- Livrarea (pachetul poate fi pierdut)
+- Ordinea (pot ajunge în altă ordine)
+- Unicitatea (pot fi duplicate)
+```
+
 ### Pas 1: Verifică că serverul ascultă
 
 ```bash
-# Verifică portul UDP
 sudo ss -ulnp | grep 5402
 ```
 
 **Output așteptat:**
 ```
-UNCONN  0  0  0.0.0.0:5402  0.0.0.0:*  users:(("python3",pid=12345,fd=3))
+UNCONN  0  0  0.0.0.0:5402  0.0.0.0:*  users:(("python3",...))
 ```
 
-### Pas 2: Test cu netcat
+### Pas 2: Verifică structura datagramei senzor
 
-```bash
-# Trimite date de test
-echo -n "test" | nc -u localhost 5402
-
-# Verifică log-urile serverului
-docker logs saptamana4-senzor --tail 20
 ```
+Datagrama Senzor (23 bytes):
+┌─────────┬──────────┬─────────────┬──────────┬────────┬──────────┐
+│Versiune │ ID Senzor│ Temperatură │  Locație │ CRC32  │ Rezervat │
+│ 1 byte  │ 2 bytes  │  4 bytes    │ 10 bytes │4 bytes │ 2 bytes  │
+│         │ (big-e)  │ (float b-e) │ (null-pd)│(big-e) │ (zeros)  │
+└─────────┴──────────┴─────────────┴──────────┴────────┴──────────┘
+  offset:     0          1-2           3-6        7-16     17-20    21-22
 
-### Pas 3: Verifică structura datagramei
-
-```python
-import struct
-import binascii
-
-def construieste_datagrama_corecta(sensor_id: int, temp: float, loc: str) -> bytes:
-    """Construiește o datagramă validă de 23 bytes."""
-    
-    # Pregătește locația (exact 10 bytes, padding cu \x00)
-    loc_bytes = loc.encode('utf-8')[:10]
-    loc_padded = loc_bytes + b'\x00' * (10 - len(loc_bytes))
-    
-    # Partea fără CRC (17 bytes)
-    parte_fara_crc = struct.pack('!BHf',
-        1,              # Versiune (1 byte)
-        sensor_id,      # ID senzor (2 bytes, big-endian)
-        temp            # Temperatură (4 bytes, float big-endian)
-    ) + loc_padded      # Locație (10 bytes)
-    
-    # Calculează CRC
-    crc = binascii.crc32(parte_fara_crc) & 0xFFFFFFFF
-    
-    # Datagrama completă (23 bytes)
-    datagrama = parte_fara_crc + struct.pack('!I', crc) + b'\x00\x00'
-    
-    assert len(datagrama) == 23, f"Lungime greșită: {len(datagrama)}"
-    return datagrama
-
-# Test
-dg = construieste_datagrama_corecta(42, 23.5, "Lab1")
-print(f"Datagrama ({len(dg)} bytes): {dg.hex()}")
+CRC = crc32(bytes[0:17])  # NU include CRC și rezervat
 ```
 
 ---
 
 ## Problema: Wireshark nu capturează pachete
 
-### Pas 1: Verifică interfața
+### Diagrama: TCP 3-Way Handshake
 
-Interfețe disponibile pentru trafic WSL:
-
-| Interfață | Când folosești |
-|-----------|----------------|
-| vEthernet (WSL) | Cel mai frecvent |
-| Loopback Adapter | Doar pentru 127.0.0.1 |
-
-### Pas 2: Verifică filtrul
-
-Filtre care funcționează:
 ```
-tcp.port == 5400
-udp.port == 5402
-tcp.port == 5400 or tcp.port == 5401
-```
-
-Filtre **GREȘITE** (erori comune):
-```
-tcp.port = 5400      # Greșit: un singur =
-port == 5400         # Greșit: lipsește tcp/udp
-tcp.port==5400       # Poate funcționa, dar e mai bine cu spații
+┌────────┐                                  ┌────────┐
+│ Client │                                  │ Server │
+└───┬────┘                                  └───┬────┘
+    │                                           │
+    │ ────── SYN (seq=x) ───────────────────►   │
+    │        Flags: [SYN]                       │
+    │                                           │
+    │ ◄───── SYN-ACK (seq=y, ack=x+1) ───────   │
+    │        Flags: [SYN, ACK]                  │
+    │                                           │
+    │ ────── ACK (ack=y+1) ─────────────────►   │
+    │        Flags: [ACK]                       │
+    │                                           │
+    │        [CONEXIUNE STABILITĂ]              │
+    │                                           │
+    │ ────── PSH, ACK (date) ──────────────►    │
+    │        [Primul mesaj aplicație]           │
 ```
 
-### Pas 3: Generează trafic în timpul capturii
+### Checklist Wireshark
 
-1. Pornește captura în Wireshark ÎNTÂI
-2. Apoi rulează clientul
-3. Oprește captura DUPĂ
+1. **Interfața corectă?** Selectează "vEthernet (WSL)"
+2. **Captura pornită?** Butonul albastru (aripioara de rechin)
+3. **Filtrul corect?** `tcp.port == 5400` (dublu `==`)
+4. **Generezi trafic ÎN TIMPUL capturii?** Nu înainte!
 
-### Pas 4: Verifică că vezi CEVA
+### Filtre Corecte vs Greșite
 
-Șterge filtrul temporar și verifică:
-- Vezi pachete de orice fel?
-- Dacă nu, interfața e greșită
-- Dacă da, filtrul e prea restrictiv
+| Corect | Greșit |
+|--------|--------|
+| `tcp.port == 5400` | `tcp.port = 5400` |
+| `udp.port == 5402` | `port == 5402` |
+| `tcp contains "PING"` | `tcp contains 'PING'` |
 
 ---
 
 ## Problema: "Address already in use"
 
-### Pas 1: Găsește procesul care ocupă portul
+### Pas 1: Găsește procesul
 
 ```bash
-# Linux/WSL
 sudo ss -tlnp | grep 5400
-# sau
-sudo lsof -i :5400
-
-# Windows PowerShell (Administrator)
-netstat -ano | findstr 5400
+# Output: LISTEN  0  5  0.0.0.0:5400  *  users:(("python3",pid=12345))
 ```
 
 ### Pas 2: Oprește procesul
 
 ```bash
-# Linux - oprește după PID
-kill -9 <PID>
-
-# Sau oprește containerele
-docker compose -f docker/docker-compose.yml down
-```
-
-### Pas 3: Așteaptă eliberarea portului
-
-Uneori portul rămâne în starea TIME_WAIT:
-```bash
-# Verifică starea
-ss -tan | grep 5400
-
-# Așteaptă ~30 secunde sau forțează în cod:
-# sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+kill -9 12345  # sau
+docker compose down
 ```
 
 ---
 
 ## Problema: Timeout la conectare
 
-### Cauze posibile
+### Cauze și Soluții
 
-1. **Serverul nu rulează** - verifică cu `docker ps`
-2. **Firewall blochează** - verifică cu `ufw status`
-3. **Port greșit** - verifică în docker-compose.yml
-4. **Adresă greșită** - folosește `localhost`, nu `127.0.0.1` în WSL
-
-### Mărește timeout-ul pentru debugging
-
-```python
-import socket
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.settimeout(30)  # 30 secunde în loc de default
-
-try:
-    sock.connect(('localhost', 5400))
-except socket.timeout:
-    print("Timeout după 30 secunde - serverul nu răspunde")
-```
+| Cauză | Verificare | Soluție |
+|-------|------------|---------|
+| Server nu rulează | `docker ps` | `docker compose up -d` |
+| Firewall blochează | `sudo ufw status` | `sudo ufw allow 5400/tcp` |
+| Port greșit | docker-compose.yml | Corectează mapping |
+| Adresă greșită | Cod client | Folosește `localhost` |
 
 ---
 
 ## Checklist General de Debugging
-
-Când ceva nu funcționează:
 
 ```
 □ Docker rulează?              sudo service docker status
@@ -373,17 +354,17 @@ Când ceva nu funcționează:
 □ Firewallul permite?          sudo ufw status
 □ Log-uri container?           docker logs <container>
 □ Wireshark vede trafic?       Captură fără filtru
-□ Codul folosește '!' în struct? Verifică network byte order
-□ CRC include datele corecte?  Verifică ce bytes intră în calcul
+□ Codul folosește '!'?         Verifică network byte order
+□ CRC include datele corecte?  Vezi diagrama de mai sus
 ```
 
 ---
 
 ## Referințe
 
-- [README principal](../README.md)
-- [Troubleshooting detaliat](troubleshooting.md)
-- [FAQ](faq.md)
+- [FAQ](faq.md) — Întrebări frecvente
+- [Troubleshooting](troubleshooting.md) — Probleme specifice
+- [Glossar](glossar.md) — Termeni tehnici
 
 ---
 

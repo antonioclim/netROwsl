@@ -8,28 +8,51 @@ Format mesaj: <LUNGIME> <CONȚINUT>
 Port implicit: 5400
 """
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_IMPORTS
+# Scop: Importă modulele necesare pentru networking și concurență
+# Transferabil la: Orice server TCP multi-threaded
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import socket
 import threading
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
-# Configurare logging
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIGURARE_LOGGING
+# Scop: Setează formatarea și nivelul de logging
+# Transferabil la: Orice aplicație Python cu necesități de logging
+# ═══════════════════════════════════════════════════════════════════════════════
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
+    datefmt='%H:%M:%S'
 )
 logger = logging.getLogger(__name__)
 
-# Configurație server
-HOST = '0.0.0.0'
-PORT = 5400
-DIMENSIUNE_BUFFER = 4096
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_PROTOCOL
+# Scop: Definește valorile fixe ale protocolului
+# Transferabil la: Orice server TCP cu configurare centralizată
+# ═══════════════════════════════════════════════════════════════════════════════
 
+HOST: str = '0.0.0.0'
+PORT: int = 5400
+DIMENSIUNE_BUFFER: int = 4096
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STOCARE_DATE
+# Scop: Implementează un magazin thread-safe pentru perechi cheie-valoare
+# Transferabil la: Orice sistem care necesită stocare partajată între threads
+# ═══════════════════════════════════════════════════════════════════════════════
 
 class MagazinCheieValoare:
     """Magazin thread-safe pentru perechi cheie-valoare."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self._date: Dict[str, str] = {}
         self._lock = threading.Lock()
     
@@ -45,7 +68,7 @@ class MagazinCheieValoare:
             return self._date.get(cheie)
     
     def sterge(self, cheie: str) -> bool:
-        """Șterge o cheie."""
+        """Șterge o cheie și returnează True dacă exista."""
         with self._lock:
             if cheie in self._date:
                 del self._date[cheie]
@@ -67,11 +90,31 @@ class MagazinCheieValoare:
 magazin = MagazinCheieValoare()
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# FORMATARE_MESAJE
+# Scop: Serializare răspunsuri în format protocol TEXT
+# Transferabil la: Orice protocol text-based cu length prefix
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def formateaza_raspuns(continut: str) -> bytes:
-    """Formatează un răspuns în format protocol TEXT."""
+    """
+    Formatează un răspuns în format protocol TEXT.
+    
+    Args:
+        continut: Textul răspunsului
+        
+    Returns:
+        Răspunsul formatat ca bytes: "<lungime> <continut>"
+    """
     lungime = len(continut)
     return f"{lungime} {continut}".encode('utf-8')
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROCESARE_COMENZI
+# Scop: Implementează logica de business pentru fiecare comandă
+# Transferabil la: Orice server cu comenzi multiple
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def proceseaza_comanda(comanda: str) -> str:
     """
@@ -85,6 +128,12 @@ def proceseaza_comanda(comanda: str) -> str:
     - COUNT: Returnează numărul de chei
     - KEYS: Returnează lista de chei
     - QUIT: Închide conexiunea
+    
+    Args:
+        comanda: Comanda primită de la client
+        
+    Returns:
+        Răspunsul pentru client
     """
     parti = comanda.strip().split(' ', 2)
     
@@ -102,6 +151,7 @@ def proceseaza_comanda(comanda: str) -> str:
         cheie = parti[1]
         valoare = parti[2]
         magazin.seteaza(cheie, valoare)
+        logger.debug(f"SET {cheie} = {valoare}")
         return "OK"
     
     elif cmd == "GET":
@@ -111,6 +161,7 @@ def proceseaza_comanda(comanda: str) -> str:
         valoare = magazin.obtine(cheie)
         if valoare is None:
             return "ERR cheie inexistenta"
+        logger.debug(f"GET {cheie} -> {valoare}")
         return valoare
     
     elif cmd == "DEL":
@@ -118,6 +169,7 @@ def proceseaza_comanda(comanda: str) -> str:
             return "ERR DEL necesita cheie"
         cheie = parti[1]
         if magazin.sterge(cheie):
+            logger.debug(f"DEL {cheie}")
             return "OK"
         return "ERR cheie inexistenta"
     
@@ -134,12 +186,22 @@ def proceseaza_comanda(comanda: str) -> str:
         return "BYE"
     
     else:
+        logger.warning(f"Comandă necunoscută: {cmd}")
         return f"ERR comanda necunoscuta: {cmd}"
 
 
-def parseaza_mesaj(date: bytes) -> tuple:
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARSARE_PROTOCOL
+# Scop: Extragerea mesajelor complete din buffer
+# Transferabil la: Orice parser de protocol cu length prefix
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def parseaza_mesaj(date: bytes) -> Tuple[Optional[int], Optional[str], bytes]:
     """
     Parsează un mesaj în format protocol TEXT.
+    
+    Args:
+        date: Buffer-ul de date primite
     
     Returns:
         Tuple (lungime, continut, rest) sau (None, None, date) dacă incomplet
@@ -165,9 +227,25 @@ def parseaza_mesaj(date: bytes) -> tuple:
         return None, None, date
 
 
-def gestioneaza_client(socket_client: socket.socket, adresa: tuple):
-    """Gestionează o conexiune client."""
-    logger.info(f"Conexiune nouă de la {adresa}")
+# ═══════════════════════════════════════════════════════════════════════════════
+# GESTIONARE_CLIENT
+# Scop: Gestionează ciclul de viață al unei conexiuni client
+# Transferabil la: Orice server TCP concurent
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def gestioneaza_client(socket_client: socket.socket, adresa: Tuple[str, int]) -> None:
+    """
+    Gestionează o conexiune client.
+    
+    Rulează într-un thread separat. Primește mesaje, le procesează
+    și trimite răspunsuri până când clientul se deconectează sau 
+    trimite QUIT.
+    
+    Args:
+        socket_client: Socket-ul conectat la client
+        adresa: Tuple (IP, port) al clientului
+    """
+    logger.info(f"Conexiune nouă de la {adresa[0]}:{adresa[1]}")
     buffer = b''
     
     try:
@@ -175,17 +253,17 @@ def gestioneaza_client(socket_client: socket.socket, adresa: tuple):
             # Primire date
             date = socket_client.recv(DIMENSIUNE_BUFFER)
             if not date:
-                logger.info(f"Client deconectat: {adresa}")
+                logger.info(f"Client deconectat: {adresa[0]}:{adresa[1]}")
                 break
             
             buffer += date
             
-            # Procesare mesaje complete
+            # Procesare mesaje complete din buffer
             while buffer:
                 lungime, continut, rest = parseaza_mesaj(buffer)
                 
                 if lungime is None:
-                    break  # Mesaj incomplet
+                    break  # Mesaj incomplet, așteaptă mai multe date
                 
                 buffer = rest
                 
@@ -213,8 +291,19 @@ def gestioneaza_client(socket_client: socket.socket, adresa: tuple):
         socket_client.close()
 
 
-def porneste_server():
-    """Pornește serverul TEXT."""
+# ═══════════════════════════════════════════════════════════════════════════════
+# PORNIRE_SERVER
+# Scop: Inițializează și pornește serverul TCP
+# Transferabil la: Orice server TCP multi-threaded
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def porneste_server() -> None:
+    """
+    Pornește serverul TEXT.
+    
+    Ascultă pe HOST:PORT și creează un thread nou pentru fiecare
+    conexiune client. Rulează până la Ctrl+C.
+    """
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
@@ -228,16 +317,21 @@ def porneste_server():
             socket_client, adresa = server.accept()
             thread = threading.Thread(
                 target=gestioneaza_client,
-                args=(socket_client, adresa)
+                args=(socket_client, adresa),
+                daemon=True
             )
-            thread.daemon = True
             thread.start()
             
     except KeyboardInterrupt:
-        logger.info("\nOprire server...")
+        logger.info("Oprire server...")
     finally:
         server.close()
+        logger.info("Server oprit.")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     porneste_server()
