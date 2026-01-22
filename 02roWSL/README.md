@@ -388,6 +388,20 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 4. **Construiți** un protocol de aplicație personalizat peste UDP cu comenzi multiple
 5. **Analizați** traficul de rețea în Wireshark, identificând handshake-ul TCP și schimbul UDP
 6. **Evaluați** scenariile în care TCP sau UDP reprezintă alegerea optimă
+7. **Depanați** probleme comune de conectivitate folosind capturi Wireshark și comenzi de diagnostic
+
+### Mapare pe Taxonomia Bloom
+
+| Obiectiv | Nivel Bloom | Verb Cheie | Activitate Practică |
+|----------|-------------|------------|---------------------|
+| 1 | REMEMBER | Identificați | Quiz oral straturi OSI/TCP-IP |
+| 2 | UNDERSTAND | Explicați | Discuție diferențe TCP vs UDP |
+| 3 | APPLY | Implementați | Cod server TCP threaded |
+| 4 | APPLY | Construiți | Protocol UDP cu comenzi |
+| 5 | ANALYSE | Analizați | Interpretare capturi Wireshark |
+| 6 | EVALUATE | Evaluați | Decizie TCP vs UDP per scenariu |
+| 7 | APPLY | Depanați | Troubleshooting conectivitate |
+
 
 ## Cerințe Preliminare
 
@@ -415,6 +429,11 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 ## Pornire Rapidă
 
 ### Prima Configurare (O Singură Dată)
+
+
+**🔮 Predicție Setup:**
+- Ce va afișa `docker ps` după pornirea completă a laboratorului?
+- Containerul `portainer` va apărea în lista generată de `docker-compose up`? De ce da/nu?
 
 ```bash
 # Deschideți terminalul Ubuntu (wsl în PowerShell)
@@ -799,6 +818,70 @@ Vrei să vezi DOAR pachetele TCP care inițiază conexiuni noi (nu și cele din 
 
 ---
 
+
+---
+
+### Întrebarea 6: Alegere Protocol pentru Streaming
+
+Construiești un sistem de streaming video live pentru 1000 de spectatori simultan.
+
+**Ce protocol alegi pentru transmisia datelor video și de ce?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | TCP — garantează că fiecare frame ajunge complet |
+| B | UDP — tolerează pierderi, prioritizează latența scăzută |
+| C | TCP pentru semnalizare, UDP pentru datele video |
+| D | Nu contează, ambele funcționează identic |
+
+<details>
+<summary>Răspuns și explicație</summary>
+
+**Corect: B sau C (ambele acceptabile)**
+
+- **A** — Problematic. TCP ar introduce buffer bloat și întârzieri la retransmisii. Un frame video vechi retransmis nu mai e util dacă a trecut momentul afișării.
+- **B** — ✅ Acceptabil. UDP permite aplicației să decidă ce face cu pachetele pierdute (skip frame, interpolare, afișare artefact).
+- **C** — ✅ Ideal pentru producție. TCP pentru control (play/pause/seek), UDP pentru stream video (protocoale RTP/RTSP).
+- **D** — Greșit. Diferențele sunt majore pentru aplicații time-sensitive.
+
+**Regula:** Pentru date unde un pachet vechi e mai rău decât un pachet pierdut, UDP e preferat.
+</details>
+
+---
+
+### Întrebarea 7: Problema cu bind() pe Localhost
+
+Un student scrie serverul TCP:
+```python
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(('127.0.0.1', 9090))
+server.listen(5)
+```
+
+Serverul funcționează perfect când testează local, dar colegii din aceeași rețea NU se pot conecta.
+
+**Care e problema?**
+
+| Opțiune | Răspuns |
+|---------|---------|
+| A | Portul 9090 e blocat de firewall-ul Windows |
+| B | `listen(5)` permite maxim 5 conexiuni totale |
+| C | Adresa `127.0.0.1` acceptă doar conexiuni locale |
+| D | Lipsește apelul `server.accept()` |
+
+<details>
+<summary>Răspuns și explicație</summary>
+
+**Corect: C**
+
+- **A** — Posibil ca factor secundar, dar nu explică de ce merge local și nu din rețea.
+- **B** — Greșit. `listen(5)` setează backlog-ul (coada de conexiuni în așteptare), NU limita totală de conexiuni.
+- **C** — ✅ Corect! `127.0.0.1` (loopback) acceptă DOAR conexiuni de pe aceeași mașină. Pentru conexiuni externe, folosește `0.0.0.0` (toate interfețele).
+- **D** — Greșit. `accept()` vine după în cod, dar problema e la `bind()`.
+
+**Fix:** Înlocuiește `server.bind(('127.0.0.1', 9090))` cu `server.bind(('0.0.0.0', 9090))`
+</details>
+
 ## Demonstrații
 
 ### Demo 1: Comparație TCP vs UDP
@@ -895,7 +978,11 @@ Consultați directorul `homework/` pentru exercițiile de lucru individual.
 Extindeți serverul TCP pentru a suporta autentificare simplă (utilizator/parolă) înainte de procesarea comenzilor.
 
 ### Tema 2: Client UDP cu Retry și Timeout
-Implementați un client UDP robust care reîncearcă automat trimiterea dacă nu primește răspuns în 2 secunde.
+Implementați un client UDP rezistent la pierderi care reîncearcă automat trimiterea dacă nu primește răspuns în 2 secunde.
+
+
+### Tema 3: Protocol Binar pentru Mesaje (Avansat)
+Proiectați și implementați un protocol binar simplu cu header fix (8 bytes), validare checksum și suport pentru tipuri multiple de mesaje. Nivel Bloom: CREATE.
 
 ## Depanare
 

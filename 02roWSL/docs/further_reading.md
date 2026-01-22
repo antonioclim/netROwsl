@@ -38,6 +38,7 @@
 - [socketserver — A framework for network servers](https://docs.python.org/3/library/socketserver.html)
 - [asyncio — Asynchronous I/O](https://docs.python.org/3/library/asyncio.html)
 - [ssl — TLS/SSL wrapper for socket objects](https://docs.python.org/3/library/ssl.html)
+- [struct — Interpret bytes as packed binary data](https://docs.python.org/3/library/struct.html) *(relevant pentru tema 2.03)*
 
 ### RFC-uri Esențiale
 
@@ -47,6 +48,7 @@
 | [RFC 768](https://tools.ietf.org/html/rfc768) | User Datagram Protocol | Specificația UDP |
 | [RFC 791](https://tools.ietf.org/html/rfc791) | Internet Protocol | Specificația IP |
 | [RFC 1122](https://tools.ietf.org/html/rfc1122) | Requirements for Internet Hosts | Cerințe pentru implementări |
+| [RFC 5765](https://tools.ietf.org/html/rfc5765) | Security Issues in Network Event Logging | Logging securizat |
 
 ## Instrumente și Tutoriale
 
@@ -56,6 +58,7 @@
 - [Wireshark User's Guide](https://www.wireshark.org/docs/wsug_html_chunked/)
 - [Display Filter Reference](https://www.wireshark.org/docs/dfref/)
 - [Sample Captures](https://wiki.wireshark.org/SampleCaptures)
+- [Wireshark University](https://www.wiresharktraining.com/) - Cursuri și certificări
 
 ### tcpdump
 
@@ -101,10 +104,23 @@
 
 - [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/)
   - Clasic, excelent pentru programare socket în C
+  - Tradus în multiple limbi, foarte accesibil
   
+- [Real Python - Socket Programming in Python](https://realpython.com/python-sockets/)
+  - Tutorial modern, specific Python
+  - Include exemple practice și best practices
+
 - [High Performance Browser Networking](https://hpbn.co/)
   - Ilya Grigorik (Google)
   - Gratuit online, despre TCP/UDP în context web
+
+### Video Explicative
+
+- [Computerphile - TCP Meltdown Explained](https://www.youtube.com/watch?v=AAssk2N_oPk)
+  - Probleme de performanță TCP
+  
+- [Ben Eater - Networking Tutorial Series](https://www.youtube.com/playlist?list=PLowKtXNTBypH19whXTVoG3oKSuOcw_XeW)
+  - De la baze la implementări practice
 
 ### Performanță și Optimizare
 
@@ -142,6 +158,11 @@
    - Software-Defined Networking (SDN)
    - Network Function Virtualization (NFV)
    - Container networking (Docker, Kubernetes)
+
+6. **Proiectare Protocoale** *(relevant pentru tema 2.03)*
+   - Principii de design pentru protocoale binare
+   - Versionare și backward compatibility
+   - Error detection și recovery
 
 ## Comunități și Forumuri
 

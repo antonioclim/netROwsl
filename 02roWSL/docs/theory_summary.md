@@ -127,10 +127,51 @@ Client                                  Server
 
 Un **socket** este un punct terminal de comunicare bidirecțională. Este abstracția software care permite programelor să comunice prin rețea.
 
+**Analogie:** Un socket este ca o priză telefonică — conectezi firul (programul) la priză (socket) pentru a comunica cu altcineva de la distanță.
+
 **Tipuri de socket-uri:**
 - `SOCK_STREAM` - pentru TCP (flux de octeți)
 - `SOCK_DGRAM` - pentru UDP (datagrame)
 - `SOCK_RAW` - acces direct la stratul IP
+
+### Vizualizare Socket
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         APLICAȚIE                               │
+│  ┌─────────────┐                         ┌─────────────┐        │
+│  │   Client    │                         │   Server    │        │
+│  │  Program    │                         │  Program    │        │
+│  └──────┬──────┘                         └──────┬──────┘        │
+│         │ send()/recv()                         │ accept()      │
+│         │                                       │ send()/recv() │
+│  ┌──────▼──────┐                         ┌──────▼──────┐        │
+│  │   SOCKET    │                         │   SOCKET    │        │
+│  │(192.168.1.5 │◄────────────────────────►│(192.168.1.10│       │
+│  │  :54321)    │      Conexiune TCP       │  :9090)     │        │
+│  └──────┬──────┘                         └──────┬──────┘        │
+│         │                                       │               │
+├─────────┼───────────────────────────────────────┼───────────────┤
+│         │              TRANSPORT (TCP/UDP)      │               │
+├─────────┼───────────────────────────────────────┼───────────────┤
+│         │              INTERNET (IP)            │               │
+├─────────┼───────────────────────────────────────┼───────────────┤
+│         │              REȚEA FIZICĂ             │               │
+└─────────┴───────────────────────────────────────┴───────────────┘
+
+Socket = (Adresă IP, Port, Protocol)
+Exemplu: (192.168.1.5, 54321, TCP)
+```
+
+**Ciclul de viață al unui socket:**
+
+| Etapă | Client | Server |
+|-------|--------|--------|
+| 1. Creare | `socket()` | `socket()` |
+| 2. Pregătire | — | `bind()` + `listen()` |
+| 3. Conectare | `connect()` | `accept()` |
+| 4. Comunicare | `send()`/`recv()` | `send()`/`recv()` |
+| 5. Închidere | `close()` | `close()` |
 
 ### API Socket în Python
 
@@ -227,6 +268,32 @@ client_socket.close()
 
 ## Concurența în Servere
 
+### Analogie: Restaurant
+
+Pentru a înțelege diferența între serverele iterative și cele concurente, gândiți-vă la un restaurant:
+
+| Concept Tehnic | Analogie Restaurant |
+|----------------|---------------------|
+| **Server iterativ** | Un singur chelner servește toate mesele pe rând. Clienții noi așteaptă. |
+| **Server threaded** | Mai mulți chelneri, fiecare servește o masă. Clienții sunt serviți simultan. |
+| **Thread** | Un chelner individual |
+| **Thread pool** | Echipă fixă de chelneri (ex: 10). Dacă toți sunt ocupați, clienții noi așteaptă eliberarea. |
+| **Lock/Mutex** | Casa de marcat — un singur chelner poate încasa la un moment dat |
+| **Deadlock** | Doi chelneri blochează reciproc trecerea pe un culoar îngust |
+
+```
+Server Iterativ (1 chelner):          Server Threaded (N chelneri):
+
+    Client1 ──►│                          Client1 ──► Chelner1 ──► Răspuns1
+    Client2 ───┤ Chelner                  Client2 ──► Chelner2 ──► Răspuns2
+    Client3 ───┤   │                      Client3 ──► Chelner3 ──► Răspuns3
+               │   ▼                                  ▼
+           [Procesare                          [Procesare
+            secvențială]                        paralelă]
+            
+  Timp: T1 + T2 + T3                    Timp: max(T1, T2, T3)
+```
+
 ### Server Iterativ (Secvențial)
 
 - Procesează un singur client la un moment dat
@@ -255,31 +322,59 @@ while True:
     thread.start()
 ```
 
+**Cu ThreadPoolExecutor (limită de thread-uri):**
+```python
+from concurrent.futures import ThreadPoolExecutor
+
+with ThreadPoolExecutor(max_workers=10) as executor:
+    while True:
+        client_socket, address = server_socket.accept()
+        executor.submit(handle_client, client_socket, address)
+```
+
 ## Porturi și Adrese
 
 ### Porturi Cunoscute
 
 | Port | Protocol | Serviciu |
 |------|----------|----------|
-| 20, 21 | TCP | FTP |
+| 20, 21 | TCP | FTP (date, control) |
 | 22 | TCP | SSH |
 | 23 | TCP | Telnet |
-| 25 | TCP | SMTP |
+| 25 | TCP | SMTP (email out) |
 | 53 | UDP/TCP | DNS |
 | 80 | TCP | HTTP |
+| 110 | TCP | POP3 (email in) |
+| 143 | TCP | IMAP (email in) |
 | 443 | TCP | HTTPS |
+| 3306 | TCP | MySQL |
+| 5432 | TCP | PostgreSQL |
 
 ### Intervale de Porturi
 
 - **0-1023**: Porturi de sistem (necesită privilegii root)
 - **1024-49151**: Porturi înregistrate (pentru aplicații)
-- **49152-65535**: Porturi dinamice/private
+- **49152-65535**: Porturi dinamice/private (efemere)
 
 ### Adrese Speciale
 
-- **127.0.0.1**: Localhost (loopback)
-- **0.0.0.0**: Toate interfețele (pentru bind)
-- **255.255.255.255**: Broadcast
+| Adresă | Semnificație | Utilizare |
+|--------|--------------|-----------|
+| **127.0.0.1** | Localhost (loopback) | Testare locală |
+| **0.0.0.0** | Toate interfețele | `bind()` pe server |
+| **255.255.255.255** | Broadcast | Descoperire rețea |
+| **::1** | Localhost IPv6 | Testare locală IPv6 |
+| **::** | Toate interfețele IPv6 | `bind()` IPv6 |
+
+## Greșeli Frecvente
+
+| Greșeală | Simptom | Soluție |
+|----------|---------|---------|
+| `bind()` pe 127.0.0.1 | Clienții din rețea nu se pot conecta | Folosește 0.0.0.0 |
+| Uitare `listen()` | `accept()` aruncă eroare | Adaugă `listen(5)` după `bind()` |
+| `send()` fără `encode()` | TypeError | Folosește `msg.encode('utf-8')` |
+| `recv()` fără `decode()` | Primești bytes, nu string | Folosește `data.decode('utf-8')` |
+| Port deja folosit | "Address already in use" | Adaugă `SO_REUSEADDR` sau schimbă portul |
 
 ---
 

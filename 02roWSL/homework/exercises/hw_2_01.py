@@ -23,7 +23,12 @@ EXEMPLU INTERACȚIUNE:
     
     Client: upper:test
     Server: OK: TEST
+
+NIVEL: Intermediar (Bloom: APPLY)
+TIMP ESTIMAT: 45-60 minute
 """
+
+from __future__ import annotations
 
 import socket
 import threading
@@ -43,9 +48,9 @@ UTILIZATORI_VALIZI: Dict[str, str] = {
 }
 
 # Configurație server
-HOST = "0.0.0.0"
-PORT = 9090
-MAX_ÎNCERCĂRI = 3
+HOST: str = "0.0.0.0"
+PORT: int = 9090
+MAX_ÎNCERCĂRI: int = 3
 
 
 # ============================================================================
@@ -56,28 +61,50 @@ class SesiuneClient:
     """
     Gestionează starea unei sesiuni client.
     
+    Această clasă păstrează informații despre starea autentificării
+    unui client conectat, inclusiv numărul de încercări eșuate.
+    
+    Attributes:
+        autentificat: True dacă clientul s-a autentificat cu succes
+        utilizator: Numele utilizatorului autentificat (None dacă neautentificat)
+        încercări_eșuate: Numărul de încercări de autentificare eșuate
+    
     TODO: Completați această clasă pentru a:
     1. Urmări dacă clientul este autentificat
     2. Număra încercările de autentificare eșuate
     3. Stoca numele utilizatorului autentificat
     """
     
-    def __init__(self):
-        # TODO: Inițializați variabilele de stare
+    def __init__(self) -> None:
+        """Inițializează o nouă sesiune cu stare neautentificată."""
         self.autentificat: bool = False
         self.utilizator: Optional[str] = None
         self.încercări_eșuate: int = 0
     
     def încearcă_autentificare(self, utilizator: str, parolă: str) -> Tuple[bool, str]:
         """
-        Încearcă să autentifice utilizatorul.
+        Încearcă să autentifice utilizatorul cu credențialele furnizate.
+        
+        Verifică perechea utilizator/parolă contra dicționarului UTILIZATORI_VALIZI.
+        La succes, actualizează starea sesiunii. La eșec, incrementează contorul
+        de încercări eșuate.
         
         Args:
-            utilizator: Numele de utilizator
-            parolă: Parola
+            utilizator: Numele de utilizator furnizat de client
+            parolă: Parola furnizată de client
             
         Returns:
-            Tuple (succes, mesaj)
+            Tuple cu două elemente:
+            - bool: True dacă autentificarea a reușit, False altfel
+            - str: Mesaj descriptiv pentru client
+            
+        Example:
+            >>> sesiune = SesiuneClient()
+            >>> succes, mesaj = sesiune.încearcă_autentificare("admin", "admin123")
+            >>> succes
+            True
+            >>> sesiune.autentificat
+            True
             
         TODO: Implementați logica de autentificare:
         1. Verificați credențialele în UTILIZATORI_VALIZI
@@ -92,8 +119,15 @@ class SesiuneClient:
         """
         Verifică dacă clientul mai poate încerca autentificarea.
         
+        Un client care a depășit MAX_ÎNCERCĂRI încercări eșuate nu mai
+        poate continua și conexiunea ar trebui închisă.
+        
         Returns:
-            True dacă mai are încercări disponibile
+            True dacă clientul mai are încercări disponibile sau este
+            deja autentificat, False dacă a epuizat încercările.
+            
+        Note:
+            Un client autentificat poate întotdeauna continua.
         """
         # TODO: Implementare
         pass
@@ -101,21 +135,31 @@ class SesiuneClient:
 
 def procesează_mesaj(mesaj: str, sesiune: SesiuneClient) -> Tuple[str, bool]:
     """
-    Procesează un mesaj ținând cont de starea autentificării.
+    Procesează un mesaj ținând cont de starea autentificării clientului.
+    
+    Această funcție implementează logica de procesare a comenzilor,
+    diferențiind între clienții autentificați și cei neautentificați.
     
     Args:
-        mesaj: Mesajul primit de la client
-        sesiune: Sesiunea curentă a clientului
+        mesaj: Mesajul primit de la client (poate conține whitespace)
+        sesiune: Obiectul SesiuneClient care păstrează starea conexiunii
         
     Returns:
-        Tuple (răspuns, continuă_conexiune)
+        Tuple cu două elemente:
+        - str: Răspunsul de trimis clientului (include \\n la final)
+        - bool: True pentru a continua conexiunea, False pentru a o închide
+        
+    Comenzi suportate:
+        - LOGIN:utilizator:parolă - Autentificare
+        - upper:text - Convertește text la majuscule (necesită autentificare)
+        - lower:text - Convertește text la minuscule (necesită autentificare)
+        - exit/quit - Închide conexiunea
         
     TODO: Implementați logica de procesare:
     1. Dacă mesajul începe cu "LOGIN:", extrageți și verificați credențialele
     2. Dacă clientul NU este autentificat și comanda NU este LOGIN,
        returnați eroare și solicitați autentificare
     3. Dacă clientul ESTE autentificat, procesați comanda normal
-       (upper, lower, exit, etc.)
     """
     mesaj = mesaj.strip()
     
@@ -136,7 +180,6 @@ def procesează_mesaj(mesaj: str, sesiune: SesiuneClient) -> Tuple[str, bool]:
         pass
     
     # Comenzi normale (doar pentru utilizatori autentificați)
-    # TODO: Procesați comenzile normale (upper, lower, etc.)
     if mesaj.lower().startswith("upper:"):
         text = mesaj[6:]
         return f"OK: {text.upper()}\n", True
@@ -150,11 +193,20 @@ def procesează_mesaj(mesaj: str, sesiune: SesiuneClient) -> Tuple[str, bool]:
 
 def gestionează_client(socket_client: socket.socket, adresă: Tuple[str, int]) -> None:
     """
-    Gestionează comunicarea cu un client.
+    Gestionează comunicarea cu un client conectat.
+    
+    Această funcție rulează într-un thread separat pentru fiecare client
+    și gestionează întregul ciclu de viață al conexiunii: salut, autentificare,
+    procesare comenzi și închidere.
     
     Args:
-        socket_client: Socket-ul clientului
-        adresă: Adresa clientului (ip, port)
+        socket_client: Socket-ul TCP conectat la client
+        adresă: Tuple (ip, port) reprezentând adresa clientului
+        
+    Note:
+        - Socket-ul este închis automat la ieșirea din funcție
+        - Excepțiile sunt prinse și loggate, nu propagate
+        - Thread-ul este daemon, deci nu blochează oprirea serverului
     """
     print(f"Client conectat: {adresă[0]}:{adresă[1]}")
     
@@ -182,20 +234,49 @@ def gestionează_client(socket_client: socket.socket, adresă: Tuple[str, int]) 
             if not continuă:
                 break
             
-            # TODO: Verificați dacă clientul a depășit numărul de încercări
+            # Verificare dacă clientul a depășit numărul de încercări
             if not sesiune.poate_continua():
-                socket_client.sendall("EROARE: Prea multe încercări. Conexiune închisă.\n".encode('utf-8'))
+                socket_client.sendall(
+                    "EROARE: Prea multe încercări. Conexiune închisă.\n".encode('utf-8')
+                )
                 break
                 
+    except ConnectionResetError:
+        print(f"Conexiune resetată de client: {adresă[0]}:{adresă[1]}")
     except Exception as e:
-        print(f"Eroare: {e}")
+        print(f"Eroare cu clientul {adresă[0]}:{adresă[1]}: {e}")
     finally:
         socket_client.close()
         print(f"Conexiune închisă: {adresă[0]}:{adresă[1]}")
 
 
 def pornește_server(host: str, port: int) -> None:
-    """Pornește serverul TCP cu autentificare."""
+    """
+    Pornește serverul TCP cu suport pentru autentificare.
+    
+    Serverul acceptă conexiuni pe adresa și portul specificate,
+    creând un thread separat pentru fiecare client conectat.
+    Rulează până când primește Ctrl+C (KeyboardInterrupt).
+    
+    Args:
+        host: Adresa IP pe care să asculte.
+            - "0.0.0.0" pentru toate interfețele (accesibil din rețea)
+            - "127.0.0.1" doar pentru conexiuni locale
+        port: Portul TCP pe care să asculte (1-65535)
+        
+    Note:
+        - Utilizatorii valizi sunt definiți în constanta UTILIZATORI_VALIZI
+        - Fiecare client are maxim MAX_ÎNCERCĂRI pentru autentificare
+        - Thread-urile client sunt daemon (se opresc automat cu serverul)
+        - SO_REUSEADDR este setat pentru a permite restart rapid
+        
+    Raises:
+        OSError: Dacă portul este deja în uz sau adresa invalidă
+        
+    Example:
+        >>> pornește_server("0.0.0.0", 9090)  # Accesibil din rețea
+        >>> pornește_server("127.0.0.1", 8080)  # Doar local
+    """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((host, port))
@@ -212,9 +293,9 @@ def pornește_server(host: str, port: int) -> None:
                 socket_client, adresă = server.accept()
                 thread = threading.Thread(
                     target=gestionează_client,
-                    args=(socket_client, adresă)
+                    args=(socket_client, adresă),
+                    daemon=True
                 )
-                thread.daemon = True
                 thread.start()
         except KeyboardInterrupt:
             print("\nServer oprit.")
@@ -225,8 +306,30 @@ def pornește_server(host: str, port: int) -> None:
 # ============================================================================
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Server TCP cu Autentificare")
-    parser.add_argument("--port", "-p", type=int, default=PORT, help="Port")
+    """
+    Punct de intrare pentru rularea serverului din linia de comandă.
+    
+    Returns:
+        Cod de ieșire (0 pentru succes)
+    """
+    parser = argparse.ArgumentParser(
+        description="Server TCP cu Autentificare - Tema 2.01",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Exemple:
+  python hw_2_01.py                    # Pornește pe portul implicit (9090)
+  python hw_2_01.py --port 8080        # Pornește pe portul 8080
+
+Testare cu netcat:
+  nc localhost 9090
+        """
+    )
+    parser.add_argument(
+        "--port", "-p",
+        type=int,
+        default=PORT,
+        help=f"Portul pe care să asculte serverul (implicit: {PORT})"
+    )
     args = parser.parse_args()
     
     pornește_server(HOST, args.port)

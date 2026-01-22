@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Tema 2.02: Client UDP Robust cu Retry
+Tema 2.02: Client UDP cu Retry Automat
 Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
 
 CERINȚĂ:
@@ -56,10 +56,10 @@ class StatisticiTrimitere:
 
 
 # ============================================================================
-# TODO: Implementați clasa ClientUDPRobust
+# TODO: Implementați clasa ClientUDPRetryer
 # ============================================================================
 
-class ClientUDPRobust:
+class ClientUDPRetryer:
     """
     Client UDP cu mecanism de retry pentru gestionarea pierderii pachetelor.
     
@@ -80,7 +80,7 @@ class ClientUDPRobust:
         verbose: bool = True
     ):
         """
-        Inițializează clientul UDP robust.
+        Inițializează clientul UDP cu retry.
         
         Args:
             host: Adresa serverului
@@ -192,7 +192,7 @@ class ClientUDPRobust:
     def afișează_statistici(self) -> None:
         """Afișează statisticile cumulative."""
         print("\n" + "=" * 50)
-        print("Statistici Client UDP Robust")
+        print("Statistici Client UDP cu Retry")
         print("=" * 50)
         print(f"  Total cereri:     {self.total_trimise}")
         print(f"  Reușite:          {self.total_reușite}")
@@ -206,11 +206,11 @@ class ClientUDPRobust:
         print("=" * 50)
 
 
-class ClientUDPTest(ClientUDPRobust):
+class ClientUDPTestPierderi(ClientUDPRetryer):
     """
     Client UDP care simulează pierdere de pachete pentru testare.
     
-    TODO: Extindeți ClientUDPRobust pentru a:
+    TODO: Extindeți ClientUDPRetryer pentru a:
     1. Simula pierdere de pachete cu o anumită probabilitate
     2. Permite testarea mecanismului de retry fără server real
     """
@@ -277,15 +277,15 @@ class ClientUDPTest(ClientUDPRobust):
 # Funcții de Test
 # ============================================================================
 
-def test_client_robust() -> None:
-    """Testează clientul robust cu un server real."""
+def test_client_retryer() -> None:
+    """Testează clientul cu retry folosind un server real."""
     print("=" * 60)
-    print("Test Client UDP Robust")
+    print("Test Client UDP cu Retry")
     print("=" * 60)
     print("NOTĂ: Serverul UDP trebuie să ruleze pe localhost:9091")
     print()
     
-    client = ClientUDPRobust(verbose=True)
+    client = ClientUDPRetryer(verbose=True)
     
     comenzi = ["ping", "upper:test", "time", "help"]
     
@@ -304,7 +304,7 @@ def test_simulare_pierdere() -> None:
     print("=" * 60)
     print()
     
-    client = ClientUDPTest(probabilitate_pierdere=0.5, verbose=True)
+    client = ClientUDPTestPierderi(probabilitate_pierdere=0.5, verbose=True)
     
     for i in range(5):
         print(f"\n--- Cererea {i + 1} ---")
@@ -320,7 +320,7 @@ def test_simulare_pierdere() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Client UDP Robust cu Retry",
+        description="Client UDP cu Retry Automat",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemple:
@@ -350,14 +350,14 @@ Exemple:
     args = parser.parse_args()
     
     if args.test:
-        test_client_robust()
+        test_client_retryer()
         return 0
     
     if args.simulate:
         test_simulare_pierdere()
         return 0
     
-    client = ClientUDPRobust(
+    client = ClientUDPRetryer(
         host=args.host,
         port=args.port,
         timeout=args.timeout,
@@ -366,7 +366,7 @@ Exemple:
     )
     
     if args.interactive:
-        print(f"Client UDP Robust conectat la {args.host}:{args.port}")
+        print(f"Client UDP cu Retry conectat la {args.host}:{args.port}")
         print("Introduceți comenzi (quit pentru ieșire)")
         print("-" * 40)
         
