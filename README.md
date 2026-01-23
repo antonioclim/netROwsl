@@ -9,6 +9,49 @@
 
 > **by Revolvix**
 
+---
+
+## ⚡ QUICK START — Pornire în 5 minute
+
+```bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLONEAZA_REPOSITORY
+# ═══════════════════════════════════════════════════════════════════════════════
+git clone https://github.com/antonioclim/netROwsl.git
+cd netROwsl
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# NAVIGHEAZA_LA_SAPTAMANA
+# ═══════════════════════════════════════════════════════════════════════════════
+cd 01roWSL  # sau orice altă săptămână (01-14)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICA_MEDIUL
+# ═══════════════════════════════════════════════════════════════════════════════
+python3 setup/verifica_mediu.py
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PORNESTE_LABORATORUL
+# ═══════════════════════════════════════════════════════════════════════════════
+python3 scripts/porneste_lab.py
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ACCESEAZA_PORTAINER
+# ═══════════════════════════════════════════════════════════════════════════════
+# Deschide în browser: http://localhost:9000
+# Credențiale: stud / studstudstud
+```
+
+### Credențiale Rapide
+
+| Serviciu | Utilizator | Parolă |
+|----------|------------|--------|
+| **Ubuntu WSL** | `stud` | `stud` |
+| **Portainer** | `stud` | `studstudstud` |
+
+> 💭 **PREDICȚIE:** După `python3 scripts/porneste_lab.py`, câte containere crezi că vor porni pentru Săptămâna 1?
+
+
 **Disciplină:** Rețele de Calculatoare (25.0205IF3.2-0003)  
 **Program de studiu:** Informatică Economică, Anul III, Semestrul 2  
 **Instituție:** Academia de Studii Economice din București (ASE), Facultatea de Cibernetică, Statistică și Informatică Economică (CSIE)  
@@ -68,7 +111,10 @@ Materialele de laborator sunt disponibile în **două limbi**, organizate în re
 - [28. Tehnologii și instrumente utilizate](#28-tehnologii-și-instrumente-utilizate)
 - [29. Ghid complet de depanare](#29-ghid-complet-de-depanare)
 - [30. Comenzi esențiale — Fișă de referință rapidă](#30-comenzi-esențiale--fișă-de-referință-rapidă)
-- [31. Licență](#31-licență)
+- [31. Exerciții de nivel superior (EVALUATE & CREATE)](#31-exerciții-de-nivel-superior-evaluate--create)
+- [32. Ghid Live Coding pentru Instructori](#32-ghid-live-coding-pentru-instructori)
+- [33. FAQ — Întrebări Frecvente](#33-faq--întrebări-frecvente)
+- [34. Licență](#34-licență)
 
 ---
 
@@ -377,7 +423,7 @@ netENwsl/
 ```
 netROwsl/
 │
-├── 📁 00INAINTEdeORICE/               # ⚠️ CITIȚI ÎNTÂI! Cerințe preliminare
+├── 📁 00-startAPPENDIX(week0)/               # ⚠️ CITIȚI ÎNTÂI! Cerințe preliminare
 │   ├── CERINTE_PRELIMINARE_RO.html    # Ghid interactiv HTML
 │   ├── CerintePrelimRO.md             # Ghid Markdown
 │   └── exemplu_captura_wireshark.png  # Screenshot exemplu
@@ -747,6 +793,9 @@ echo "$USER ALL=(ALL) NOPASSWD: /usr/sbin/service docker *" | sudo tee /etc/sudo
 
 ## 8. Verificarea instalării
 
+> 💭 **PREDICȚIE:** Ce versiune minimă de Docker Compose este necesară? Ce va afișa `docker compose version` pe sistemul tău?
+
+
 ### 8.1 Script complet de verificare
 
 Creați și rulați acest script în Ubuntu:
@@ -1030,6 +1079,9 @@ cd netENwsl
 
 ## 11. Săptămâna 1: Fundamente ale rețelelor
 
+> 💭 **PREDICȚIE:** După `ping -c 4 google.com`, câte pachete vor fi trimise și câte primite în condiții normale?
+
+
 **Director RO:** `01roWSL/` | **Director EN:** `1enWSL/`  
 **Rețea Docker:** `172.20.1.0/24`  
 **Porturi:** 9090 (TCP), 9091 (UDP), 9092 (Alternativ)
@@ -1067,6 +1119,9 @@ Acest laborator introductiv stabilește competențele fundamentale în diagnosti
 ---
 
 ## 12. Săptămâna 2: Modele arhitecturale și programare socket
+
+> 💭 **PREDICȚIE:** La crearea unui socket TCP, ce tip de socket vei folosi: `SOCK_STREAM` sau `SOCK_DGRAM`?
+
 
 **Director RO:** `02roWSL/` | **Director EN:** `2enWSL/`  
 **Rețea Docker:** `10.0.2.0/24`
@@ -1154,6 +1209,9 @@ Network Address Translation, protocoale suport esențiale (ARP, DHCP, ICMP, NDP)
 
 ## 17. Săptămâna 7: Interceptare pachete, filtrare și securitate
 
+> 💭 **PREDICȚIE:** Ce pachete va captura `tcpdump -i any port 80`? Doar HTTP sau și altele?
+
+
 **Director RO:** `07roWSL/` | **Director EN:** `7enWSL/`  
 **Rețea Docker:** `10.0.7.0/24`
 
@@ -1168,6 +1226,9 @@ Competențe esențiale de securitate și forensică prin filtrarea pachetelor, c
 ---
 
 ## 18. Săptămâna 8: Nivelul transport, HTTP și proxy invers
+
+> 💭 **PREDICȚIE:** În TCP 3-way handshake, care este ordinea flag-urilor: SYN → ? → ?
+
 
 **Director RO:** `08roWSL/` | **Director EN:** `8enWSL/`  
 **Rețea Docker:** `172.28.8.0/24`  
@@ -1214,6 +1275,9 @@ HTTP/HTTPS, TLS/SSL, REST APIs, `requests`, DNS, `dnspython`, SSH, `paramiko`
 ---
 
 ## 21. Săptămâna 11: Echilibrarea încărcării (Load Balancing)
+
+> 💭 **PREDICȚIE:** Cu round-robin load balancing și 3 backend-uri, al 4-lea request va ajunge la care server?
+
 
 **Director RO:** `11roWSL/` | **Director EN:** `11enWSL/`  
 **Rețea Docker:** `week11net` (10.0.11.0/24)  
@@ -1389,7 +1453,7 @@ Acest laborator combină două domenii critice: protocoalele Internet of Things 
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  ┌───────────────────────────────────────────────────────────────────────┐ │
-│  │                     MQTT ECOSYSTEM                                     │ │
+│  │                     ARHITECTURA MQTT                                     │ │
 │  │  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐             │ │
 │  │  │ IoT Sensor  │────▶│  Mosquitto  │◀────│ IoT Control │             │ │
 │  │  │  (Publish)  │     │   Broker    │     │ (Subscribe) │             │ │
@@ -1468,6 +1532,9 @@ tcp.port in {1883, 8883, 8080, 2121, 6200}
 ---
 
 ## 24. Săptămâna 14: Recapitulare integrată și evaluare
+
+> 💭 **PREDICȚIE:** Câte protocoale diferite ai studiat în acest semestru? Poți enumera minim 10?
+
 
 **Director RO:** `14roWSL/` | **Director EN:** `14enWSL/`  
 **Rețele Docker:** `week14_backend_net` (172.20.0.0/24), `week14_frontend_net` (172.21.0.0/24)  
@@ -2010,7 +2077,277 @@ python3 scripts/curata.py --complet
 
 ---
 
-## 31. Licență
+
+---
+
+## 31. Exerciții de nivel superior (EVALUATE & CREATE)
+
+Aceste exerciții vizează **nivelurile cognitive superioare** din taxonomia Anderson-Bloom și sunt recomandate pentru studenții care doresc să aprofundeze materia.
+
+### 31.1 Exerciții EVALUATE (Evaluare Critică)
+
+#### E1. Evaluare Arhitectură Load Balancer (Săptămâna 11)
+
+> 💭 **PREDICȚIE:** Care crezi că sunt cele mai importante criterii pentru alegerea unui algoritm de load balancing?
+
+**Cerință:** Analizează configurația Nginx din `11roWSL/docker/configs/nginx.conf`.
+
+1. Care sunt avantajele și dezavantajele algoritmului round-robin folosit?
+2. Ce s-ar întâmpla dacă unul dintre backend-uri devine indisponibil?
+3. Propune o îmbunătățire a configurației și justifică alegerea.
+4. Compară round-robin cu least-connections — când ai folosi fiecare?
+
+**Livrabil:** Raport de 1-2 pagini cu analiza și recomandările tale.
+
+#### E2. Audit Securitate Setup IoT (Săptămâna 13)
+
+> 💭 **PREDICȚIE:** Câte vulnerabilități potențiale crezi că există în setup-ul MQTT fără autentificare?
+
+**Cerință:** Examinează setup-ul MQTT din `13roWSL/docker/`.
+
+1. Identifică **minim 3 vulnerabilități** potențiale în configurația curentă.
+2. Clasifică fiecare vulnerabilitate după severitate: CRITICAL / HIGH / MEDIUM / LOW.
+3. Propune mitigări concrete pentru fiecare vulnerabilitate identificată.
+4. Evaluează trade-off-ul între securitate și ușurința de utilizare în context educațional.
+
+**Livrabil:** Tabel cu vulnerabilități, severități și mitigări.
+
+#### E3. Comparație Protocoale RPC (Săptămâna 12)
+
+**Cerință:** După ce ai experimentat cu JSON-RPC, XML-RPC și gRPC:
+
+1. Compară cele 3 tehnologii din perspectiva: performanță, ușurință implementare, interoperabilitate.
+2. Pentru ce tip de aplicație ai recomanda fiecare?
+3. Care sunt dezavantajele gRPC față de JSON-RPC pentru un startup mic?
+
+**Livrabil:** Tabel comparativ cu justificări.
+
+---
+
+### 31.2 Exerciții CREATE (Design Original)
+
+#### C1. Design Protocol Binar Custom (Săptămânile 4 → 14)
+
+> 💭 **PREDICȚIE:** De câți bytes ai nevoie minim pentru un header de protocol care să conțină: tip mesaj, lungime, și checksum?
+
+**Cerință:** Proiectează un protocol binar pentru telemetrie IoT.
+
+**Specificații:**
+- Header fix de **8 bytes** conținând:
+  - Versiune protocol (1 byte)
+  - Tip mesaj (1 byte)
+  - Lungime payload (2 bytes, big-endian)
+  - Timestamp (4 bytes, UNIX epoch)
+- Payload variabil (max 1024 bytes)
+- CRC16 pentru verificare integritate (2 bytes la final)
+
+**Livrabile:**
+1. Documentație format protocol (diagramă + explicații)
+2. Implementare Python encoder/decoder
+3. Test cu minim 5 tipuri de mesaje diferite
+
+#### C2. Arhitectură Microservicii (Săptămâna 14)
+
+**Cerință:** Creează un `docker-compose.yml` original pentru o aplicație de tip "URL Shortener".
+
+**Componente obligatorii:**
+- API Gateway (Nginx) pe portul 8080
+- 2 instanțe backend (Python/Flask sau Node.js)
+- Bază de date (Redis sau SQLite în volum)
+- Health checks pentru toate serviciile
+
+**Livrabile:**
+1. `docker-compose.yml` complet și funcțional
+2. Cod sursă pentru backend
+3. `README.md` cu instrucțiuni de utilizare
+4. Justificarea alegerilor arhitecturale (1 pagină)
+
+#### C3. Instrument de Diagnoză Rețea (Săptămânile 1-7)
+
+**Cerință:** Dezvoltă un script Python care combină mai multe instrumente de diagnoză.
+
+**Funcționalități:**
+- Ping către o listă de host-uri
+- Port scan pe range specificat
+- Verificare DNS pentru domenii
+- Export rezultate în format JSON și HTML
+
+**Livrabile:**
+1. Script Python cu argparse pentru parametri
+2. Documentație utilizare
+3. Exemple de output
+
+---
+
+## 32. Ghid Live Coding pentru Instructori
+
+### 32.1 Principii de bază
+
+Live coding-ul este o tehnică de predare în care instructorul scrie cod în fața studenților, explicând fiecare pas. Este **fundamental diferit** de a prezenta cod pre-scris.
+
+### 32.2 Structura unei sesiuni de Live Coding
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CICLUL LIVE CODING (15-20 minute)                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. CONTEXT (2 min)      Prezintă problema și obiectivul                   │
+│         │                                                                   │
+│         ▼                                                                   │
+│  2. STRUCTURĂ (2 min)    Schițează structura generală a soluției           │
+│         │                                                                   │
+│         ▼                                                                   │
+│  3. IMPLEMENTARE         Scrie cod în pași de 2-5 linii                    │
+│     INCREMENTALĂ         ┌──────────────────────────────────────┐          │
+│     (10-15 min)          │  a) Scrie 2-5 linii                  │          │
+│                          │  b) ÎNTREABĂ: "Ce va afișa asta?"    │          │
+│                          │  c) Rulează și verifică              │          │
+│                          │  d) Repetă                           │          │
+│                          └──────────────────────────────────────┘          │
+│         │                                                                   │
+│         ▼                                                                   │
+│  4. RECAPITULARE (2 min) Rezumă ce am construit și de ce                   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 32.3 Reguli de aur
+
+1. **GREȘEȘTE INTENȚIONAT** — Fă o greșeală și arată cum o depanezi
+2. **CERE PREDICȚII** — Înainte de fiecare `python3 script.py`, întreabă "Ce va afișa?"
+3. **VORBEȘTE ÎN TIMP CE TASTEZI** — Explică fiecare linie
+4. **NU TE GRĂBI** — Mai bine acoperi mai puțin, dar studenții înțeleg
+5. **FOLOSEȘTE COMENTARII** — Adaugă comentarii explicative pe loc
+
+### 32.4 Exemplu pentru Săptămâna 2 (Socket TCP)
+
+```python
+# PASUL 1: "Să creăm un socket TCP simplu"
+import socket
+
+# ÎNTREBARE: "Ce tip de socket folosim pentru TCP?"
+# Răspuns așteptat: SOCK_STREAM
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+print("Socket creat!")
+
+# RULEAZĂ → verifică output
+
+# PASUL 2: "Acum să ne conectăm la un server"
+# ÎNTREBARE: "Ce se întâmplă dacă serverul nu rulează?"
+
+sock.connect(('localhost', 8080))
+print("Conectat!")
+
+# RULEAZĂ → probabil eroare! → DEPANĂM ÎMPREUNĂ
+```
+
+### 32.5 Checklist pre-sesiune
+
+- [ ] Am testat tot codul înainte?
+- [ ] Am pregătit 2-3 greșeli intenționate de demonstrat?
+- [ ] Am pregătit întrebări de predicție pentru fiecare pas?
+- [ ] Fontul în terminal este suficient de mare (min 18pt)?
+- [ ] Am dezactivat notificările pe ecran?
+
+---
+
+## 33. FAQ — Întrebări Frecvente
+
+### Probleme de instalare și configurare
+
+**Q: Primesc "Address already in use" când pornesc laboratorul.**
+
+> **A:** Un alt proces folosește deja portul. Identifică-l și oprește-l:
+> ```bash
+> # Găsește procesul
+> ss -tulpn | grep <port>
+> # Sau pe Windows
+> netstat -ano | findstr <port>
+> ```
+> Apoi oprește procesul sau schimbă portul în `docker-compose.yml`.
+
+**Q: Docker nu pornește în WSL. Ce fac?**
+
+> **A:** Pornește manual serviciul:
+> ```bash
+> sudo service docker start
+> # Parolă: stud
+> ```
+> Dacă persistă, verifică dacă WSL2 este configurat corect: `wsl --status`
+
+**Q: Portainer nu se deschide la http://localhost:9000.**
+
+> **A:** Verifică dacă containerul Portainer rulează:
+> ```bash
+> docker ps | grep portainer
+> ```
+> Dacă nu rulează, pornește-l:
+> ```bash
+> docker start portainer
+> # Sau recreează-l conform instrucțiunilor din Secțiunea 7
+> ```
+
+**Q: Nu am spațiu pe disc pentru imagini Docker.**
+
+> **A:** Curăță resursele neutilizate:
+> ```bash
+> docker system prune -a
+> # ATENȚIE: Șterge TOATE imaginile neutilizate!
+> ```
+
+### Probleme în timpul laboratoarelor
+
+**Q: Containerul pornește dar serviciul nu răspunde.**
+
+> **A:** Verifică log-urile containerului:
+> ```bash
+> docker logs <container_name>
+> # Sau în Portainer: click pe container → Logs
+> ```
+
+**Q: Wireshark nu vede traficul din containere.**
+
+> **A:** În WSL, traficul Docker trece prin interfața `docker0` sau bridge-ul specific. Folosește:
+> ```bash
+> # În Wireshark pe Windows, selectează "Adapter for loopback traffic capture"
+> # Sau folosește tcpdump în WSL:
+> sudo tcpdump -i any port <port> -w captura.pcap
+> ```
+
+**Q: Cum resetez complet un laborator?**
+
+> **A:** Folosește scriptul de curățare:
+> ```bash
+> python3 scripts/curata.py --complet
+> # Apoi repornește:
+> python3 scripts/porneste_lab.py --rebuild
+> ```
+
+### Întrebări conceptuale
+
+**Q: Care e diferența între Docker și o mașină virtuală?**
+
+> **A:** Containerele Docker împart kernel-ul cu host-ul și sunt mult mai ușoare (~MB vs ~GB). 
+> VM-urile au propriul kernel și oferă izolare completă dar cu overhead mai mare.
+
+**Q: De ce folosim WSL2 și nu Docker Desktop?**
+
+> **A:** WSL2 oferă:
+> - Performanță mai bună (kernel Linux nativ)
+> - Consum de resurse mai mic
+> - Control complet asupra configurației
+> - Competențe Linux transferabile
+> - Licențiere complet gratuită
+
+**Q: Portul 9000 e pentru laborator?**
+
+> **A:** **NU!** Portul 9000 este **REZERVAT PERMANENT** pentru Portainer. 
+> Laboratoarele folosesc alte porturi (8080, 8081, 9090, etc.).
+
+
+## 34. Licență
 
 Acest proiect este licențiat sub **Licența MIT**.
 
