@@ -5,9 +5,9 @@
 [![WSL2](https://img.shields.io/badge/WSL2-Ubuntu_22.04_LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)](https://ubuntu.com)
 [![Wireshark](https://img.shields.io/badge/Wireshark-4.4.x-1679A7?style=for-the-badge&logo=wireshark&logoColor=white)](https://wireshark.org)
 [![Portainer](https://img.shields.io/badge/Portainer-2.33.6_LTS-13BEF9?style=for-the-badge&logo=portainer&logoColor=white)](https://portainer.io)
-[![Licență](https://img.shields.io/badge/Licență-MIT-yellow?style=for-the-badge)](LICENSE)
+[![Licență](https://img.shields.io/badge/Licență-Educațională_Restrictivă-red?style=for-the-badge)](LICENSE.md)
 
-> **by Revolvix**
+> **© 2019–2026 Antonio Clim, Andrei Toma** | by Revolvix
 
 ---
 
@@ -55,7 +55,7 @@ python3 scripts/porneste_lab.py
 **Disciplină:** Rețele de Calculatoare (25.0205IF3.2-0003)  
 **Program de studiu:** Informatică Economică, Anul III, Semestrul 2  
 **Instituție:** Academia de Studii Economice din București (ASE), Facultatea de Cibernetică, Statistică și Informatică Economică (CSIE)  
-**An universitar:** 2024–2025
+**An universitar:** 2025–2026
 
 ---
 
@@ -91,7 +91,7 @@ Materialele de laborator sunt disponibile în **două limbi**, organizate în re
 - [10. Clonarea individuală a fiecărei săptămâni](#10-clonarea-individuală-a-fiecărei-săptămâni)
 - [11. Săptămâna 1: Fundamente ale rețelelor](#11-săptămâna-1-fundamente-ale-rețelelor)
 - [12. Săptămâna 2: Modele arhitecturale și programare socket](#12-săptămâna-2-modele-arhitecturale-și-programare-socket)
-- [13. Săptămâna 3: Paradigme de programare în rețea](#13-săptămâna-3-paradigme-de-programare-în-rețea)
+- [13. Săptămâna 3: Modele avansate de programare în rețea](#13-săptămâna-3-modele-avansate-de-programare-în-rețea)
 - [14. Săptămâna 4: Nivelurile fizic și legătură de date](#14-săptămâna-4-nivelurile-fizic-și-legătură-de-date)
 - [15. Săptămâna 5: Nivelul rețea și adresare IP](#15-săptămâna-5-nivelul-rețea-și-adresare-ip)
 - [16. Săptămâna 6: NAT/PAT, protocoale suport și SDN](#16-săptămâna-6-natpat-protocoale-suport-și-sdn)
@@ -805,6 +805,9 @@ Creați și rulați acest script în Ubuntu:
 # verify_lab_environment.sh
 # Script de verificare completă a mediului de laborator
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEFINIRE_CULORI_SI_CONTOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
@@ -814,13 +817,19 @@ NC='\033[0m' # No Color
 ERRORS=0
 WARNINGS=0
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# AFISARE_BANNER
+# ═══════════════════════════════════════════════════════════════════════════════
 echo ""
 echo "╔═══════════════════════════════════════════════════════════════════════════╗"
 echo "║        VERIFICARE MEDIU LABORATOR REȚELE DE CALCULATOARE                  ║"
-echo "║                         by Revolvix                                        ║"
+echo "║              © 2019–2026 Antonio Clim, Andrei Toma                        ║"
 echo "╚═══════════════════════════════════════════════════════════════════════════╝"
 echo ""
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEFINIRE_FUNCTII_VERIFICARE
+# ═══════════════════════════════════════════════════════════════════════════════
 check_required() {
     if eval "$2" &>/dev/null; then
         echo -e "  ${GREEN}✓${NC} $1"
@@ -839,6 +848,9 @@ check_optional() {
     fi
 }
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# AFISARE_INFORMATII_SISTEM
+# ═══════════════════════════════════════════════════════════════════════════════
 echo -e "${BLUE}▶ INFORMAȚII SISTEM${NC}"
 echo "  Hostname: $(hostname)"
 echo "  Ubuntu: $(lsb_release -d 2>/dev/null | cut -f2)"
@@ -846,6 +858,9 @@ echo "  Kernel: $(uname -r)"
 echo "  User: $(whoami)"
 echo ""
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICARE_COMPONENTE_PRINCIPALE
+# ═══════════════════════════════════════════════════════════════════════════════
 echo -e "${BLUE}▶ COMPONENTE PRINCIPALE${NC}"
 check_required "Python 3.11+" "python3 --version | grep -E 'Python 3\.(1[1-9]|[2-9][0-9])'"
 check_required "pip3" "pip3 --version"
@@ -1147,7 +1162,9 @@ Python `socket`, `threading`, `concurrent.futures`, modelul OSI, modelul TCP/IP,
 
 ---
 
-## 13. Săptămâna 3: Paradigme de programare în rețea
+## 13. Săptămâna 3: Modele avansate de programare în rețea
+
+> 💭 **PREDICȚIE:** Dacă trimiți un pachet UDP broadcast, câte dispozitive din rețeaua locală îl vor primi?
 
 **Director RO:** `03roWSL/` | **Director EN:** `3enWSL/`  
 **Rețea Docker:** `172.20.0.0/24`
@@ -1164,6 +1181,8 @@ UDP multicast, broadcast sockets, opțiuni socket (`SO_BROADCAST`, `IP_ADD_MEMBE
 
 ## 14. Săptămâna 4: Nivelurile fizic și legătură de date
 
+> 💭 **PREDICȚIE:** Un cadru Ethernet are un câmp CRC. Ce se întâmplă dacă CRC-ul calculat nu corespunde cu cel primit?
+
 **Director RO:** `04roWSL/` | **Director EN:** `4enWSL/`  
 **Rețea Docker:** `172.28.0.0/16`
 
@@ -1179,12 +1198,14 @@ Laboratorul coboară la cele mai jos straturi accesibile, examinând încadrarea
 
 ## 15. Săptămâna 5: Nivelul rețea și adresare IP
 
+> 💭 **PREDICȚIE:** Câte adrese IP utilizabile sunt în rețeaua `192.168.1.0/24`? (Hint: nu sunt 256)
+
 **Director RO:** `05roWSL/` | **Director EN:** `5enWSL/`  
 **Rețea Docker:** `10.5.0.0/24`
 
 ### 15.1 Sinopsis
 
-Acoperire comprehensivă a adresării IP, metodologiilor de subrețele (CIDR, FLSM, VLSM) și fundamentelor IPv6.
+Acoperire completă a adresării IP, metodologiilor de subrețele (CIDR, FLSM, VLSM) și fundamentelor IPv6.
 
 ### 15.2 Tehnologii cheie
 
@@ -1193,6 +1214,8 @@ Modulul `ipaddress`, notația CIDR, FLSM, VLSM, IPv4, IPv6, calculatoare de subr
 ---
 
 ## 16. Săptămâna 6: NAT/PAT, protocoale suport și SDN
+
+> 💭 **PREDICȚIE:** Ce se întâmplă cu adresa IP sursă a unui pachet când trece prin NAT? Rămâne aceeași sau se schimbă?
 
 **Director RO:** `06roWSL/` | **Director EN:** `6enWSL/`  
 **Rețea Docker:** Topologie personalizată cu segmente multiple
@@ -1246,6 +1269,8 @@ TCP handshake, HTTP/1.1, `http.server`, Nginx, reverse proxy, load balancing, Do
 
 ## 19. Săptămâna 9: Nivelurile sesiune și prezentare
 
+> 💭 **PREDICȚIE:** În FTP, care mod (activ sau pasiv) funcționează mai bine când clientul este în spatele unui firewall?
+
 **Director RO:** `09roWSL/` | **Director EN:** `9enWSL/`  
 **Rețea Docker:** `172.29.9.0/24`
 
@@ -1260,6 +1285,8 @@ FTP (activ/pasiv), `ftplib`, `pyftpdlib`, încadrare binară, `struct`, gestiona
 ---
 
 ## 20. Săptămâna 10: Protocoale de nivel aplicație
+
+> 💭 **PREDICȚIE:** Ce port folosește HTTPS implicit și de ce nu este același cu HTTP?
 
 **Director RO:** `10roWSL/` | **Director EN:** `10enWSL/`  
 **Rețea Docker:** `172.20.0.0/24`
@@ -1544,7 +1571,7 @@ tcp.port in {1883, 8883, 8080, 2121, 6200}
 
 ### 24.1 Sinopsis
 
-Laboratorul de sinteză — construcția unei aplicații multi-tier complete cu load balancing, reverse proxy și validare comprehensivă. Această săptămână integrează toate conceptele studiate pe parcursul semestrului într-un proiect practic complex.
+Laboratorul de sinteză — construcția unei aplicații multi-tier complete cu load balancing, reverse proxy și validare completă. Această săptămână integrează toate conceptele studiate pe parcursul semestrului într-un proiect practic complex.
 
 ### 24.2 Arhitectura finală
 
@@ -2349,31 +2376,67 @@ print("Conectat!")
 
 ## 34. Licență
 
-Acest proiect este licențiat sub **Licența MIT**.
+Acest proiect este licențiat sub **Licență Educațională Restrictivă** (v5.0.0).
+
+### Notificare privind Drepturile de Autor
+
+**© 2019–2026 Antonio Clim, Andrei Toma. Toate drepturile rezervate.**
+
+Materialele sunt protejate în conformitate cu legislația română (Legea nr. 8/1996), Directiva UE 2001/29/CE și tratatele internaționale aplicabile.
+
+### Utilizări Permise
+
+| Permis | Descriere |
+|:------:|-----------|
+| ✓ | **Studiu Personal** — Vizualizare, citire și studiu pentru beneficiu educațional propriu |
+| ✓ | **Executare Cod** — Rulare exemple de cod pe dispozitive personale în scopuri de învățare |
+| ✓ | **Modificare Locală** — Modificare cod local pentru experimentare și învățare personală |
+| ✓ | **Note Personale** — Creare note derivate și adnotări doar pentru referință personală |
+| ✓ | **Citare Academică** — Citare fragmente scurte în lucrări academice cu atribuire corectă |
+
+### Utilizări Interzise (fără consimțământ scris)
+
+| Interzis | Descriere |
+|:--------:|-----------|
+| ✗ | **Publicare** — Încărcare, postare, publicare sau partajare pe orice platformă |
+| ✗ | **Predare** — Utilizare în cursuri, workshopuri, seminarii sau training fără autorizare |
+| ✗ | **Prezentare** — Prezentare, demonstrare sau afișare către audiențe |
+| ✗ | **Redistribuire** — Distribuire copii în orice formă, modificate sau nu |
+| ✗ | **Lucrări Derivate** — Creare și distribuire lucrări derivate |
+| ✗ | **Utilizare Comercială** — Orice scop comercial |
+
+### Licențierea pentru Instituții de Învățământ
+
+Instituțiile de învățământ care doresc să încorporeze aceste Materiale în curricula lor pot solicita o licență instituțională. Deschideți un issue cu tag-ul `[LICENCE]` pentru detalii.
+
+### Atribuire
+
+Când citați aceste Materiale în lucrări academice:
 
 ```
-MIT License
-
-Copyright (c) 2025 Revolvix
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Clim, A., & Toma, A. (2026). Rețele de Calculatoare — Kit-uri Complete de Laborator 
+(Ediție WSL, v5.0.0). Academia de Studii Economice București.
+https://github.com/antonioclim/netROwsl
 ```
+
+**Format BibTeX:**
+
+```bibtex
+@misc{clim2026retele,
+  author       = {Clim, Antonio and Toma, Andrei},
+  title        = {{netROwsl}: Rețele de Calculatoare — Kit-uri Complete de Laborator},
+  year         = {2026},
+  version      = {5.0.0},
+  institution  = {Academia de Studii Economice București},
+  howpublished = {\url{https://github.com/antonioclim/netROwsl}},
+  note         = {Materiale curriculare educaționale pentru laboratorul 
+                  de rețele de calculatoare}
+}
+```
+
+**Licența completă:** [LICENSE.md](LICENSE.md)
+
+**Declinare:** Materialele sunt furnizate „CA ATARE" fără garanție de orice fel.
 
 ---
 
@@ -2390,21 +2453,23 @@ Dacă ați parcurs acest ghid și ați configurat mediul corect, sunteți pregă
 
 ---
 
-## 📊 Rezumat modificări principale (Ianuarie 2025)
+## 📊 Rezumat modificări principale (Ianuarie 2026)
 
 Acest document a fost actualizat pentru a reflecta:
 
-1. **Două repository-uri separate** — netENwsl (Engleză) și netROwsl (Română)
-2. **Convenții de denumire distincte** — `<N>enWSL` vs `<NN>roWSL`
-3. **Structură directoare pentru studenți** — `D:\RETELE\SAPT<N>\<NN>roWSL`
-4. **Portul 9000 REZERVAT PERMANENT** pentru Portainer
-5. **Rezolvare conflict Săptămâna 14** — Echo Server mutat de la 9000 la 9090
-6. **Scripturi actualizate** — `porneste_lab.py` și `opreste_lab.py` nu gestionează Portainer
-7. **Filtre Wireshark specifice** pentru fiecare săptămână
-8. **Secțiuni detaliate** pentru Săptămânile 11, 12, 13, 14 cu arhitecturi complete
+1. **Licență Educațională Restrictivă** — Înlocuirea MIT cu licență restrictivă pentru protecția materialelor
+2. **Atribuire corectă** — © 2019–2026 Antonio Clim, Andrei Toma
+3. **17 întrebări PREDICȚIE** — Prompt-uri de predicție pentru fiecare săptămână
+4. **Două repository-uri separate** — netENwsl (Engleză) și netROwsl (Română)
+5. **Convenții de denumire distincte** — `<N>enWSL` vs `<NN>roWSL`
+6. **Structură directoare pentru studenți** — `D:\RETELE\SAPT<N>\<NN>roWSL`
+7. **Portul 9000 REZERVAT PERMANENT** pentru Portainer
+8. **Subgoal labels** — Comentarii structurate în cod pentru pedagogie
+9. **Filtre Wireshark specifice** pentru fiecare săptămână
+10. **Format BibTeX** pentru citări academice
 
 ---
 
-> **by Revolvix**  
+> **© 2019–2026 Antonio Clim, Andrei Toma**  
 > Laborator Rețele de Calculatoare — ASE București, CSIE  
-> Versiune documentație: Ianuarie 2025
+> Versiune documentație: Ianuarie 2026
