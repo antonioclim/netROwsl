@@ -7,6 +7,11 @@ Acest script elimină toate containerele, rețelele și opțional volumele
 pentru a pregăti sistemul pentru următoarea sesiune de laborator.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -14,6 +19,11 @@ from pathlib import Path
 import shutil
 
 # Adaugă rădăcina proiectului la path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -24,6 +34,11 @@ logger = configureaza_logger("cleanup")
 
 PREFIX_SAPTAMANA = "week4"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def curata_cache_python():
     """Șterge fișierele cache Python."""
@@ -146,6 +161,11 @@ def prune_docker(dry_run: bool = False):
         logger.warning(f"  Eroare la curățare Docker: {e}")
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -202,6 +222,11 @@ Exemple:
     
     return 0
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

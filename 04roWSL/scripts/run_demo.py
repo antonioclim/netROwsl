@@ -6,6 +6,11 @@ Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | realizat de Revolv
 Acest script rulează demonstrații automate ale protocoalelor.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -16,6 +21,11 @@ import binascii
 from pathlib import Path
 
 # Adaugă rădăcina proiectului la path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -24,6 +34,11 @@ from scripts.utils.network_utils import UtilitareRetea
 
 logger = configureaza_logger("demo")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def print_titlu(titlu: str):
     """Afișează un titlu formatat."""
@@ -284,6 +299,11 @@ def demo_detectare_erori():
     return True
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -349,6 +369,11 @@ Exemple:
     
     return 0
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())
