@@ -926,6 +926,61 @@ echo "✅ Toate verificările complete!"
 
 ## 12. Depanare
 
+### 12.0 Top 5 Erori și Soluții Rapide
+
+| # | Eroare | Cauză Comună | Soluție Rapidă |
+|:-:|--------|--------------|----------------|
+| 1 | `Cannot connect to Docker daemon` | Serviciul Docker nu rulează | `sudo service docker start` |
+| 2 | `Permission denied` la comenzi docker | User nu e în grupul docker | `sudo usermod -aG docker $USER` + logout/login |
+| 3 | `Address already in use` | Portul e deja ocupat | `ss -tlnp \| grep :PORT` apoi oprește procesul |
+| 4 | `wsl --install` nu face nimic | WSL deja parțial instalat | `wsl --update` apoi restart |
+| 5 | Portainer nu se deschide | Container oprit sau port blocat | `docker start portainer` |
+
+### Diagramă de Debugging Docker
+
+```
+                    Problema Docker?
+                          │
+                          ▼
+              ┌───────────────────────┐
+              │    docker info        │
+              │    funcționează?      │
+              └───────────┬───────────┘
+                          │
+               ┌──────────┴──────────┐
+               │                     │
+              DA                    NU
+               │                     │
+               ▼                     ▼
+    ┌──────────────────┐   ┌──────────────────────┐
+    │  docker ps -a    │   │ sudo service docker  │
+    │  vezi containere │   │ start                │
+    └────────┬─────────┘   └──────────┬───────────┘
+             │                        │
+             ▼                        ▼
+    ┌──────────────────┐        Încearcă din nou
+    │ Container oprit? │        docker info
+    │ → docker start X │
+    └──────────────────┘
+
+    ┌──────────────────────────────────────────────────────┐
+    │ Dacă primești "Permission denied":                   │
+    │   1. sudo usermod -aG docker $USER                   │
+    │   2. newgrp docker  (sau logout + login)             │
+    └──────────────────────────────────────────────────────┘
+```
+
+### Verificare Rapidă în 30 Secunde
+
+```bash
+# Rulează această secvență pentru diagnostic rapid:
+echo "1. Docker daemon:" && docker info >/dev/null 2>&1 && echo "   ✓ OK" || echo "   ✗ Nu rulează"
+echo "2. Portainer:" && docker ps --filter name=portainer --format "   ✓ {{.Status}}" 2>/dev/null || echo "   ✗ Container absent"
+echo "3. Porturi:" && ss -tlnp 2>/dev/null | grep -E ":(9000|8080)" | awk '{print "   ✓ " $4}' || echo "   ✓ Libere"
+```
+
+---
+
 ### 12.1 Probleme WSL
 
 #### "WSL 2 necesită o actualizare a componentei kernel"

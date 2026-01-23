@@ -5,7 +5,7 @@
 > **Repository:** [github.com/antonioclim/netROwsl](https://github.com/antonioclim/netROwsl)  
 > **Status:** Opțional, fără evaluare  
 > **Mediu:** WSL2 + Ubuntu 22.04 + Docker + Portainer  
-> **Versiune:** 2.0 — Ianuarie 2025
+> **Versiune:** 3.0 — Ianuarie 2025 (cu îmbunătățiri pedagogice CPA, PI și CREATE)
 
 ---
 
@@ -23,10 +23,18 @@
    - [Pas 7: Concurență](#pas-7-concurență)
    - [Pas 8: HTTP și Protocoale Aplicație](#pas-8-http-și-protocoale-aplicație)
    - [Pas 9: Practici și Debugging](#pas-9-practici-și-debugging)
-4. [Verificare Înțelegere (Peer Instruction)](#verificare-înțelegere-peer-instruction)
-5. [Exerciții de Explorare pe Săptămâni](#exerciții-de-explorare-pe-săptămâni)
-6. [Referință Rapidă Python-Networking](#referință-rapidă-python-networking)
-7. [Resurse Suplimentare](#resurse-suplimentare)
+4. [Exerciții CREATE — Proiectare Independentă](#exerciții-create--proiectare-independentă)
+5. [Verificare Înțelegere (Peer Instruction)](#verificare-înțelegere-peer-instruction)
+6. [Exercițiu în Perechi (Pair Programming)](#exercițiu-în-perechi-pair-programming)
+7. [Exerciții Parsons (Rearanjare Cod)](#exerciții-parsons-rearanjare-cod)
+8. [Exerciții Code Tracing](#exerciții-code-tracing-urmărire-execuție)
+9. [Exercițiu EVALUATE: Alege Arhitectura](#exercițiu-evaluate-alege-arhitectura)
+10. [Diagrame de Referință](#diagrame-de-referință)
+11. [Exerciții de Explorare pe Săptămâni](#exerciții-de-explorare-pe-săptămâni)
+12. [Referință Rapidă Python-Networking](#referință-rapidă-python-networking)
+13. [FAQ Extins](#faq-extins)
+14. [Resurse Suplimentare](#resurse-suplimentare)
+15. [Checklist de Auto-Evaluare](#-checklist-de-auto-evaluare)
 
 ---
 
@@ -107,7 +115,12 @@ netROwsl/
 ## Pașii de Învățare
 
 ### Pas 1: Citirea Codului Python
+
 **📅 Corelat cu:** Săptămânile 1-2 (`01roWSL`, `02roWSL`)
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📋 CONTEXT_ȘI_ANALOGIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### 💡 Analogie: Codul Python ca Rețetă de Bucătărie
 
@@ -123,6 +136,10 @@ Citirea codului Python e ca citirea unei rețete înainte să gătești:
 
 **De ce contează:** Nimeni nu gătește citind rețeta cuvânt cu cuvânt în timp ce lucrează. Mai întâi o parcurgi să înțelegi fluxul, apoi execuți.
 
+#### ═══════════════════════════════════════════════════════════════
+#### 🎯 OBIECTIVE_ȘI_REFERINȚE
+#### ═══════════════════════════════════════════════════════════════
+
 #### De Ce Contează
 
 Înainte de a modifica scripturile din laborator, trebuie să le poți citi și înțelege. Exercițiile încep cu cod funcțional pe care îl vei adapta.
@@ -132,6 +149,10 @@ Citirea codului Python e ca citirea unei rețete înainte să gătești:
 Deschide și studiază structura acestor fișiere:
 - `01roWSL/src/exercises/ex_1_01_latenta_ping.py`
 - `01roWSL/src/exercises/ex_1_02_tcp_server_client.py`
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📖 CONCEPTE_CHEIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### Concepte Cheie din Cod
 
@@ -195,6 +216,10 @@ def masoara_latenta(gazda: str, numar: int = 3) -> float:
 | Array | `int arr[] = {1,2,3}` | `let arr = [1,2,3]` | `arr = [1, 2, 3]` |
 | Dicționar | `HashMap<>` | `{key: value}` | `{key: value}` |
 
+#### ═══════════════════════════════════════════════════════════════
+#### 🔍 EXPLICAȚII_DETALIATE
+#### ═══════════════════════════════════════════════════════════════
+
 #### 🔍 De Ce Funcționează Așa?
 
 **Întrebare:** De ce Python nu are `{` și `}` ca C sau Java?
@@ -202,6 +227,10 @@ def masoara_latenta(gazda: str, numar: int = 3) -> float:
 **Explicație:** Python folosește **indentarea** (spații sau tab-uri) pentru a defini blocurile de cod. Asta forțează codul să fie citibil — nu poți scrie totul pe o linie. E o decizie de design a limbajului.
 
 **Consecință practică:** Dacă amesteci tab-uri cu spații, vei primi `IndentationError`. Configurează editorul să folosească 4 spații.
+
+#### ═══════════════════════════════════════════════════════════════
+#### 🔮 PREDICȚIE_ȘI_PRACTICĂ
+#### ═══════════════════════════════════════════════════════════════
 
 #### 🔮 PREDICȚIE: Explorare Practică
 
@@ -231,7 +260,12 @@ python3 src/exercises/ex_1_01_latenta_ping.py --gazda 127.0.0.1 --numar 5
 ---
 
 ### Pas 2: Tipuri de Date pentru Networking
+
 **📅 Corelat cu:** Săptămânile 2-3 (`02roWSL`, `03roWSL`)
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📋 CONTEXT_ȘI_ANALOGIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### 💡 Analogie: Bytes și Strings ca Scrisori și Telegrame
 
@@ -252,6 +286,10 @@ Rețelele transportă **bytes**, nu text. Python face diferența explicită înt
 
 - `02roWSL/src/exercises/ex_2_01_tcp.py`
 - `02roWSL/src/exercises/ex_2_02_udp.py`
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📖 CONCEPTE_CHEIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### Concepte Cheie
 
@@ -316,6 +354,10 @@ headers = {
 # Rezultat: {'Host': 'localhost', 'Content-Type': 'text/html'}
 ```
 
+#### ═══════════════════════════════════════════════════════════════
+#### 🔮 PREDICȚIE_ȘI_PRACTICĂ
+#### ═══════════════════════════════════════════════════════════════
+
 #### 🔮 PREDICȚIE: Explorare Practică
 
 În `02roWSL/src/exercises/ex_2_01_tcp.py`:
@@ -335,7 +377,12 @@ headers = {
 ---
 
 ### Pas 3: Socket Programming
+
 **📅 Corelat cu:** Săptămânile 2-4 (`02roWSL`, `03roWSL`, `04roWSL`)
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📋 CONTEXT_ȘI_ANALOGIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### 💡 Analogie: Socket-ul ca Telefon Fix
 
@@ -362,6 +409,10 @@ Socket-urile sunt fundamentul comunicării în rețea. Exercițiile implementeaz
 - `02roWSL/src/exercises/ex_2_01_tcp.py` — Server/Client TCP
 - `02roWSL/src/exercises/ex_2_02_udp.py` — Server/Client UDP
 - `03roWSL/src/exercises/ex_3_01_udp_broadcast.py` — UDP Broadcast
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📖 CONCEPTE_CHEIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### Comparație C vs. Python
 
@@ -445,6 +496,10 @@ def run_server(host: str, port: int):
 | Garantii | Ordonat, fără pierderi | Fără garantii |
 | Overhead | Mai mare | Mai mic |
 
+#### ═══════════════════════════════════════════════════════════════
+#### 🔮 PREDICȚIE_ȘI_PRACTICĂ
+#### ═══════════════════════════════════════════════════════════════
+
 #### 🔮 PREDICȚIE: Explorare Practică
 
 **Înainte să rulezi:**
@@ -470,7 +525,12 @@ python3 02roWSL/src/exercises/ex_2_01_tcp.py server --port 9090
 ---
 
 ### Pas 4: Organizarea Codului
+
 **📅 Corelat cu:** Săptămâna 4 (`04roWSL`)
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📋 CONTEXT_ȘI_ANALOGIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### 💡 Analogie: Module Python ca Sertare într-un Dulap
 
@@ -488,6 +548,10 @@ python3 02roWSL/src/exercises/ex_2_01_tcp.py server --port 9090
 #### De Ce Contează
 
 Kit-urile au o structură consistentă: `src/`, `scripts/`, `utils/`. Înțelegerea organizării te ajută să navighezi și să reutilizezi codul.
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📖 CONCEPTE_CHEIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### Structura Modulară
 
@@ -532,7 +596,12 @@ from src.utils import calculeaza_crc
 ---
 
 ### Pas 5: Interfețe CLI
+
 **📅 Corelat cu:** Săptămâna 5 (`05roWSL`)
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📋 CONTEXT_ȘI_ANALOGIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### 💡 Analogie: argparse ca Meniu de Restaurant
 
@@ -549,6 +618,10 @@ from src.utils import calculeaza_crc
 #### De Ce Contează
 
 Toate exercițiile acceptă parametri din linia de comandă (`--host`, `--port`, etc.). Modulul `argparse` gestionează acest lucru.
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📖 CONCEPTE_CHEIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### CLI Simplu
 
@@ -567,7 +640,7 @@ if args.verbose:
     print("Mod detaliat activat")
 ```
 
-Utilizare:
+Folosire:
 ```bash
 python calculator.py 192.168.1.0/24 --subrerete 8 -v
 ```
@@ -584,7 +657,7 @@ python3 ex_5_01_cidr_flsm.py --help
 <details>
 <summary>✅ Verifică</summary>
 
-- usage: linia de utilizare
+- usage: linia de folosire
 - description: descrierea programului
 - positional arguments: argumente obligatorii
 - options: argumente opționale cu explicații
@@ -594,7 +667,12 @@ python3 ex_5_01_cidr_flsm.py --help
 ---
 
 ### Pas 6: Analiza Pachetelor
+
 **📅 Corelat cu:** Săptămânile 6-7 (`06roWSL`, `07roWSL`)
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📋 CONTEXT_ȘI_ANALOGIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### 💡 Analogie: Pachetele de Rețea ca Scrisori Poștale
 
@@ -613,6 +691,10 @@ python3 ex_5_01_cidr_flsm.py --help
 #### De Ce Contează
 
 Laboratoarele de captură trafic și analiză pachete folosesc `struct` pentru parsing binar.
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📖 CONCEPTE_CHEIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### Modulul `struct` — Parsing Binar
 
@@ -657,7 +739,12 @@ header = struct.pack('!HH', 8080, 443)
 ---
 
 ### Pas 7: Concurență
+
 **📅 Corelat cu:** Săptămânile 7-9 și 13
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📋 CONTEXT_ȘI_ANALOGIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### 💡 Analogie: Threading ca Bucătari într-o Bucătărie
 
@@ -674,6 +761,10 @@ header = struct.pack('!HH', 8080, 443)
 #### De Ce Contează
 
 Scanarea porturilor, serverele multi-client și testele de load folosesc threading pentru paralelism.
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📖 CONCEPTE_CHEIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### ThreadPoolExecutor
 
@@ -716,7 +807,12 @@ def scaneaza_porturi(host: str, porturi: list[int], workers: int = 100) -> list[
 ---
 
 ### Pas 8: HTTP și Protocoale Aplicație
+
 **📅 Corelat cu:** Săptămânile 8-12
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📋 CONTEXT_ȘI_ANALOGIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### 💡 Analogie: HTTP ca Conversație la Bancă
 
@@ -732,6 +828,10 @@ def scaneaza_porturi(host: str, porturi: list[int], workers: int = 100) -> list[
 | **Response 200** | "Cerere aprobată" |
 | **Response 404** | "Nu găsim acest cont" |
 | **Response 500** | "Sistemul nostru are probleme" |
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📖 CONCEPTE_CHEIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### HTTP de la Zero
 
@@ -759,7 +859,12 @@ def http_get(host: str, path: str, port: int = 80) -> str:
 ---
 
 ### Pas 9: Practici și Debugging
+
 **📅 Corelat cu:** Săptămâna 14 (`14roWSL`)
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📋 CONTEXT_ȘI_ANALOGIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### 💡 Analogie: Debugging ca Detectiv
 
@@ -770,6 +875,10 @@ def http_get(host: str, path: str, port: int = 80) -> str:
 | **breakpoint()** | Oprești timpul și examinezi scena |
 | **Stack trace** | Cronologia evenimentelor |
 | **Unit tests** | Verifici alibiul fiecărui suspect |
+
+#### ═══════════════════════════════════════════════════════════════
+#### 📖 CONCEPTE_CHEIE
+#### ═══════════════════════════════════════════════════════════════
 
 #### Logging vs Print
 
@@ -797,6 +906,214 @@ def functie_complexa(data):
     breakpoint()  # Oprește aici — poți inspecta 'rezultat'
     return rezultat
 ```
+
+---
+
+## Exerciții CREATE — Proiectare Independentă
+
+Aceste exerciții îți cer să **proiectezi** și **construiești** soluții de la zero, nu doar să completezi cod existent.
+
+### 🛠️ CREATE #1: Proiectează un Protocol de Chat
+
+**Nivel Bloom:** CREATE  
+**Timp estimat:** 45-60 minute  
+**Mod:** Individual sau în perechi
+
+#### Sarcină
+
+Proiectează și implementează un protocol binar simplu pentru un sistem de mesagerie.
+
+#### Specificații Protocol
+
+| Câmp | Dimensiune | Descriere |
+|------|:----------:|-----------|
+| Versiune | 1 byte | Versiunea protocolului (0x01) |
+| Tip mesaj | 1 byte | 0x01=text, 0x02=imagine, 0x03=status |
+| Lungime | 2 bytes | Lungimea payload-ului (big-endian) |
+| Timestamp | 4 bytes | Unix timestamp (secunde) |
+| Payload | variabil | Conținutul mesajului |
+
+#### Diagrama Protocolului
+
+```
+┌─────────┬──────────┬──────────┬────────────┬─────────────────┐
+│ Version │ Msg Type │  Length  │ Timestamp  │    Payload      │
+│ (1B)    │  (1B)    │  (2B)    │   (4B)     │  (0-65535 B)    │
+└─────────┴──────────┴──────────┴────────────┴─────────────────┘
+```
+
+#### Livrabile
+
+**1. Cod Python — completează funcțiile:**
+
+```python
+import struct
+import time
+
+def pack_message(msg_type: int, payload: bytes) -> bytes:
+    """Împachetează un mesaj conform protocolului.
+    
+    Args:
+        msg_type: Tipul mesajului (1=text, 2=imagine, 3=status)
+        payload: Conținutul mesajului ca bytes
+        
+    Returns:
+        Mesajul complet împachetat (header + payload)
+    """
+    # TODO: Implementează cu struct.pack
+    # Hint: formatul e '!BBHI' + payload
+    pass
+
+def unpack_message(data: bytes) -> tuple[int, int, int, bytes]:
+    """Despachează un mesaj și extrage câmpurile.
+    
+    Args:
+        data: Mesajul complet (header + payload)
+        
+    Returns:
+        Tuplu: (version, msg_type, timestamp, payload)
+        
+    Raises:
+        ValueError: Dacă header-ul e invalid sau date insuficiente
+    """
+    # TODO: Implementează cu struct.unpack
+    pass
+```
+
+**2. Teste — minim 3:**
+
+```python
+def test_roundtrip():
+    """Verifică pack → unpack returnează datele originale."""
+    original = b"Salut!"
+    packed = pack_message(0x01, original)
+    version, msg_type, timestamp, payload = unpack_message(packed)
+    assert payload == original
+    assert msg_type == 0x01
+
+def test_empty_payload():
+    """Verifică că funcționează cu payload gol."""
+    # TODO
+
+def test_max_payload():
+    """Verifică payload de dimensiune maximă (65535 bytes)."""
+    # TODO
+```
+
+#### Criterii de Evaluare
+
+- [ ] Header-ul are exact 8 bytes
+- [ ] Câmpurile sunt în network byte order (big-endian)
+- [ ] Funcționează pentru payload gol
+- [ ] Funcționează pentru payload maxim (65535 bytes)
+- [ ] Timestamp-ul e valid (nu 0)
+- [ ] Codul are docstrings complete
+- [ ] Minim 3 teste unitare
+
+---
+
+### 🛠️ CREATE #2: Proiectează un Port Scanner
+
+**Nivel Bloom:** CREATE  
+**Timp estimat:** 30-45 minute
+
+#### Sarcină
+
+Proiectează un port scanner cu următoarele cerințe:
+
+**Funcționalități obligatorii:**
+1. Scanează un range de porturi (ex: 1-1000)
+2. Detectează porturi deschise (TCP connect)
+3. Timeout configurabil per port
+4. Output în format JSON
+
+**Bonus:**
+- Paralelizare cu ThreadPoolExecutor
+- Detectare serviciu (HTTP, SSH, FTP)
+
+#### Schelet de Pornire
+
+```python
+#!/usr/bin/env python3
+"""
+Port Scanner - Exercițiu CREATE
+Proiectează și implementează un scanner de porturi TCP.
+"""
+import socket
+import json
+import argparse
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, asdict
+
+@dataclass
+class ScanResult:
+    """Rezultatul scanării unui port."""
+    port: int
+    status: str  # "open", "closed", "filtered"
+    service: str = ""  # opțional: "http", "ssh", etc.
+
+def scan_port(host: str, port: int, timeout: float = 1.0) -> ScanResult:
+    """Scanează un singur port.
+    
+    TODO: Implementează logica de scanare TCP connect.
+    """
+    pass
+
+def scan_range(host: str, start: int, end: int, 
+               workers: int = 10, timeout: float = 1.0) -> list[ScanResult]:
+    """Scanează un range de porturi în paralel.
+    
+    TODO: Folosește ThreadPoolExecutor pentru paralelizare.
+    """
+    pass
+
+def main():
+    # TODO: Implementează CLI cu argparse
+    # Exemplu: python scanner.py 192.168.1.1 --ports 1-100 --timeout 0.5
+    pass
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+### 🛠️ CREATE #3: Proiectează un Load Balancer Simplu
+
+**Nivel Bloom:** CREATE  
+**Timp estimat:** 60-90 minute
+
+#### Sarcină
+
+Proiectează un load balancer TCP care distribuie conexiunile către multiple backend-uri.
+
+**Algoritmi de implementat (alege unul):**
+1. **Round Robin** — ciclează prin backend-uri
+2. **Random** — alege aleator
+3. **Least Connections** — alege backend-ul cu cele mai puține conexiuni
+
+#### Arhitectură
+
+```
+                    ┌─────────────────┐
+                    │  LOAD BALANCER  │
+   Client ─────────►│   (port 8080)   │
+                    └────────┬────────┘
+                             │
+         ┌───────────────────┼───────────────────┐
+         ▼                   ▼                   ▼
+   ┌──────────┐        ┌──────────┐        ┌──────────┐
+   │ Backend1 │        │ Backend2 │        │ Backend3 │
+   │ :8081    │        │ :8082    │        │ :8083    │
+   └──────────┘        └──────────┘        └──────────┘
+```
+
+#### Livrabile
+
+Fișier `load_balancer.py` funcțional cu:
+- Configurare backend-uri din command line
+- Logging al distribuției conexiunilor
+- Health check periodic (opțional)
 
 ---
 
@@ -972,6 +1289,776 @@ sock.close()
 
 ---
 
+### 🗳️ PI #6: Căi Fișiere WSL
+
+**Scenariu:**
+```bash
+# Creezi un fișier în Ubuntu WSL:
+echo "test" > /home/stud/date.txt
+
+# Apoi vrei să-l deschizi din Windows.
+```
+
+**Întrebare:** Care e calea corectă în Windows Explorer?
+
+**Opțiuni:**
+- A) `C:\home\stud\date.txt`
+- B) `\\wsl$\Ubuntu\home\stud\date.txt`
+- C) `D:\WSL\Ubuntu\home\stud\date.txt`
+- D) Nu poți accesa fișiere WSL din Windows
+
+<details>
+<summary>🔑 Răspuns și Explicație</summary>
+
+**Corect: B**
+
+Sistemul de fișiere WSL e accesibil din Windows prin calea de rețea `\\wsl$\<distro>\`.
+
+**De ce nu A:** WSL nu montează `/home` pe C:\  
+**De ce nu C:** Nu există folder D:\WSL\ implicit  
+**De ce nu D:** Windows 10/11 poate accesa fișierele WSL nativ
+
+**Atenție:** Editarea fișierelor WSL cu aplicații Windows poate cauza probleme de permisiuni. Folosește VS Code cu extensia Remote - WSL.
+
+</details>
+
+---
+
+### 🗳️ PI #7: recv() Buffering
+
+**Scenariu:**
+```python
+# Server trimite:
+conn.sendall(b"HELLO WORLD FROM SERVER!")  # 24 bytes
+
+# Client primește:
+data = sock.recv(10)
+print(data)
+```
+
+**Întrebare:** Ce afișează clientul?
+
+**Opțiuni:**
+- A) `b'HELLO WORLD FROM SERVER!'`
+- B) `b'HELLO WORL'`
+- C) Eroare — buffer prea mic
+- D) Nimic — recv() așteaptă 24 bytes
+
+<details>
+<summary>🔑 Răspuns și Explicație</summary>
+
+**Corect: B**
+
+`recv(10)` returnează **maxim** 10 bytes, nu exact 10 și nu tot mesajul.
+
+**De ce nu A:** recv() nu așteaptă tot mesajul  
+**De ce nu C:** Buffer-ul e doar limita superioară, nu cerință  
+**De ce nu D:** recv() returnează ce e disponibil, nu așteaptă mai mult
+
+**Implicație:** Pentru mesaje mai lungi, trebuie să apelezi recv() în buclă sau să folosești un protocol cu length prefix.
+
+</details>
+
+---
+
+### 🗳️ PI #8: bind() Address
+
+**Scenariu:**
+```python
+server.bind(('0.0.0.0', 8080))
+# vs
+server.bind(('127.0.0.1', 8080))
+```
+
+**Întrebare:** Care e diferența practică?
+
+**Opțiuni:**
+- A) Nicio diferență, ambele funcționează la fel
+- B) 0.0.0.0 acceptă conexiuni doar locale, 127.0.0.1 de oriunde
+- C) 0.0.0.0 acceptă conexiuni de oriunde, 127.0.0.1 doar locale
+- D) 127.0.0.1 e mai rapid pentru conexiuni locale
+
+<details>
+<summary>🔑 Răspuns și Explicație</summary>
+
+**Corect: C**
+
+- `0.0.0.0` = ascultă pe **toate** interfețele (localhost, LAN, WAN)
+- `127.0.0.1` = ascultă **doar** pe loopback (local)
+
+**De ce nu A:** Diferența e semnificativă pentru securitate  
+**De ce nu B:** E invers  
+**De ce nu D:** Performanța e identică pentru conexiuni locale
+
+**Regulă de securitate:** În producție, bind pe IP-ul specific al interfeței dorite. 0.0.0.0 expune serverul la toată rețeaua!
+
+</details>
+
+---
+
+### 🗳️ PI #9: Docker Network Default
+
+**Scenariu:**
+```yaml
+# docker-compose.yml
+services:
+  web:
+    image: nginx
+  api:
+    image: python:3.11
+```
+
+**Întrebare:** Poate containerul `web` să acceseze `api` folosind numele `api`?
+
+**Opțiuni:**
+- A) Da, Docker Compose creează automat o rețea comună
+- B) Nu, trebuie să definești explicit o rețea în compose
+- C) Da, dar doar dacă adaugi `links: [api]`
+- D) Nu, containerele nu pot comunica niciodată prin nume
+
+<details>
+<summary>🔑 Răspuns și Explicație</summary>
+
+**Corect: A**
+
+Docker Compose v2+ creează automat o rețea `<project>_default` și containerele se pot accesa prin numele serviciului.
+
+**De ce nu B:** Rețeaua implicită e suficientă pentru compose  
+**De ce nu C:** `links` e deprecated în Compose v2+  
+**De ce nu D:** DNS-ul Docker rezolvă numele serviciilor
+
+**Testare:**
+```bash
+docker exec web ping api  # funcționează!
+```
+
+</details>
+
+---
+
+### 🗳️ PI #10: SO_REUSEADDR Timing
+
+**Scenariu:**
+```python
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(('0.0.0.0', 8080))
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # ← aici
+server.listen(5)
+```
+
+**Întrebare:** Funcționează codul de mai sus?
+
+**Opțiuni:**
+- A) Da, ordinea nu contează
+- B) Nu, setsockopt trebuie apelat înainte de bind
+- C) Nu, setsockopt trebuie apelat după listen
+- D) Depinde de sistemul de operare
+
+<details>
+<summary>🔑 Răspuns și Explicație</summary>
+
+**Corect: B**
+
+`SO_REUSEADDR` trebuie setat **înainte** de `bind()` pentru a avea efect.
+
+**Ordine corectă:**
+```python
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server.bind(('0.0.0.0', 8080))
+server.listen(5)
+```
+
+**De ce contează:** Opțiunea afectează cum bind() gestionează porturile în TIME_WAIT.
+
+</details>
+
+---
+
+## Exercițiu în Perechi (Pair Programming)
+
+### 👥 Debug Mystery Server
+
+**Durată:** 20-25 minute  
+**Mod:** Perechi (Driver + Navigator)
+
+#### Roluri
+
+| Rol | Responsabilități |
+|-----|------------------|
+| **Driver** | Scrie codul, execută comenzile, partajează ecranul |
+| **Navigator** | Verifică logica, sugerează direcții, caută în documentație |
+
+**Regulă principală:** Navigator-ul NU atinge tastatura. Comunicarea e cheia!
+
+#### Sarcină
+
+Serverul TCP de mai jos are **3 bug-uri ascunse**. Găsiți-le și reparați-le împreună.
+
+```python
+#!/usr/bin/env python3
+"""Mystery Server — găsește cele 3 bug-uri!"""
+import socket
+
+def server(port=8080):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('127.0.0.1', port))  # Bug #1: ???
+    s.listen()
+    print(f"Server pe {port}")
+    
+    while True:
+        conn, addr = s.accept()
+        print(f"Client: {addr}")
+        
+        data = conn.recv(1024)
+        response = "Echo: " + data  # Bug #2: ???
+        conn.send(response)  # Bug #3: ???
+        conn.close()
+
+if __name__ == "__main__":
+    server()
+```
+
+#### Indicii (dezvăluie pe rând)
+
+<details>
+<summary>💡 Indiciu #1 (după 5 minute)</summary>
+
+Bug #1: Ce se întâmplă dacă oprești și repornești serverul rapid?
+</details>
+
+<details>
+<summary>💡 Indiciu #2 (după 10 minute)</summary>
+
+Bug #2: Ce tip de date returnează `conn.recv()`? Ce tip acceptă operatorul `+` cu string?
+</details>
+
+<details>
+<summary>💡 Indiciu #3 (după 15 minute)</summary>
+
+Bug #3: `send()` vs `sendall()` — care garantează trimiterea completă?
+</details>
+
+#### Soluție
+
+<details>
+<summary>🔑 Soluție completă</summary>
+
+```python
+#!/usr/bin/env python3
+"""Mystery Server — REPARAT"""
+import socket
+
+def server(port=8080):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+    # FIX #1: Adaugă SO_REUSEADDR pentru restart rapid
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
+    s.bind(('0.0.0.0', port))  # 0.0.0.0 pentru acces din rețea
+    s.listen(5)
+    print(f"Server pe {port}")
+    
+    while True:
+        conn, addr = s.accept()
+        print(f"Client: {addr}")
+        
+        data = conn.recv(1024)
+        
+        # FIX #2: Decode bytes înainte de concatenare cu string
+        response = "Echo: " + data.decode('utf-8')
+        
+        # FIX #3: sendall() + encode() pentru trimitere completă
+        conn.sendall(response.encode('utf-8'))
+        
+        conn.close()
+
+if __name__ == "__main__":
+    server()
+```
+
+</details>
+
+#### Debrief
+
+După exercițiu, discutați:
+1. Care bug a fost cel mai greu de găsit? De ce?
+2. Cum a ajutat colaborarea la debugging?
+3. Ce strategii de debugging ați aplicat?
+
+---
+
+## Exerciții Parsons (Rearanjare Cod)
+
+Exercițiile Parsons te ajută să înțelegi **logica și ordinea operațiilor** fără să scrii cod de la zero. Rearanjează blocurile în ordinea corectă.
+
+### 🧩 PARSONS #1: Server TCP Minimal
+
+Rearanjează blocurile pentru a crea un server TCP funcțional:
+
+```
+# BLOCURI (în ordine amestecată):
+
+conn.sendall(b"Hello!")
+server.listen(5)
+server.bind(('0.0.0.0', 8080))
+import socket
+conn, addr = server.accept()
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+conn.close()
+```
+
+<details>
+<summary>🔑 Soluție</summary>
+
+```python
+import socket
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(('0.0.0.0', 8080))
+server.listen(5)
+conn, addr = server.accept()
+conn.sendall(b"Hello!")
+conn.close()
+```
+
+**Pattern memorabil:** SOCKET → BIND → LISTEN → ACCEPT → COMMUNICATE → CLOSE
+
+</details>
+
+---
+
+### 🧩 PARSONS #2: Client TCP
+
+Rearanjează pentru client TCP:
+
+```
+# BLOCURI (în ordine amestecată):
+
+response = client.recv(1024)
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.close()
+import socket
+client.connect(('127.0.0.1', 8080))
+client.sendall(b"Hello server!")
+```
+
+<details>
+<summary>🔑 Soluție</summary>
+
+```python
+import socket
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect(('127.0.0.1', 8080))
+client.sendall(b"Hello server!")
+response = client.recv(1024)
+client.close()
+```
+
+**Pattern memorabil:** SOCKET → CONNECT → SEND → RECEIVE → CLOSE
+
+</details>
+
+---
+
+### 🧩 PARSONS #3: Struct Pack/Unpack
+
+Rearanjează pentru a crea și parsa un header de 4 bytes:
+
+```
+# BLOCURI (în ordine amestecată):
+
+port, flags = struct.unpack('!HH', header)
+import struct
+header = struct.pack('!HH', port, flags)
+port = 8080
+print(f"Port: {port}, Flags: {flags}")
+flags = 0x0001
+```
+
+<details>
+<summary>🔑 Soluție</summary>
+
+```python
+import struct
+port = 8080
+flags = 0x0001
+header = struct.pack('!HH', port, flags)
+port, flags = struct.unpack('!HH', header)
+print(f"Port: {port}, Flags: {flags}")
+```
+
+**Concept cheie:** Variabilele trebuie definite înainte de pack(), iar unpack() suprascrie valorile.
+
+</details>
+
+---
+
+## Exerciții Code Tracing (Urmărire Execuție)
+
+Urmărirea manuală a codului îți dezvoltă **modelul mental** al execuției — esențial pentru debugging.
+
+### 🔍 TRACE #1: Transformare Bytes
+
+```python
+data = b"HELLO"
+result = []
+for i, byte in enumerate(data):
+    if i % 2 == 0:
+        result.append(chr(byte).lower())
+    else:
+        result.append(chr(byte))
+print("".join(result))
+```
+
+**🔮 PREDICȚIE:** Ce va afișa? Completează tabelul pas cu pas:
+
+| i | byte (decimal) | chr(byte) | i % 2 == 0? | result (după acest pas) |
+|---|----------------|-----------|-------------|-------------------------|
+| 0 | 72 | 'H' | Da | ['h'] |
+| 1 | ? | ? | ? | ? |
+| 2 | ? | ? | ? | ? |
+| 3 | ? | ? | ? | ? |
+| 4 | ? | ? | ? | ? |
+
+<details>
+<summary>🔑 Soluție completă</summary>
+
+| i | byte | chr(byte) | i % 2 == 0? | result |
+|---|------|-----------|-------------|--------|
+| 0 | 72 | 'H' | Da | ['h'] |
+| 1 | 69 | 'E' | Nu | ['h', 'E'] |
+| 2 | 76 | 'L' | Da | ['h', 'E', 'l'] |
+| 3 | 76 | 'L' | Nu | ['h', 'E', 'l', 'L'] |
+| 4 | 79 | 'O' | Da | ['h', 'E', 'l', 'L', 'o'] |
+
+**Output:** `hElLo`
+
+**De reținut:** `b"HELLO"` conține codurile ASCII: H=72, E=69, L=76, L=76, O=79
+
+</details>
+
+---
+
+### 🔍 TRACE #2: Network Byte Order
+
+```python
+import struct
+value = 0x1234
+packed = struct.pack('!H', value)  # Network order (big-endian)
+print(f"Bytes: {packed.hex()}")
+print(f"Byte 0: {packed[0]:02x}")
+print(f"Byte 1: {packed[1]:02x}")
+```
+
+**🔮 PREDICȚIE (scrie ÎNAINTE de a rula):**
+- `packed.hex()` = ____________
+- `packed[0]` (hex) = ____________
+- `packed[1]` (hex) = ____________
+
+<details>
+<summary>🔑 Răspuns</summary>
+
+- `packed.hex()` = `"1234"`
+- `packed[0]` = `0x12` (18 în decimal) — **MSB first** (big-endian)
+- `packed[1]` = `0x34` (52 în decimal)
+
+**Concept cheie:** Network byte order = Big-endian = Most Significant Byte FIRST
+
+Dacă ai fi folosit little-endian (`'<H'`), ordinea ar fi fost inversată: `0x34`, `0x12`.
+
+</details>
+
+---
+
+### 🔍 TRACE #3: Socket Accept Loop
+
+```python
+connections = 0
+while connections < 3:
+    conn, addr = server.accept()  # Presupunem că vin 3 clienți
+    print(f"Client #{connections}: {addr[1]}")
+    connections += 1
+    conn.close()
+print(f"Total: {connections}")
+```
+
+**🔮 PREDICȚIE:** Dacă vin 3 clienți de pe porturile 50001, 50002, 50003, ce afișează?
+
+<details>
+<summary>🔑 Răspuns</summary>
+
+```
+Client #0: 50001
+Client #1: 50002
+Client #2: 50003
+Total: 3
+```
+
+**Atenție la off-by-one:** Primul client e `#0`, nu `#1`. Dacă vrei numerotare de la 1, folosește `connections + 1` în print.
+
+</details>
+
+---
+
+## Exercițiu EVALUATE: Alege Arhitectura
+
+### 🎯 EVALUATE: Sistem de Logging Centralizat
+
+**Scenariu:** Construiești un sistem de logging pentru 50 de containere Docker într-un cluster.
+
+**Opțiuni arhitecturale:**
+
+| Opțiune | Descriere | Pro | Contra |
+|---------|-----------|-----|--------|
+| **A** | Fiecare container scrie în fișier local | Simplu, fără dependențe | Fragmentat, greu de agregat |
+| **B** | Toate trimit UDP la server central | Rapid, non-blocant | Posibilă pierdere mesaje |
+| **C** | Toate trimit TCP la server central | Livrare garantată | Poate bloca dacă serverul e lent |
+| **D** | Message broker (Redis/Kafka) | Decuplat, scalabil, persistent | Complexitate adăugată |
+
+**Sarcini:**
+
+1. **Context dezvoltare** (5 containere, 1 dezvoltator): Care opțiune alegi și de ce?
+
+2. **Context producție** (50 containere, 1000 req/s): Care opțiune și de ce?
+
+3. **Context IoT** (100 dispozitive pe rețea instabilă): Care opțiune și de ce?
+
+<details>
+<summary>🔑 Analiză</summary>
+
+**Dezvoltare:** Opțiunea **A** sau **B** — simplitatea primează, pierderea unor log-uri nu e critică.
+
+**Producție:** Opțiunea **D** — decuplarea și persistența sunt esențiale la scală. TCP (C) ar crea bottleneck.
+
+**IoT:** Opțiunea **B** (UDP) cu retry logic local — rețeaua instabilă face TCP problematic (reconectări constante).
+
+**Lecție cheie:** Nu există soluție "corect universal" — depinde de context, scale și toleranță la pierderi.
+
+</details>
+
+---
+
+## Diagrame de Referință
+
+### Diagrama: TCP Three-Way Handshake
+
+```
+     CLIENT                                 SERVER
+        │                                      │
+        │ ────────── SYN (seq=100) ─────────► │
+        │        "Vreau să mă conectez"        │
+        │                                      │
+        │ ◄──── SYN-ACK (seq=300,ack=101) ─── │
+        │     "OK, te-am auzit, ești acolo?"   │
+        │                                      │
+        │ ────────── ACK (ack=301) ──────────► │
+        │            "Da, sunt aici"           │
+        │                                      │
+        │         ═══ CONEXIUNE ═══            │
+        │         ═══ STABILITĂ ═══            │
+        ▼                                      ▼
+```
+
+---
+
+### Diagrama: Docker Port Mapping
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ WINDOWS HOST                                                        │
+│                                                                     │
+│   Browser ──► http://localhost:8080                                 │
+│                        │                                            │
+│   ┌────────────────────┼────────────────────────────────────────┐   │
+│   │ WSL2 (Ubuntu)      │                                        │   │
+│   │                    │                                        │   │
+│   │   ┌────────────────▼────────────────────────────────────┐   │   │
+│   │   │ Docker Engine                                       │   │   │
+│   │   │                                                     │   │   │
+│   │   │   ports: "8080:80"                                  │   │   │
+│   │   │      ▲         │                                    │   │   │
+│   │   │      │         ▼                                    │   │   │
+│   │   │   ┌──┴──────────────────────────────┐               │   │   │
+│   │   │   │ Container: nginx                │               │   │   │
+│   │   │   │                                 │               │   │   │
+│   │   │   │   nginx ascultă pe port 80 ◄───┘               │   │   │
+│   │   │   │   (intern, nu expus direct)                    │   │   │
+│   │   │   └─────────────────────────────────┘               │   │   │
+│   │   └─────────────────────────────────────────────────────┘   │   │
+│   └─────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+
+LEGENDĂ: 8080 = port HOST (Windows vede asta)
+         80   = port CONTAINER (nginx vede asta)
+```
+
+---
+
+### Diagrama: Socket Lifecycle (Server TCP)
+
+```
+          socket()
+             │
+             ▼
+    ┌─────────────────┐
+    │  SOCKET CREAT   │
+    │  (file descriptor)
+    └────────┬────────┘
+             │
+         bind(addr, port)
+             │
+             ▼
+    ┌─────────────────┐
+    │  SOCKET LEGAT   │
+    │  la adresă:port │
+    └────────┬────────┘
+             │
+         listen(backlog)
+             │
+             ▼
+    ┌─────────────────┐
+    │  ASCULTĂ        │◄──────────────┐
+    │  (waiting)      │               │
+    └────────┬────────┘               │
+             │                        │
+         accept() ◄─── client se conectează
+             │                        │
+             ▼                        │
+    ┌─────────────────┐               │
+    │  CONEXIUNE      │               │
+    │  conn, addr     │               │
+    └────────┬────────┘               │
+             │                        │
+       recv() / send()                │
+             │                        │
+         close(conn) ─────────────────┘
+             │
+    (serverul continuă să asculte)
+```
+
+---
+
+### Diagrama: bytes ↔ str Conversion
+
+```
+    ┌─────────────────┐                    ┌─────────────────┐
+    │      str        │                    │     bytes       │
+    │  "Salut! 👋"    │                    │  b'Salut! \xf0' │
+    │                 │                    │   \x9f\x91\x8b' │
+    │  (text uman)    │                    │  (date binare)  │
+    └────────┬────────┘                    └────────┬────────┘
+             │                                      │
+             │                                      │
+             │ ───── .encode('utf-8') ────────────► │
+             │                                      │
+             │ ◄──── .decode('utf-8') ───────────── │
+             │                                      │
+             ▼                                      ▼
+    
+    PYTHON                                    REȚEA
+    (procesare text)                     (transmisie date)
+    
+    
+    ⚠️  REGULĂ: socket.send() acceptă DOAR bytes, NU str!
+    
+    Greșit:  sock.send("Hello")        → TypeError!
+    Corect:  sock.send(b"Hello")       → OK
+    Corect:  sock.send("Hello".encode()) → OK
+```
+
+---
+
+### Diagrama: struct.pack / struct.unpack
+
+```
+                    struct.pack('!HH', 8080, 443)
+                                │
+    ┌───────────────────────────┴───────────────────────────┐
+    │                                                       │
+    │  8080 (decimal) ──► 0x1F90 ──► bytes: \x1f\x90       │
+    │   443 (decimal) ──► 0x01BB ──► bytes: \x01\xbb       │
+    │                                                       │
+    │  Rezultat: b'\x1f\x90\x01\xbb' (4 bytes)             │
+    │                                                       │
+    └───────────────────────────────────────────────────────┘
+    
+    
+                    struct.unpack('!HH', data)
+                                │
+    ┌───────────────────────────┴───────────────────────────┐
+    │                                                       │
+    │  data = b'\x1f\x90\x01\xbb'                           │
+    │                                                       │
+    │  \x1f\x90 ──► 0x1F90 ──► 8080 (decimal)              │
+    │  \x01\xbb ──► 0x01BB ──►  443 (decimal)              │
+    │                                                       │
+    │  Rezultat: (8080, 443) ← tuplu Python                │
+    │                                                       │
+    └───────────────────────────────────────────────────────┘
+    
+    FORMAT CODES:
+    ┌────┬───────────────────┬───────────┐
+    │ !  │ network byte order│ big-endian│
+    │ H  │ unsigned short    │ 2 bytes   │
+    │ I  │ unsigned int      │ 4 bytes   │
+    │ B  │ unsigned char     │ 1 byte    │
+    │ 4s │ char array        │ 4 bytes   │
+    └────┴───────────────────┴───────────┘
+```
+
+---
+
+### Diagrama: OSI vs TCP/IP
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    OSI MODEL vs TCP/IP MODEL                        │
+├─────────────────────────────────┬───────────────────────────────────┤
+│          OSI (7 layers)         │        TCP/IP (4 layers)          │
+├─────────────────────────────────┼───────────────────────────────────┤
+│  7. Application    ─┐           │                                   │
+│  6. Presentation   ─┼──────────►│  4. Application (HTTP, DNS, SSH)  │
+│  5. Session        ─┘           │                                   │
+├─────────────────────────────────┼───────────────────────────────────┤
+│  4. Transport      ────────────►│  3. Transport (TCP, UDP)          │
+├─────────────────────────────────┼───────────────────────────────────┤
+│  3. Network        ────────────►│  2. Internet (IP, ICMP)           │
+├─────────────────────────────────┼───────────────────────────────────┤
+│  2. Data Link      ─┐           │                                   │
+│  1. Physical       ─┴──────────►│  1. Network Access (Ethernet)     │
+└─────────────────────────────────┴───────────────────────────────────┘
+```
+
+---
+
+### Diagrama: Client-Server Exchange
+
+```
+    ┌────────────────┐                    ┌────────────────┐
+    │     CLIENT     │                    │     SERVER     │
+    │   (inițiază)   │                    │   (ascultă)    │
+    └───────┬────────┘                    └───────┬────────┘
+            │                                     │
+            │                              bind(port=8080)
+            │                              listen()
+            │                                     │
+            │ ──────── connect() ───────────────► │ accept()
+            │                                     │
+            │ ──────── send("GET /") ───────────► │
+            │                                     │
+            │                              recv() → procesează
+            │                                     │
+            │ ◄─────── send("<html>...") ──────── │
+            │                                     │
+         recv()                                   │
+            │                                     │
+            │ ──────── close() ─────────────────► │ close(conn)
+            │                                     │
+            ▼                                     │
+       [terminat]                          [așteaptă next]
+```
+
+---
+
 ## Exerciții de Explorare pe Săptămâni
 
 ### Săptămâna 1-2: Fundamentele
@@ -1076,6 +2163,85 @@ ip_int, = struct.unpack('!I', data[2:6])
 
 ---
 
+## FAQ Extins
+
+**Î: Trebuie să parcurg toți pașii în ordine?**  
+R: Nu. Poți sări la pasul relevant pentru laboratorul curent. Folosește tabelul de corespondență.
+
+**Î: Ce fac dacă nu înțeleg ceva?**  
+R: Rulează codul, modifică valori, observă ce se schimbă. Experimentarea e cel mai bun profesor.
+
+**Î: Trebuie să memorez sintaxa?**  
+R: Nu. Folosește documentația și cheatsheet-ul. Programatorii profesioniști caută constant în docs.
+
+**Î: Cum testez dacă am înțeles?**  
+R: Încearcă să modifici un exercițiu existent sau să adaugi o funcționalitate nouă fără să te uiți la soluție.
+
+**Î: Docker Desktop sau Docker Engine nativ în WSL?**  
+R: Pentru acest curs, Docker Engine nativ în WSL2 e suficient și consumă mai puține resurse. Docker Desktop e opțional.
+
+**Î: De ce primesc "Permission denied" la comenzi docker?**  
+R: Adaugă userul la grupul docker:
+```bash
+sudo usermod -aG docker $USER
+```
+Apoi logout și login din nou (sau `newgrp docker`).
+
+**Î: Cum verific că am WSL2, nu WSL1?**  
+R: Rulează în PowerShell:
+```powershell
+wsl --list --verbose
+```
+Coloana VERSION trebuie să arate `2`.
+
+**Î: Ce fac dacă Portainer nu pornește?**  
+R: Verifică statusul:
+```bash
+docker ps -a | grep portainer
+```
+Dacă e stopped: `docker start portainer`. Dacă nu există, recreează-l.
+
+**Î: Cum resetez parola Portainer dacă am uitat-o?**  
+R: Șterge volume-ul de date și recreează:
+```bash
+docker stop portainer
+docker rm portainer
+docker volume rm portainer_data
+# Apoi recreează containerul
+```
+
+**Î: De ce socket-ul meu "blochează" la recv()?**  
+R: `recv()` e blocant implicit — așteaptă date. Soluții:
+```python
+sock.settimeout(5.0)  # timeout de 5 secunde
+# sau
+sock.setblocking(False)  # non-blocking (cu select/poll)
+```
+
+**Î: Pot rula aplicații GUI din WSL?**  
+R: Da, WSL2 pe Windows 11 suportă WSLg nativ. Pe Windows 10 ai nevoie de X server (VcXsrv). Dar pentru acest curs, Wireshark rulează nativ în Windows, nu în WSL.
+
+**Î: De ce primesc "Address already in use" când repornesc serverul?**  
+R: Portul e încă în TIME_WAIT. Soluții:
+1. Așteaptă ~60 secunde
+2. Adaugă înainte de bind():
+```python
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+```
+3. Folosește alt port temporar
+
+**Î: Cum văd ce porturi sunt ocupate?**  
+R: 
+```bash
+# În WSL:
+ss -tlnp | grep 8080
+
+# În Windows PowerShell:
+netstat -ano | findstr :8080
+```
+
+---
+
 ## Resurse Suplimentare
 
 ### Documentație Oficială
@@ -1094,22 +2260,51 @@ ip_int, = struct.unpack('!I', data[2:6])
 
 ---
 
-## FAQ
+## ✅ Checklist de Auto-Evaluare
 
-**Î: Trebuie să parcurg toți pașii în ordine?**  
-R: Nu. Poți sări la pasul relevant pentru laboratorul curent.
+Înainte de a considera acest ghid parcurs, verifică progresul tău:
 
-**Î: Ce fac dacă nu înțeleg ceva?**  
-R: Rulează codul, modifică valori, observă ce se schimbă. Experimentarea e cel mai bun profesor.
+### Nivel REMEMBER (Reamintire)
+- [ ] Pot enumera cele 5 operații socket server în ordine (socket → bind → listen → accept → close)
+- [ ] Știu diferența principală dintre TCP și UDP
+- [ ] Recunosc sintaxa `struct.pack('!H', port)` și știu ce face
 
-**Î: Trebuie să memorez sintaxa?**  
-R: Nu. Folosește documentația și exemplele din kit-uri.
+### Nivel UNDERSTAND (Înțelegere)
+- [ ] Pot explica de ce `bytes ≠ str` în Python 3
+- [ ] Înțeleg ce face `SO_REUSEADDR` și de ce e util
+- [ ] Pot descrie fluxul TCP three-way handshake
 
-**Î: Cum testez dacă am înțeles?**  
-R: Încearcă să modifici un exercițiu existent sau să adaugi o funcționalitate nouă.
+### Nivel APPLY (Aplicare)
+- [ ] Am rulat cu succes cel puțin 3 exemple din acest ghid
+- [ ] Am completat corect cel puțin 1 exercițiu Parsons
+- [ ] Am răspuns corect la >70% din întrebările Peer Instruction
+
+### Nivel ANALYSE (Analiză)
+- [ ] Am depanat cel puțin 1 problemă de rețea (port ocupat, conexiune refuzată, etc.)
+- [ ] Am analizat output-ul unui `docker logs` pentru debugging
+- [ ] Am completat corect cel puțin 1 exercițiu Code Tracing
+
+### Nivel EVALUATE (Evaluare)
+- [ ] Pot argumenta alegerea între TCP și UDP pentru un scenariu dat
+- [ ] Am completat exercițiul EVALUATE privind arhitectura de logging
+
+### Nivel CREATE (Creare)
+- [ ] Am implementat cel puțin 1 exercițiu CREATE (protocol chat, port scanner, sau load balancer)
+- [ ] Am modificat un exemplu existent pentru a adăuga funcționalitate nouă
+
+---
+
+### 📊 Interpretare Scor
+
+| Bifări | Nivel | Recomandare |
+|:------:|-------|-------------|
+| 0-5 | Începător | Revizuiește secțiunile de bază, rulează mai multe exemple |
+| 6-10 | Satisfăcător | Ești pregătit pentru laboratoarele standard |
+| 11-14 | Bun | Poți aborda exerciții avansate |
+| 15-17 | Foarte bun | Pregătit pentru proiecte independente |
 
 ---
 
 *Material realizat ca suport opțional pentru cursul de Rețele de Calculatoare.*  
 *Repository: [github.com/antonioclim/netROwsl](https://github.com/antonioclim/netROwsl)*  
-*Versiune: 2.0 — Ianuarie 2025 (cu îmbunătățiri pedagogice CPA și PI)*
+*Versiune: 3.1 — Ianuarie 2025 (cu Parsons Problems, Code Tracing și Checklist auto-evaluare)*

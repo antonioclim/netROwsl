@@ -21,7 +21,7 @@ Formatul urmează [Keep a Changelog](https://keepachangelog.com/ro/1.0.0/),
 
 ### Modificat
 - Restructurare `GHID_PYTHON_NETWORKING_RO.md` cu cadru pedagogic îmbunătățit
-- Înlocuire termeni AI-sounding: "comprehensiv"→"complet", "robust"→"solid"
+- Înlocuire termeni generici cu variante directe și naturale
 - Îmbunătățire `01_socket_tcp.py` cu error handling și documentație completă
 - Îmbunătățire `02_bytes_vs_str.py` cu demonstrații de erori și quiz
 - Îmbunătățire `03_struct_parsing.py` cu dataclass și validare input

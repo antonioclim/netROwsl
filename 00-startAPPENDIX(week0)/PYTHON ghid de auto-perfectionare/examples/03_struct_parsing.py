@@ -6,6 +6,7 @@ Demonstrează extragerea datelor din headere de protocol.
 
 Curs: Rețele de Calculatoare - ASE București, CSIE
 Autor: ing. dr. Antonio Clim
+Versiune: 2.1 — cu subgoal labels și comentarii extinse
 
 💡 ANALOGIE: Pachetele de Rețea ca Scrisori Poștale
 ---------------------------------------------------
@@ -21,16 +22,23 @@ struct.unpack() = deschizi plicul și citești adresele în format standard
 
 Obiective de învățare:
 - Înțelegerea formatului binar al headerelor de protocol
-- Folosirea modului struct pentru parsing
+- Manipularea bit-ilor și byte-ilor în Python
 - Interpretarea câmpurilor unui header IP
 """
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_IMPORTS
+# ═══════════════════════════════════════════════════════════════════════════════
 import struct
 import socket
 import logging
 from typing import Optional
 from dataclasses import dataclass
 
-# Configurare logging
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIGURARE_LOGGING
+# ═══════════════════════════════════════════════════════════════════════════════
+# NOTE: Logging-ul e esențial pentru debugging în aplicații de rețea
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -40,12 +48,15 @@ logger = logging.getLogger(__name__)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# STRUCTURI DE DATE
+# STRUCTURI_DE_DATE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @dataclass
 class HeaderIP:
     """Reprezentare structurată a unui header IPv4.
+    
+    NOTE: Dataclass generează automat __init__, __repr__, __eq__ etc.
+    Mult mai curat decât un dict sau o clasă manuală.
     
     Attributes:
         version: Versiunea IP (4 pentru IPv4)
@@ -75,7 +86,11 @@ class HeaderIP:
     dst_ip: str
 
 
-# Mapare numere protocol la nume
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_PROTOCOL
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# NOTE: Numere protocol din header IP (RFC 790)
 PROTOCOL_NAMES: dict[int, str] = {
     1: "ICMP",
     6: "TCP",
@@ -86,9 +101,15 @@ PROTOCOL_NAMES: dict[int, str] = {
     89: "OSPF",
 }
 
+# Format struct pentru header IP
+# HACK: !BBHHHBBHII = network byte order, 20 bytes total
+# B=1byte, H=2bytes, I=4bytes
+IP_HEADER_FORMAT: str = '!BBHHHBBHII'
+IP_HEADER_SIZE: int = 20
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FUNCȚII DE PARSING
+# FUNCTII_DE_PARSING
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def parseaza_header_ip(data: bytes) -> HeaderIP:
@@ -119,26 +140,26 @@ def parseaza_header_ip(data: bytes) -> HeaderIP:
         - I = unsigned int (4 bytes)
     """
     # ─────────────────────────────────────────────────────────────
-    # VALIDARE INPUT
+    # VALIDARE_INPUT
     # ─────────────────────────────────────────────────────────────
     if not isinstance(data, bytes):
         raise TypeError(
             f"Se așteaptă bytes, primit {type(data).__name__}. "
-            f"Folosește data.encode() dacă ai un string."
+            f"Dacă ai un string, încearcă data.encode()."
         )
     
-    if len(data) < 20:
+    if len(data) < IP_HEADER_SIZE:
         raise ValueError(
-            f"Date insuficiente: {len(data)} bytes (minim 20 pentru header IP). "
+            f"Date insuficiente: {len(data)} bytes (minim {IP_HEADER_SIZE} pentru header IP). "
             f"Verifică dacă ai capturat headerul complet."
         )
     
     # ─────────────────────────────────────────────────────────────
-    # PARSING CU STRUCT
+    # PARSING_CU_STRUCT
     # ─────────────────────────────────────────────────────────────
     try:
-        # Format: Version+IHL, TOS, TotalLen, ID, Flags+FragOff, TTL, Proto, Checksum, SrcIP, DstIP
-        fields = struct.unpack('!BBHHHBBHII', data[:20])
+        # NOTE: Format = Version+IHL, TOS, TotalLen, ID, Flags+FragOff, TTL, Proto, Checksum, SrcIP, DstIP
+        fields = struct.unpack(IP_HEADER_FORMAT, data[:IP_HEADER_SIZE])
         logger.debug(f"Câmpuri raw: {fields}")
         
     except struct.error as e:
@@ -148,25 +169,32 @@ def parseaza_header_ip(data: bytes) -> HeaderIP:
         ) from e
     
     # ─────────────────────────────────────────────────────────────
-    # EXTRAGERE CÂMPURI
+    # EXTRAGERE_VERSION_IHL
     # ─────────────────────────────────────────────────────────────
-    
-    # Primul byte conține Version (4 biți) și IHL (4 biți)
+    # NOTE: Primul byte conține 2 câmpuri de 4 biți fiecare
+    # HACK: Folosim operații pe biți pentru a le separa
     version_ihl: int = fields[0]
-    version: int = version_ihl >> 4  # Primii 4 biți
-    ihl: int = (version_ihl & 0x0F)  # Ultimii 4 biți
+    version: int = version_ihl >> 4  # Primii 4 biți (shift right)
+    ihl: int = (version_ihl & 0x0F)  # Ultimii 4 biți (mask)
     header_length: int = ihl * 4     # IHL e în unități de 4 bytes
     
-    # Validare versiune
+    # WARNING: Verificare versiune — alertează dacă nu e IPv4
     if version != 4:
         logger.warning(f"Versiune IP neașteptată: {version} (așteptat 4)")
     
-    # Flags și Fragment Offset (bytes 6-7)
+    # ─────────────────────────────────────────────────────────────
+    # EXTRAGERE_FLAGS_FRAGMENT
+    # ─────────────────────────────────────────────────────────────
+    # NOTE: Bytes 6-7 conțin flags (3 biți) și fragment offset (13 biți)
     flags_frag: int = fields[4]
     flags: int = flags_frag >> 13           # Primii 3 biți
     fragment_offset: int = flags_frag & 0x1FFF  # Ultimii 13 biți
     
-    # Conversie adrese IP din format binar în string
+    # ─────────────────────────────────────────────────────────────
+    # CONVERSIE_ADRESE_IP
+    # ─────────────────────────────────────────────────────────────
+    # NOTE: Adresele IP sunt stocate ca unsigned int (4 bytes)
+    # inet_ntoa le convertește în format string (dotted decimal)
     try:
         src_ip: str = socket.inet_ntoa(struct.pack('!I', fields[8]))
         dst_ip: str = socket.inet_ntoa(struct.pack('!I', fields[9]))
@@ -175,6 +203,9 @@ def parseaza_header_ip(data: bytes) -> HeaderIP:
         src_ip = f"invalid:{fields[8]:08x}"
         dst_ip = f"invalid:{fields[9]:08x}"
     
+    # ─────────────────────────────────────────────────────────────
+    # CONSTRUIRE_REZULTAT
+    # ─────────────────────────────────────────────────────────────
     return HeaderIP(
         version=version,
         header_length=header_length,
@@ -207,6 +238,10 @@ def get_protocol_name(protocol_num: int) -> str:
     return PROTOCOL_NAMES.get(protocol_num, f"Unknown ({protocol_num})")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_DE_AFISARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def afiseaza_header(header: HeaderIP) -> None:
     """Afișează un header IP într-un format citibil.
     
@@ -218,7 +253,7 @@ def afiseaza_header(header: HeaderIP) -> None:
     """
     protocol_name: str = get_protocol_name(header.protocol)
     
-    # Interpretare flags
+    # NOTE: Interpretare flags — biții au semnificații specifice
     flags_str: list[str] = []
     if header.flags & 0x4:
         flags_str.append("Reserved")
@@ -250,7 +285,7 @@ def afiseaza_header(header: HeaderIP) -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# DEMONSTRAȚIE
+# DEMONSTRATIE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def demo() -> None:
@@ -267,13 +302,14 @@ def demo() -> None:
     print("=" * 70)
     
     # ─────────────────────────────────────────────────────────────
-    # PARTEA 1: Generare header de test
+    # PARTEA_1_GENERARE_HEADER
     # ─────────────────────────────────────────────────────────────
     print("\n📦 PARTEA 1: Generare header IP de test")
     print("-" * 50)
     
-    # Construim un header IP valid
-    header_bytes: bytes = struct.pack('!BBHHHBBHII',
+    # NOTE: Construim un header IP valid manual
+    # Asta simulează ce ai primi de la un packet capture
+    header_bytes: bytes = struct.pack(IP_HEADER_FORMAT,
         0x45,           # Version (4) + IHL (5) = 20 bytes header
         0x00,           # TOS (0 = normal)
         40,             # Total length (20 header + 20 TCP)
@@ -290,7 +326,7 @@ def demo() -> None:
     print(f"  Raw bytes: {header_bytes}")
     print(f"  Hex: {header_bytes.hex()}")
     
-    # Afișare hex formatată (ca în Wireshark)
+    # HACK: Afișare hex formatată (ca în Wireshark)
     print(f"  Wireshark view:")
     hex_str: str = header_bytes.hex()
     for i in range(0, len(hex_str), 4):
@@ -301,7 +337,7 @@ def demo() -> None:
     print()
     
     # ─────────────────────────────────────────────────────────────
-    # PARTEA 2: Parsing
+    # PARTEA_2_PARSING
     # ─────────────────────────────────────────────────────────────
     print("\n🔍 PARTEA 2: Parsing header")
     print("-" * 50)
@@ -317,7 +353,7 @@ def demo() -> None:
         return
     
     # ─────────────────────────────────────────────────────────────
-    # PARTEA 3: Demonstrație erori
+    # PARTEA_3_GESTIONARE_ERORI
     # ─────────────────────────────────────────────────────────────
     print("\n⚠️  PARTEA 3: Gestionare erori")
     print("-" * 50)
@@ -338,6 +374,10 @@ def demo() -> None:
     
     print("\n✅ Demonstrație completată!")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# QUIZ_INTERACTIV
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def quiz_struct() -> None:
     """Quiz pentru verificarea înțelegerii struct."""
@@ -364,11 +404,15 @@ def quiz_struct() -> None:
 ║  - '!H' = network byte order, unsigned short (2 bytes)                ║
 ║  - 0x0050 în big-endian = 80 în decimal                               ║
 ║  - Virgula după 'port' extrage valoarea din tuplu                     ║
-║  - B ar fi corect dacă era '!h' (little-endian pe Windows)            ║
+║  - B ar fi corect dacă era '<H' (little-endian)                       ║
 ║                                                                       ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 """)
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN_ENTRY_POINT
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     try:
