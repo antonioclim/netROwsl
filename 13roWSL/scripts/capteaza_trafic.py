@@ -6,6 +6,11 @@ Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix
 Wrapper pentru tcpdump/tshark cu filtre preconfigurate pentru laborator.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -13,6 +18,11 @@ import signal
 import os
 from pathlib import Path
 from datetime import datetime
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
@@ -27,6 +37,11 @@ FILTRU_IMPLICIT = "tcp port 1883 or tcp port 8883 or tcp port 8080 or tcp port 2
 # Proces global pentru gestionarea semnalelor
 proces_captare = None
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def handler_semnal(signum, frame):
     """Gestionează întreruperea graceful a capturii."""
@@ -165,6 +180,11 @@ def porneste_captarea(interfata: str, filtru: str, fisier_output: Path,
         print(f"  tshark -r {fisier_output}")
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -235,6 +255,11 @@ Exemple:
         logger.error("Permisiuni insuficiente. Rulați cu sudo/Administrator")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -8,11 +8,21 @@ Acest script oprește toate containerele Docker păstrând datele.
 IMPORTANT: Portainer NU este oprit - rulează global pe portul 9000!
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
 import socket
 from pathlib import Path
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
@@ -26,6 +36,11 @@ logger = configureaza_logger("opreste_lab")
 PORTAINER_PORT = 9000
 PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifica_portainer_status() -> bool:
     """Verifică dacă Portainer rulează pe portul 9000."""
@@ -51,6 +66,11 @@ def verifica_portainer_status() -> bool:
     except Exception:
         return False
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     """Funcția principală."""
@@ -108,6 +128,11 @@ def main():
         logger.error(f"Eroare la oprire: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

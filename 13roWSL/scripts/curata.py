@@ -7,9 +7,19 @@ Acest script elimină toate containerele, rețelele și opțional volumele
 pentru a pregăti sistemul pentru următoarea sesiune de laborator.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import sys
 import argparse
 from pathlib import Path
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
@@ -21,6 +31,11 @@ logger = configureaza_logger("curata")
 
 PREFIX_SAPTAMANA = "week13"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def curata_artefacte(simulare: bool = False):
     """Curăță directoarele de artefacte și capturi."""
@@ -65,6 +80,11 @@ def curata_pycache(simulare: bool = False):
             except Exception as e:
                 logger.warning(f"  [EROARE] {e}")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     """Funcția principală."""
@@ -146,6 +166,11 @@ Exemple:
         logger.error(f"Eroare la curățare: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())
