@@ -63,12 +63,55 @@ python3 scripts/porneste_lab.py
 
 Materialele de laborator sunt disponibile în **două limbi**, organizate în repository-uri separate:
 
+### Repository-uri Principale (Ediția WSL — Recomandate)
+
 | Repository | Limbă | URL | Convenție Denumire |
 |------------|-------|-----|-------------------|
 | **netENwsl** | 🇬🇧 Engleză | https://github.com/antonioclim/netENwsl | `<N>enWSL` (ex: `1enWSL`, `14enWSL`) |
 | **netROwsl** | 🇷🇴 Română | https://github.com/antonioclim/netROwsl | `<NN>roWSL` (ex: `01roWSL`, `14roWSL`) |
 
-**Această documentație acoperă ambele repository-uri**, cu instrucțiuni specifice pentru fiecare variantă lingvistică.
+### Repository-uri Beta (Ediția VM Linux — Pentru Utilizatori Avansați)
+
+| Repository | Limbă | URL | Status |
+|------------|-------|-----|--------|
+| **NETro** | 🇷🇴 Română | https://github.com/antonioclim/NETro | Beta — necesită VM Linux |
+| **netEN** | 🇬🇧 Engleză | https://github.com/antonioclim/netEN | Beta — necesită VM Linux |
+
+### Comparație Detaliată: Ediția WSL vs Ediția VM (Beta)
+
+| Caracteristică | netROwsl / netENwsl (WSL) | NETro / netEN (Beta VM) |
+|----------------|---------------------------|-------------------------|
+| **Mediu de Execuție** | WSL2 + Docker + Portainer | VM Linux + Mininet |
+| **Sistem de Operare Gazdă** | Windows 10/11 nativ | Orice OS cu VM (VirtualBox/VMware) |
+| **Convenție Denumire** | `<NN>roWSL` / `<N>enWSL` | `WEEK<N>` |
+| **Automatizare** | Scripturi Python | Makefile |
+| **Interfață Vizuală** | Portainer (port 9000) | Doar CLI |
+| **Simulare Rețea** | Rețele Docker bridge | Mininet (topologii complexe) |
+| **Captură Trafic** | Wireshark nativ Windows | tcpdump în VM |
+| **Complexitate Setup** | ⭐⭐ Accesibilă | ⭐⭐⭐⭐ Avansată |
+| **Diagrame PlantUML** | ✗ | ✓ |
+| **Slide-uri Prezentare** | ✗ | ✓ |
+| **Completitudine** | 14 kit-uri complete | 14 săptămâni (structură variabilă) |
+| **Documentație** | 2.400+ linii | ~1.000 linii |
+| **Consum Resurse** | ~500MB RAM bază | ~2-4GB RAM (VM) |
+
+### Avantajele Ediției WSL (Recomandate pentru Studenți)
+
+1. **Fără VM separată** — Rulează direct pe Windows fără overhead de virtualizare
+2. **Management vizual** — Portainer oferă interfață web pentru containere
+3. **Scripturi Python moderne** — Mai ușor de înțeles decât Makefile
+4. **Integrare Wireshark nativă** — Captură directă pe Windows
+5. **Structură consistentă** — Toate cele 14 kit-uri au aceeași organizare
+6. **Documentație extinsă** — README detaliat cu troubleshooting complet
+
+### Când să Alegi Ediția Beta (VM)?
+
+- Ai experiență cu Linux și preferi CLI
+- Ai nevoie de topologii Mininet complexe
+- Vrei să exersezi administrare Linux în VM
+- Sistemul tău nu suportă WSL2
+
+**Această documentație acoperă repository-urile WSL (netROwsl/netENwsl)**, cu instrucțiuni specifice pentru fiecare variantă lingvistică.
 
 ---
 
