@@ -172,7 +172,7 @@ Materialele încorporează sau depind de diverse componente software terțe, fie
 | Scapy | GPL-2.0 | https://scapy.net/ |
 | Wireshark | GPL-2.0 | https://www.wireshark.org/about.html |
 
-Utilizarea dumneavoastră a acestor componente terțe este supusă licențelor lor respective.
+Utilizarea de catre dumneavoastră a acestor componente terțe este supusă licențelor lor respective.
 
 ---
 
