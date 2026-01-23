@@ -8,12 +8,22 @@ Acest script oprește grațios toate containerele laboratorului.
 IMPORTANT: Portainer NU este oprit - rulează global pe portul 9000!
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
 import argparse
 import socket
 from pathlib import Path
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 RADACINA_PROIECT = Path(__file__).parent.parent
 PREFIX_SAPTAMANA = "week14"
@@ -29,6 +39,11 @@ class Culori:
     CYAN = '\033[96m'
     BOLD = '\033[1m'
     FINAL = '\033[0m'
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_info(mesaj: str) -> None:
     print(f"{Culori.CYAN}[INFO]{Culori.FINAL} {mesaj}")
@@ -138,6 +153,11 @@ def afiseaza_stare_containere() -> None:
         pass
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     """Punct de intrare principal."""
     parser = argparse.ArgumentParser(
@@ -194,6 +214,11 @@ def main() -> int:
     
     return 0 if verifica_containere_oprite() else 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

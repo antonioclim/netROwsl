@@ -6,12 +6,22 @@ Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
 Instrument pentru capturarea traficului de rețea în fișiere PCAP.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
 import time
 from pathlib import Path
 from datetime import datetime
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 RADACINA_PROIECT = Path(__file__).parent.parent
 
@@ -22,6 +32,11 @@ class Culori:
     CYAN = '\033[96m'
     BOLD = '\033[1m'
     FINAL = '\033[0m'
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_info(mesaj): print(f"{Culori.CYAN}[INFO]{Culori.FINAL} {mesaj}")
 def afiseaza_succes(mesaj): print(f"{Culori.VERDE}[OK]{Culori.FINAL} {mesaj}")
@@ -108,6 +123,11 @@ def captura_din_container(container, durata, fisier_iesire, filtru=None):
         afiseaza_eroare(f"Eroare: {e}")
         return False
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     parser = argparse.ArgumentParser(
         description="Captură Trafic de Rețea - Săptămâna 14",
@@ -160,6 +180,11 @@ def main():
     else:
         afiseaza_eroare("Captura a eșuat")
         return 1
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

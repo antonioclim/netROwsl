@@ -9,6 +9,11 @@ NOTĂ: Portainer rulează global pe portul 9000 și NU este gestionat de acest s
 Accesați Portainer la: http://localhost:9000 (credențiale: stud / studstudstud)
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -17,6 +22,11 @@ import socket
 from pathlib import Path
 
 # Adaugă rădăcina proiectului în path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 
 # Coduri de culoare pentru terminal
@@ -27,6 +37,11 @@ class Culori:
     CYAN = '\033[96m'
     BOLD = '\033[1m'
     FINAL = '\033[0m'
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_info(mesaj: str) -> None:
     print(f"{Culori.CYAN}[INFO]{Culori.FINAL} {mesaj}")
@@ -265,6 +280,11 @@ def afiseaza_puncte_acces() -> None:
     print(f"  Server Echo TCP:  {Culori.CYAN}tcp://localhost:9090{Culori.FINAL}")
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     """Punct de intrare principal."""
     parser = argparse.ArgumentParser(
@@ -338,6 +358,11 @@ def main() -> int:
     
     return 0
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

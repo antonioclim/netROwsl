@@ -6,10 +6,20 @@ Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
 Elimină containerele, rețelele și volumele pentru o curățare completă.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
 from pathlib import Path
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 RADACINA_PROIECT = Path(__file__).parent.parent
 PREFIX_SAPTAMANA = "week14"
@@ -21,6 +31,11 @@ class Culori:
     CYAN = '\033[96m'
     BOLD = '\033[1m'
     FINAL = '\033[0m'
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_info(mesaj): print(f"{Culori.CYAN}[INFO]{Culori.FINAL} {mesaj}")
 def afiseaza_succes(mesaj): print(f"{Culori.VERDE}[OK]{Culori.FINAL} {mesaj}")
@@ -136,6 +151,11 @@ def afiseaza_utilizare_disc():
     except:
         pass
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     parser = argparse.ArgumentParser(
         description="Curățare Laborator Săptămâna 14",
@@ -186,6 +206,11 @@ def main():
     
     print(f"\n{Culori.VERDE}Curățare completă!{Culori.FINAL}")
     return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

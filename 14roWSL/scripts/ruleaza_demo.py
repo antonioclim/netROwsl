@@ -6,6 +6,11 @@ Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
 Rulează demonstrații pentru prezentarea funcționalităților laboratorului.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import socket
@@ -31,6 +36,11 @@ class Culori:
     CYAN = '\033[96m'
     BOLD = '\033[1m'
     FINAL = '\033[0m'
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_info(mesaj): print(f"{Culori.CYAN}[INFO]{Culori.FINAL} {mesaj}")
 def afiseaza_succes(mesaj): print(f"{Culori.VERDE}[OK]{Culori.FINAL} {mesaj}")
@@ -205,6 +215,11 @@ def demo_trafic():
     
     print(f"\n{Culori.VERDE}Generare trafic completă!{Culori.FINAL}")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     parser = argparse.ArgumentParser(
         description="Demonstrații Laborator Săptămâna 14",
@@ -228,6 +243,11 @@ def main():
         demo_trafic()
     
     return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())
