@@ -4,13 +4,62 @@
 
 ## Cuprins
 
-1. [Protocolul HTTP/HTTPS](#protocolul-httphttps)
-2. [Handshake-ul TLS](#handshake-ul-tls)
-3. [Arhitectura REST](#arhitectura-rest)
-4. [Modelul Richardson](#modelul-richardson)
-5. [Protocolul DNS](#protocolul-dns)
-6. [Protocolul SSH](#protocolul-ssh)
-7. [Protocolul FTP](#protocolul-ftp)
+1. [Analogii pentru Înțelegere (CPA)](#analogii-pentru-înțelegere-cpa)
+2. [Protocolul HTTP/HTTPS](#protocolul-httphttps)
+3. [Handshake-ul TLS](#handshake-ul-tls)
+4. [Arhitectura REST](#arhitectura-rest)
+5. [Modelul Richardson](#modelul-richardson)
+6. [Protocolul DNS](#protocolul-dns)
+7. [Protocolul SSH](#protocolul-ssh)
+8. [Protocolul FTP](#protocolul-ftp)
+
+---
+
+## Analogii pentru Înțelegere (CPA)
+
+**Metoda Concret → Pictorial → Abstract** te ajută să înțelegi concepte noi pornind de la lucruri familiare.
+
+### Container Docker
+
+| Etapă | Explicație |
+|-------|------------|
+| **CONCRET** | Imaginează-ți o cutie de carton care conține TOT ce ai nevoie pentru a face o prăjitură: ingrediente, ustensile, rețetă, cuptor portabil. Oriunde duci cutia, poți face prăjitura identic - nu depinzi de bucătăria gazdei. |
+| **PICTORIAL** | ![Container cu layers](https://docs.docker.com/get-started/images/container-what-is-container.png) - O cutie izolată cu aplicația și dependențele |
+| **ABSTRACT** | `docker run nginx` - Creează și pornește un container din imaginea nginx |
+
+### Port Mapping (-p 8080:80)
+
+| Etapă | Explicație |
+|-------|------------|
+| **CONCRET** | Locuiești într-un bloc de apartamente. Adresa blocului e "Strada X, Nr. 8080" (portul HOST), dar apartamentul tău e "Ap. 80" (portul CONTAINER). Poștașul (cererea HTTP) vine la adresa blocului, portarul (Docker) îl direcționează la apartamentul corect. |
+| **PICTORIAL** | `[Browser] → localhost:8080 → [Docker Host] → container:80 → [nginx]` |
+| **ABSTRACT** | `-p 8080:80` sau în compose: `ports: ["8080:80"]` |
+
+**Regulă de memorat:** `HOST:CONTAINER` - ce e în stânga e "ușa din exterior", ce e în dreapta e "ușa din interior".
+
+### TLS Handshake
+
+| Etapă | Explicație |
+|-------|------------|
+| **CONCRET** | Când suni la bancă pentru o operațiune: (1) Te prezinți și spui ce operațiune vrei, (2) Banca se prezintă și îți trimite o carte de vizită oficială cu ștampilă, (3) Verifici ștampila, (4) Stabiliți un cod secret pentru conversație pe care doar voi doi îl știți. |
+| **PICTORIAL** | Vezi diagrama de mai jos |
+| **ABSTRACT** | `ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)` |
+
+### REST HATEOAS
+
+| Etapă | Explicație |
+|-------|------------|
+| **CONCRET** | La un restaurant modern, meniul electronic nu doar listează felurile - fiecare fel are butoane: "Comandă", "Vezi ingrediente", "Adaugă la favorite", "Vezi rețete similare". Nu trebuie să memorezi unde să găsești fiecare funcție - meniul îți arată opțiunile disponibile. |
+| **PICTORIAL** | Răspunsul JSON include `_links` cu acțiunile posibile |
+| **ABSTRACT** | `{"id": 1, "nume": "Produs", "_links": {"self": "/produse/1", "delete": {"href": "/produse/1", "method": "DELETE"}}}` |
+
+### FTP: Activ vs Pasiv
+
+| Etapă | Explicație |
+|-------|------------|
+| **CONCRET** | **Activ:** Suni la o firmă de curierat și spui "Trimiteți curierul la mine acasă" - ei inițiază vizita. Dar dacă ești într-o clădire cu interfon și nu răspunzi, curierul nu poate intra. **Pasiv:** Suni la firmă și spui "Dați-mi adresa depozitului, vin eu să ridic coletul" - tu inițiezi vizita, deci nu ai probleme cu interfonul. |
+| **PICTORIAL** | Vezi diagrama de mai jos |
+| **ABSTRACT** | Comanda `PASV` în loc de `PORT` |
 
 ---
 
@@ -107,6 +156,58 @@ O resursă este orice entitate care poate fi denumită și adresată:
 
 Leonard Richardson a definit 4 niveluri de maturitate pentru API-uri web:
 
+### Diagrama Nivelurilor REST
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  Nivel 3: HATEOAS                                               │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ GET /produse/1                                           │   │
+│  │ → { id: 1, nume: "Laptop",                               │   │
+│  │     _links: {                                            │   │
+│  │       self: "/produse/1",                                │   │
+│  │       actualizeaza: {href: "/produse/1", method: "PUT"}, │   │
+│  │       sterge: {href: "/produse/1", method: "DELETE"},    │   │
+│  │       recenzii: "/produse/1/recenzii"                    │   │
+│  │     }                                                    │   │
+│  │   }                                                      │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              ▲                                   │
+│ ─────────────────────────────┼─────────────────────────────────  │
+│                              │                                   │
+│  Nivel 2: Verbe HTTP                                            │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ GET    /produse       → 200 OK + listă                   │   │
+│  │ POST   /produse       → 201 Created + resursă nouă       │   │
+│  │ PUT    /produse/1     → 200 OK + resursă actualizată     │   │
+│  │ DELETE /produse/1     → 204 No Content                   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              ▲                                   │
+│ ─────────────────────────────┼─────────────────────────────────  │
+│                              │                                   │
+│  Nivel 1: Resurse                                               │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ POST /produse           (creează)                        │   │
+│  │ POST /produse/1         (citește/actualizează/șterge)    │   │
+│  │ POST /categorii         (operații pe categorii)          │   │
+│  │ → Toate acțiunile sunt POST, dar URI-uri separate        │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              ▲                                   │
+│ ─────────────────────────────┼─────────────────────────────────  │
+│                              │                                   │
+│  Nivel 0: RPC (Mlaștina POX)                                    │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ POST /api                                                │   │
+│  │ Body: {"actiune": "listeazaProduse"}                     │   │
+│  │ Body: {"actiune": "creeazaProdus", "date": {...}}        │   │
+│  │ Body: {"actiune": "stergeProdus", "id": 1}               │   │
+│  │ → Un singur endpoint, acțiunea e în body                 │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ### Nivelul 0: Mlaștina POX (Plain Old XML/JSON)
 
 - Un singur endpoint
@@ -194,6 +295,15 @@ Răspunsurile includ linkuri către acțiunile disponibile:
 | TXT | Text arbitrar | Verificări, SPF, DKIM |
 | SOA | Start of Authority | Metadate zonă |
 
+### Coduri de Răspuns DNS
+
+| Cod | Nume | Semnificație |
+|-----|------|--------------|
+| 0 | NOERROR | Interogare procesată cu succes |
+| 3 | NXDOMAIN | Domeniul nu există |
+| 2 | SERVFAIL | Eroare server DNS |
+| 5 | REFUSED | Server refuză cererea |
+
 ---
 
 ## Protocolul SSH
@@ -234,20 +344,31 @@ SSH are trei straturi principale:
 ```
 Client                           Server
   |                                |
-  |─── PORT n ────────────────────>|
-  |<────────────────── Date ───────|
-            (server → client:n)
+  |─── PORT client_ip,port ──────>|  (1) Client spune: "Trimite date la mine"
+  |                                |
+  |<──────── Date ─────────────────|  (2) Server inițiază conexiune → CLIENT
+            (server → client:port)           ↑
+                                       POATE FI BLOCAT DE FIREWALL!
 ```
 
 **Mod Pasiv:**
 ```
 Client                           Server
   |                                |
-  |─── PASV ──────────────────────>|
-  |<─── 227 (ip,port) ─────────────|
-  |═══════ Date ══════════════════>|
-        (client → server:port)
+  |─── PASV ─────────────────────>|  (1) Client întreabă: "Pe ce port să mă conectez?"
+  |                                |
+  |<─── 227 (server_ip,port) ─────|  (2) Server răspunde cu port
+  |                                |
+  |═══════ Date ═════════════════>|  (3) Client inițiază conexiune → SERVER
+        (client → server:port)            ↑
+                                    FUNCȚIONEAZĂ PRIN FIREWALL!
 ```
+
+**De ce modul pasiv funcționează prin firewall:**
+- Firewall-urile permit de obicei conexiuni OUTBOUND (din interior spre exterior)
+- Blochează conexiuni INBOUND (din exterior spre interior)
+- În modul activ, SERVERUL inițiază conexiunea de date → blocat
+- În modul pasiv, CLIENTUL inițiază conexiunea de date → permis
 
 ### Comenzi FTP Comune
 
@@ -261,6 +382,8 @@ Client                           Server
 | RETR | Descarcă fișier |
 | STOR | Încarcă fișier |
 | DELE | Șterge fișier |
+| PASV | Activează modul pasiv |
+| PORT | Activează modul activ |
 | QUIT | Închide sesiunea |
 
 ---

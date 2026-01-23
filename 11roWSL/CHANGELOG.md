@@ -10,7 +10,7 @@ Formatul se bazează pe [Keep a Changelog](https://keepachangelog.com/ro/1.0.0/)
 
 ### Adăugat
 
-- **README.md** - Ghid comprehensiv cu 7 exerciții și obiective de învățare
+- **README.md** - Ghid complet cu 7 exerciții și obiective de învățare
 - **Scripturi de configurare** - verify_environment.py, install_prerequisites.py, configure_docker.py
 - **Orchestrare Docker** - docker-compose.yml cu Nginx și 3 backend-uri
 - **Echilibror de sarcină Python** - Suport pentru round-robin, least-conn, ip_hash

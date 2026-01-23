@@ -10,7 +10,7 @@
 
 Acest kit de laborator este proiectat pentru mediul **WSL2 + Ubuntu 22.04 + Docker + Portainer**.
 
-**Repository:** https://github.com/antonioclim/netROwsl
+**Repository:** https://github.com/antonioclim/netROwsl  
 **Folderul Acestei Săptămâni:** `11roWSL`
 
 **Arhitectura Mediului:**
@@ -24,9 +24,28 @@ Windows 11 → WSL2 → Ubuntu 22.04 (implicit) → Docker Engine → Portainer 
 | Ubuntu WSL | `stud` | `stud` |
 | Portainer | `stud` | `studstudstud` |
 
+> 📚 **Nou la aceste concepte?** Consultă [Analogii pentru Concepte](docs/analogii_concepte.md) pentru explicații pas-cu-pas folosind metoda Concret→Pictorial→Abstract.
+
 ---
 
-## 📥 Clonarea Laboratorului Acestei Săptămâni
+## Cuprins
+
+1. [Notificare Mediu](#️-notificare-mediu)
+2. [Clonarea Laboratorului](#clonarea-laboratorului-acestei-săptămâni)
+3. [Configurarea Inițială](#configurarea-inițială-a-mediului-doar-prima-dată)
+4. [Interfața Portainer](#înțelegerea-interfeței-portainer)
+5. [Configurarea Wireshark](#configurarea-și-utilizarea-wireshark)
+6. [Prezentare Generală](#prezentare-generală)
+7. [Obiective de Învățare](#obiective-de-învățare)
+8. [Exerciții de Laborator](#exerciții-de-laborator)
+9. [Demonstrații](#demonstrații)
+10. [Context Teoretic](#context-teoretic)
+11. [Depanare](#depanare-extinsă)
+12. [Curățare](#procedura-completă-de-curățare)
+
+---
+
+## Clonarea Laboratorului Acestei Săptămâni
 
 ### Pasul 1: Deschide PowerShell (Windows)
 
@@ -45,6 +64,8 @@ cd SAPT11
 ```
 
 ### Pasul 3: Verifică Clonarea
+
+> 🤔 **Predicție:** Înainte de a rula `dir`, câte foldere și fișiere te aștepți să vezi? Notează estimarea ta.
 
 ```powershell
 dir
@@ -69,10 +90,13 @@ D:\RETELE\
         │   ├── web3/        # Conținut backend 3
         │   └── volumes/     # Volume persistente
         ├── docs/            # Documentație suplimentară
-        │   ├── commands_cheatsheet.md
-        │   ├── further_reading.md
-        │   ├── theory_summary.md
-        │   └── troubleshooting.md
+        │   ├── analogii_concepte.md    # Explicații CPA
+        │   ├── commands_cheatsheet.md  # Referință comenzi
+        │   ├── further_reading.md      # Lectură suplimentară
+        │   ├── glosar.md               # Termeni și definiții
+        │   ├── peer_instruction_questions.md  # Întrebări discuție
+        │   ├── theory_summary.md       # Rezumat teorie
+        │   └── troubleshooting.md      # Depanare
         ├── homework/        # Teme pentru acasă
         │   └── exercises/   # hw_11_01, hw_11_02
         ├── pcap/            # Fișiere de captură .pcap
@@ -89,7 +113,7 @@ D:\RETELE\
 
 ---
 
-## 🔧 Configurarea Inițială a Mediului (Doar Prima Dată)
+## Configurarea Inițială a Mediului (Doar Prima Dată)
 
 ### Pasul 1: Deschide Terminalul Ubuntu
 
@@ -104,6 +128,8 @@ stud@CALCULATOR:~$
 ```
 
 ### Pasul 2: Pornește Serviciul Docker
+
+> 🤔 **Predicție:** După ce rulezi `docker ps`, câte containere crezi că vor apărea dacă aceasta este prima pornire? Ce nume vor avea?
 
 ```bash
 # Pornește Docker (necesar după fiecare restart Windows)
@@ -157,13 +183,15 @@ ls -la
 
 ---
 
-## 🖥️ Înțelegerea Interfeței Portainer
+## Înțelegerea Interfeței Portainer
 
 ### Prezentare Generală Dashboard
 
 După autentificare la http://localhost:9000, vei vedea:
 1. **Home** - Lista mediilor Docker disponibile
 2. **local** - Click pentru a gestiona Docker-ul local
+
+> 💡 **Analogie:** Portainer este ca un "panou de control" pentru containere — vezi starea fiecăruia, îl pornești, oprești sau inspectezi, exact ca la un tablou de bord al unei mașini.
 
 ### Vizualizarea Containerelor pentru Săptămâna 11
 
@@ -209,7 +237,7 @@ Pentru orice container, poți efectua următoarele operații:
 
 ---
 
-## 🦈 Configurarea și Utilizarea Wireshark
+## Configurarea și Utilizarea Wireshark
 
 ### Când să Deschizi Wireshark
 
@@ -234,7 +262,7 @@ Alternativ, din PowerShell:
 
 | Numele Interfeței | Când să Folosești |
 |-------------------|-------------------|
-| **vEthernet (WSL)** | ✅ Cel mai frecvent - capturează traficul Docker WSL |
+| **vEthernet (WSL)** | Cel mai frecvent - capturează traficul Docker WSL |
 | **vEthernet (WSL) (Hyper-V firewall)** | Alternativă dacă prima nu funcționează |
 | **Loopback Adapter** | Doar pentru trafic localhost (127.0.0.1) |
 | **Ethernet/Wi-Fi** | Trafic rețea fizică (nu Docker) |
@@ -242,6 +270,8 @@ Alternativ, din PowerShell:
 **Cum selectezi:** Dublu-click pe numele interfeței SAU selecteaz-o și click pe icoana aripioarei albastre de rechin.
 
 ### Pasul 3: Generează Trafic
+
+> 🤔 **Predicție:** Dacă rulezi `curl` de 6 ori către echilibror cu round-robin și 3 backend-uri, câte răspunsuri diferite vei primi? Toate de la același backend sau distribuite?
 
 Cu Wireshark capturând (vei vedea pachete apărând în timp real), rulează exercițiile:
 
@@ -261,6 +291,8 @@ for i in {1..6}; do curl -s http://localhost:8080/; done
 Click pe butonul pătrat roșu (Stop) când ai terminat de generat trafic.
 
 ### Filtre Wireshark Esențiale pentru Săptămâna 11
+
+> 🤔 **Predicție:** La filtrul `tcp.port == 8080`, câte pachete estimezi pentru o singură cerere HTTP completă? (Hint: gândește-te la handshake-ul TCP și la închiderea conexiunii)
 
 Tastează în bara de filtrare (devine verde când filtrul este valid) și apasă Enter:
 
@@ -301,6 +333,8 @@ Tastează în bara de filtrare (devine verde când filtrul este valid) și apas�
 - SAU: `tcp.port == 8080 || tcp.port == 80`
 - NU: `!arp && !icmp`
 
+Pentru lista completă de comenzi, vezi [Fișa de Comenzi Rapide](docs/commands_cheatsheet.md).
+
 ### Analiza Distribuției Sarcinii în Wireshark
 
 1. Capturează trafic în timp ce rulezi:
@@ -338,13 +372,19 @@ Tastează în bara de filtrare (devine verde când filtrul este valid) și apas�
 
 Această sesiune de laborator explorează protocoalele stratului de aplicație și tehnicile de echilibrare a sarcinii. Veți investiga mecanismele fundamentale care permit transferul de fișiere, rezoluția numelor de domeniu și accesul securizat de la distanță, toate esențiale pentru infrastructura modernă a internetului.
 
-**File Transfer Protocol (FTP)** utilizează o arhitectură cu conexiune duală: un canal de control (portul 21) pentru comenzi și autentificare, și canale de date dinamice pentru transferul efectiv al fișierelor. Această separare permite un control sofisticat al fluxului, dar introduce complexități la traversarea NAT — de aceea modul pasiv a devenit predominant în mediile moderne de rețea.
+**File Transfer Protocol (FTP)** folosește o arhitectură cu conexiune duală: un canal de control (portul 21) pentru comenzi și autentificare, și canale de date dinamice pentru transferul efectiv al fișierelor. Această separare permite un control sofisticat al fluxului, dar introduce complexități la traversarea NAT — de aceea modul pasiv a devenit predominant în mediile moderne de rețea.
 
-**Domain Name System (DNS)** funcționează ca o bază de date ierarhică distribuită, transformând numele de domeniu lizibile în adrese IP. Arhitectura sa — ce cuprinde rezolveri, servere recursive și servere autoritative — demonstrează principii elegante de proiectare distribută, în timp ce extensiile DNSSEC adaugă validare criptografică pentru a preveni atacurile de otrăvire a cache-ului.
+> 💡 **Analogie rapidă:** FTP activ = "Dă-mi adresa ta, vin eu la tine" (problematic cu NAT). FTP pasiv = "Uite adresa mea, vino tu" (funcționează cu NAT). Vezi [Analogii Concepte](docs/analogii_concepte.md#7-ftp-activ-vs-pasiv) pentru detalii.
+
+**Domain Name System (DNS)** funcționează ca o bază de date ierarhică distribuită, transformând numele de domeniu lizibile în adrese IP. Arhitectura sa — ce cuprinde rezolveri, servere recursive și servere autoritative — demonstrează principii elegante de proiectare distribuită, în timp ce extensiile DNSSEC adaugă validare criptografică pentru a preveni atacurile de otrăvire a cache-ului.
 
 **Secure Shell (SSH)** multiplexează multiple canale logice peste o singură conexiune TCP criptată, suportând sesiuni de terminal, transferuri de fișiere (SFTP/SCP) și redirecționare de porturi. Protocoalele sale de schimb de chei și arhitectura pe straturi oferă atât confidențialitate, cât și autentificare puternică.
 
 **Echilibrarea sarcinii** distribuie traficul de intrare pe mai multe servere backend, îmbunătățind disponibilitatea, scalabilitatea și toleranța la defecte. Veți implementa algoritmi de echilibrare atât în Python simplu, cât și folosind Nginx ca proxy invers, comparând caracteristicile lor de performanță.
+
+> 💡 **Analogie rapidă:** Load balancer = "Ospătar-șef care distribuie comenzile între bucătari". Vezi [Analogii Concepte](docs/analogii_concepte.md#1-load-balancer-echilibror-de-sarcină) pentru explicația completă.
+
+---
 
 ## Obiective de Învățare
 
@@ -357,6 +397,8 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 5. **Analizați** traficul de rețea folosind Wireshark pentru a observa comportamentul protocoalelor în practică
 6. **Proiectați** servicii containerizate care comunică prin rețele definite, aplicând principiile de izolare a rețelei
 7. **Evaluați** compromisurile de performanță între diferite strategii de echilibrare a sarcinii prin benchmarking și analiza latențelor
+
+---
 
 ## Cerințe Preliminare
 
@@ -385,6 +427,8 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 - 10GB spațiu liber pe disc
 - Conectivitate la rețea pentru descărcarea imaginilor
 
+---
+
 ## Pornire Rapidă
 
 ### Prima Configurare (Rulează o singură dată)
@@ -401,6 +445,8 @@ python3 setup/install_prerequisites.py
 ```
 
 ### Pornirea Laboratorului
+
+> 🤔 **Predicție:** Câte containere vor porni când rulezi `start_lab.py`? Ce porturi vor fi expuse?
 
 ```bash
 # În terminalul Ubuntu
@@ -426,6 +472,8 @@ python3 scripts/start_lab.py --status
 | Status Nginx | http://localhost:8080/nginx_status | Statistici Nginx |
 
 **Notă:** Portainer rulează global și nu trebuie pornit/oprit cu laboratorul.
+
+---
 
 ## Exerciții de Laborator
 
@@ -481,6 +529,8 @@ python3 tests/test_exercises.py --exercise 1
 
 **Durată estimată:** 20 minute
 
+> 🤔 **Predicție:** Cu 3 backend-uri și algoritm round-robin, dacă trimiți 9 cereri, câte va primi fiecare backend?
+
 **Pași:**
 
 1. Cu backend-urile pornite din Exercițiul 1, lansează echiliborul:
@@ -498,7 +548,7 @@ python3 tests/test_exercises.py --exercise 1
 **Ce trebuie observat:**
 - Fiecare cerere consecutivă merge la un backend diferit
 - Distribuția este echitabilă pe termen lung
-- Latența este minimă (echilibrul adaugă puțin overhead)
+- Latența este minimă (echiliborul adaugă puțin overhead)
 
 **Verificare:**
 ```bash
@@ -512,6 +562,8 @@ python3 tests/test_exercises.py --exercise 2
 **Obiectiv:** Demonstrează sesiuni fixe unde un client ajunge mereu la același backend.
 
 **Durată estimată:** 15 minute
+
+> 🤔 **Predicție:** Cu IP Hash, dacă trimiți 10 cereri de la același client, la câte backend-uri diferite vor ajunge?
 
 **Pași:**
 
@@ -546,6 +598,8 @@ python3 tests/test_exercises.py --exercise 3
 **Obiectiv:** Observă cum echiliborul gestionează căderea unui backend.
 
 **Durată estimată:** 20 minute
+
+> 🤔 **Predicție:** Când oprești un backend din 3, cum se redistribuie traficul? Ce se întâmplă în primele secunde?
 
 **Pași:**
 
@@ -636,6 +690,8 @@ python3 tests/test_exercises.py --exercise 5
 
 **Durată estimată:** 20 minute
 
+> 🧪 **Experiment mental:** Dacă cache-ul DNS local expiră și serverul root este temporar inaccesibil, ce se întâmplă cu rezolvarea `google.com`?
+
 **Pași:**
 
 1. Interoghează înregistrări A (adrese IPv4):
@@ -673,6 +729,8 @@ python3 tests/test_exercises.py --exercise 6
 **Obiectiv:** Măsoară și compară performanța diferitelor configurații de echilibrare.
 
 **Durată estimată:** 25 minute
+
+> 🤔 **Predicție:** Care echilibror va avea performanță mai bună: cel Python sau Nginx? Cu cât estimezi că diferă?
 
 **Pași:**
 
@@ -733,6 +791,8 @@ python3 scripts/run_demo.py --demo failover
 
 Arată comportamentul echilibrării când un backend cade și revine.
 
+---
+
 ## Captura și Analiza Pachetelor
 
 ### Capturarea Traficului
@@ -767,6 +827,8 @@ dns.flags.response == 0
 ip.addr == 172.28.0.0/16
 ```
 
+---
+
 ## Oprire și Curățare
 
 ### La Sfârșitul Sesiunii
@@ -792,6 +854,8 @@ python3 scripts/cleanup.py --full
 docker system df
 ```
 
+---
+
 ## Teme pentru Acasă
 
 Vezi directorul `homework/` pentru exerciții de aprofundare.
@@ -801,6 +865,8 @@ Implementează verificări periodice HTTP și weighted round-robin.
 
 ### Tema 2: Resolver DNS cu Cache
 Construiește un resolver local DNS care memorează răspunsurile.
+
+> 📚 Ai nevoie de ajutor cu conceptele? Vezi [Analogii pentru Concepte](docs/analogii_concepte.md).
 
 ---
 
@@ -815,6 +881,8 @@ FTP folosește un model cu conexiune duală:
 Modul **activ** vs **pasiv**:
 - Activ: serverul inițiază conexiunea de date (probleme cu NAT/firewall)
 - Pasiv: clientul inițiază ambele conexiuni (compatibil NAT)
+
+> 🧪 **Verifică înțelegerea:** Dacă un client din spatele unui NAT încearcă FTP activ, ce se va întâmpla? De ce modul pasiv rezolvă problema?
 
 ### Ierarhia DNS
 
@@ -849,6 +917,10 @@ SSH multiplexează multiple canale peste o conexiune:
 | IP Hash | Hashing adresă client | Sesiuni persistente |
 | Weighted | Ponderat după capacitate | Servere eterogene |
 
+> 🤔 **Predicție:** Cu algoritmul IP Hash și 3 backend-uri, dacă 100 de clienți diferiți fac câte o cerere, cum se va distribui traficul?
+
+---
+
 ## Referințe
 
 - Kurose, J. & Ross, K. (2021). *Computer Networking: A Top-Down Approach* (8th ed.). Pearson.
@@ -857,6 +929,8 @@ SSH multiplexează multiple canale peste o conexiune:
 - RFC 1035 — Domain Names - Implementation and Specification
 - RFC 4251-4254 — Secure Shell Protocol
 - Nginx Documentation: https://nginx.org/en/docs/
+
+---
 
 ## Diagramă Arhitectură
 
@@ -889,7 +963,9 @@ SSH multiplexează multiple canale peste o conexiune:
 
 ---
 
-## 🔧 Depanare Extinsă
+## Depanare Extinsă
+
+Pentru probleme comune și soluții, consultă [Ghidul Complet de Depanare](docs/troubleshooting.md).
 
 ### Probleme Docker
 
@@ -964,10 +1040,10 @@ docker volume rm portainer_data
 ### Probleme Wireshark
 
 **Problemă:** Nu se capturează pachete
-- ✅ Verifică interfața corectă selectată (vEthernet WSL)
-- ✅ Asigură-te că traficul este generat ÎN TIMPUL capturii
-- ✅ Verifică că filtrul de afișare nu ascunde pachetele (șterge filtrul)
-- ✅ Încearcă "Capture → Options" și activează modul promiscuous
+- Verifică interfața corectă selectată (vEthernet WSL)
+- Asigură-te că traficul este generat ÎN TIMPUL capturii
+- Verifică că filtrul de afișare nu ascunde pachetele (șterge filtrul)
+- Încearcă "Capture → Options" și activează modul promiscuous
 
 **Problemă:** "No interfaces found" sau eroare de permisiune
 - Rulează Wireshark ca Administrator (click dreapta → Run as administrator)
@@ -1022,27 +1098,9 @@ docker logs s11_backend_1
 docker exec s11_nginx_lb curl http://web1/
 ```
 
-### Probleme de Rețea
-
-**Problemă:** Containerul nu poate accesa internetul
-```bash
-# Verifică rețeaua Docker
-docker network ls
-docker network inspect s11_network
-
-# Verifică DNS în container
-docker exec s11_nginx_lb cat /etc/resolv.conf
-```
-
-**Problemă:** Erori la conectarea între containere
-```bash
-# Verifică că toate containerele sunt în aceeași rețea
-docker network inspect s11_network | grep -A2 Containers
-```
-
 ---
 
-## 🧹 Procedura Completă de Curățare
+## Procedura Completă de Curățare
 
 ### Sfârșit de Sesiune (Rapidă)
 
@@ -1113,5 +1171,16 @@ docker volume ls      # Volume
 
 ---
 
-*Laborator Rețele de Calculatoare — ASE, Informatică Economică | de Revolvix*
+## Documente Înrudite
+
+- [Analogii pentru Concepte](docs/analogii_concepte.md) — Explicații CPA
+- [Fișă Comenzi Rapide](docs/commands_cheatsheet.md) — Referință rapidă
+- [Rezumat Teorie](docs/theory_summary.md) — Concepte fundamentale
+- [Ghid Depanare](docs/troubleshooting.md) — Soluții probleme comune
+- [Întrebări Peer Instruction](docs/peer_instruction_questions.md) — Pentru discuții
+- [Glosar](docs/glosar.md) — Termeni și definiții
+
+---
+
+*Laborator Rețele de Calculatoare — ASE, Informatică Economică | de Revolvix*  
 *Adaptat pentru mediul WSL2 + Ubuntu 22.04 + Docker + Portainer*

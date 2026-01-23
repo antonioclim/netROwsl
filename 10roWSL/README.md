@@ -6,6 +6,32 @@
 
 ---
 
+## Cuprins
+
+- [Notificare Mediu](#️-notificare-mediu)
+- [Filozofie de Învățare](#-filozofie-de-învățare)
+- [Clonarea Laboratorului](#-clonarea-laboratorului-acestei-săptămâni)
+- [Configurarea Inițială](#-configurarea-inițială-a-mediului-doar-prima-dată)
+- [Interfața Portainer](#️-înțelegerea-interfeței-portainer)
+- [Configurarea Wireshark](#-configurarea-și-utilizarea-wireshark)
+- [Prezentare Generală](#prezentare-generală)
+- [Obiective de Învățare](#obiective-de-învățare)
+- [Pornire Rapidă](#pornire-rapidă)
+- [Exerciții de Laborator](#exerciții-de-laborator)
+  - [Ex 1: HTTP](#exercițiul-1-explorarea-serviciului-http)
+  - [Ex 2: DNS](#exercițiul-2-rezoluția-dns)
+  - [Ex 3: SSH](#exercițiul-3-comunicația-ssh-criptată)
+  - [Ex 4: FTP](#exercițiul-4-protocolul-ftp-multi-canal)
+  - [Ex 5: HTTPS](#exercițiul-5-https-cu-tls-auto-semnat)
+  - [Ex 6: REST](#exercițiul-6-nivelurile-de-maturitate-rest)
+- [Demonstrații](#demonstrații)
+- [Captură și Analiză](#captură-și-analiză-de-trafic)
+- [Depanare](#-depanare-extinsă)
+- [Curățare](#-procedura-completă-de-curățare)
+- [Referințe](#referințe)
+
+---
+
 ## ⚠️ Notificare Mediu
 
 Acest kit de laborator este proiectat pentru mediul **WSL2 + Ubuntu 22.04 + Docker + Portainer**.
@@ -25,6 +51,23 @@ Windows 11 → WSL2 → Ubuntu 22.04 (implicit) → Docker Engine → Portainer 
 | Portainer | `stud` | `studstudstud` |
 | Server SSH | `labuser` | `labpass` |
 | Server FTP | `labftp` | `labftp` |
+
+---
+
+## 💡 Filozofie de Învățare
+
+**Erorile sunt normale și valoroase.**
+
+În acest laborator vei întâlni erori - și asta e bine. Fiecare eroare este o oportunitate de a înțelege mai profund cum funcționează protocoalele de rețea.
+
+Când vezi o eroare:
+1. **Citește mesajul complet** - conține indicii despre cauză
+2. **Verifică docs/depanare.md** - majoritatea problemelor sunt documentate
+3. **Încearcă să înțelegi cauza** înainte să aplici soluția
+
+Nimeni nu se naște știind networking. Toți experții au trecut prin aceleași erori pe care le vei întâlni tu.
+
+**Sfat:** Înainte de a rula o comandă, oprește-te o secundă și prezice ce se va întâmpla. Verificarea predicției te ajută să înveți mai profund.
 
 ---
 
@@ -73,6 +116,8 @@ D:\RETELE\
         │   └── www/         # Conținut web static
         ├── docs/            # Documentație suplimentară
         │   ├── depanare.md
+        │   ├── glosar.md
+        │   ├── peer_instruction.md
         │   ├── rezultate_asteptate.md
         │   └── sumar_teorie.md
         ├── homework/        # Teme pentru acasă
@@ -368,11 +413,46 @@ Tastează în bara de filtrare (devine verde când filtrul este valid) și apas�
 
 ## Prezentare Generală
 
-Această sesiune de laborator explorează **nivelul aplicație** al stivei TCP/IP, concentrându-se pe protocoalele fundamentale care susțin comunicarea modernă în Internet. Studenții vor examina mecanismele interne ale HTTP și HTTPS, vor înțelege principiile arhitecturale REST și vor interacționa direct cu serviciile de rețea esențiale: DNS, SSH și FTP.
+În acest laborator lucrăm cu **protocoalele de nivel aplicație**: HTTP/HTTPS, DNS, SSH și FTP. Vom configura servere, vom analiza traficul în Wireshark și vom înțelege cum funcționează fiecare protocol prin experimente practice.
 
-Mediul de laborator utilizează containere Docker orchestrate pentru a simula o infrastructură de rețea realistă. Fiecare serviciu rulează izolat, permițând analiza traficului de rețea fără interferențe externe. Această abordare oferă un spațiu sigur pentru experimentare cu protocoale și configurații.
+Mediul de laborator folosește containere Docker pentru a simula o infrastructură de rețea realistă. Fiecare serviciu rulează izolat, permițând analiza traficului fără interferențe externe.
 
-Competențele dobândite în această sesiune sunt direct aplicabile în dezvoltarea aplicațiilor web, administrarea sistemelor și securitatea rețelelor. Înțelegerea profundă a acestor protocoale constituie fundamentul pentru arhitecturile distribuite moderne.
+**Ce înveți aici folosești direct când:**
+- Configurezi un server web sau API
+- Depanezi probleme de DNS sau conectivitate
+- Securizezi conexiuni cu TLS/HTTPS
+- Automatizezi transferuri de fișiere
+
+---
+
+## Diagrama Fluxului de Lucru
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    WORKFLOW LABORATOR                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
+│  │PowerShell│───>│   WSL    │───>│  Docker  │───>│ Portainer│  │
+│  │          │    │  Ubuntu  │    │ Compose  │    │   GUI    │  │
+│  └──────────┘    └──────────┘    └──────────┘    └──────────┘  │
+│       │               │               │               │         │
+│       v               v               v               v         │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
+│  │   git    │    │ python3  │    │Containere│    │ Vizual-  │  │
+│  │  clone   │    │ scripts  │    │  active  │    │  izare   │  │
+│  └──────────┘    └──────────┘    └──────────┘    └──────────┘  │
+│                                        │                        │
+│                                        v                        │
+│                               ┌────────────────┐                │
+│                               │   Wireshark    │                │
+│                               │(Windows nativ) │                │
+│                               │Captură trafic  │                │
+│                               └────────────────┘                │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## Obiective de Învățare
 
@@ -384,6 +464,8 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 4. **Analizați** traficul DNS folosind instrumente de captură, interpretând structura mesajelor de interogare și răspuns
 5. **Comparați** modurile de transfer FTP (activ vs. pasiv) și implicațiile lor pentru traversarea firewall-urilor
 6. **Evaluați** securitatea relativă a diferitelor protocoale de nivel aplicație
+
+---
 
 ## Cerințe Preliminare
 
@@ -405,6 +487,8 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 - Minim 8GB RAM (16GB recomandat)
 - 10GB spațiu liber pe disc
 - Conectivitate de rețea
+
+---
 
 ## Pornire Rapidă
 
@@ -446,6 +530,8 @@ python3 scripts/porneste_lab.py --stare
 
 **Notă:** Portainer rulează global și nu trebuie pornit/oprit cu laboratorul.
 
+---
+
 ## Exerciții de Laborator
 
 ### Exercițiul 1: Explorarea Serviciului HTTP
@@ -457,9 +543,14 @@ python3 scripts/porneste_lab.py --stare
 **Pași:**
 
 1. Verificați că serverul web rulează:
+
+   > 🔮 **PREDICȚIE:** Înainte de a rula comanda, ce cod de stare HTTP te aștepți să primești? Ce headere crezi că vor fi în răspuns?
+
    ```bash
    curl -v http://localhost:8000/
    ```
+
+   > ✅ **VERIFICĂ:** Ai prezis corect codul 200? Ai identificat headerele `Server` și `Content-Type`?
 
 2. Observați headerele răspunsului:
    - `Content-Type` - tipul MIME al conținutului
@@ -467,6 +558,9 @@ python3 scripts/porneste_lab.py --stare
    - `Server` - identificarea serverului
 
 3. Testați diferite metode HTTP:
+
+   > 🔮 **PREDICȚIE:** Ce diferență va fi între răspunsul la HEAD și cel la GET?
+
    ```bash
    # Cerere HEAD (doar headere, fără corp)
    curl -I http://localhost:8000/hello.txt
@@ -476,6 +570,9 @@ python3 scripts/porneste_lab.py --stare
    ```
 
 4. Folosiți containerul debug pentru teste din interiorul rețelei:
+
+   > 🔮 **PREDICȚIE:** Va funcționa `http://web:8000/` din container? De ce?
+
    ```bash
    docker exec -it week10_debug curl http://web:8000/
    ```
@@ -500,6 +597,9 @@ python3 tests/test_exercitii.py --exercitiu 1
 **Pași:**
 
 1. Interogați serverul DNS pentru înregistrările configurate:
+
+   > 🔮 **PREDICȚIE:** Pentru domeniul `web.lab.local`, ce adresă IP te aștepți să primești? (Hint: verifică docker-compose.yml)
+
    ```bash
    # Din containerul debug
    docker exec -it week10_debug dig @dns-server -p 5353 web.lab.local
@@ -516,6 +616,9 @@ python3 tests/test_exercitii.py --exercitiu 1
    - `ftp.lab.local` → 172.20.0.21
 
 3. Observați răspunsul pentru un domeniu inexistent:
+
+   > 🔮 **PREDICȚIE:** Ce răspuns DNS vei primi pentru un domeniu care NU există? NOERROR sau NXDOMAIN?
+
    ```bash
    dig @localhost -p 5353 inexistent.lab.local
    ```
@@ -540,6 +643,9 @@ python3 tests/test_exercitii.py --exercitiu 2
 **Pași:**
 
 1. Conectați-vă la serverul SSH din linia de comandă:
+
+   > 🔮 **PREDICȚIE:** Ce avertisment vei vedea la prima conectare? De ce apare?
+
    ```bash
    ssh -p 2222 labuser@localhost
    # Parolă: labpass
@@ -583,6 +689,9 @@ python3 tests/test_exercitii.py --exercitiu 3
 **Pași:**
 
 1. Conectați-vă la serverul FTP:
+
+   > 🔮 **PREDICȚIE:** Câte conexiuni TCP va deschide clientul FTP? (Hint: FTP are două canale)
+
    ```bash
    # Folosind clientul ftp integrat
    ftp localhost 2121
@@ -634,6 +743,9 @@ python3 tests/test_exercitii.py --exercitiu 4
    ```
 
 2. Într-un terminal separat, testați conexiunea:
+
+   > 🔮 **PREDICȚIE:** Ce avertisment vei primi de la curl? De ce?
+
    ```bash
    # Ignoră verificarea certificatului pentru certificate auto-semnate
    curl -k https://localhost:4443/
@@ -643,6 +755,9 @@ python3 tests/test_exercitii.py --exercitiu 4
    ```
 
 3. Capturați traficul TLS cu Wireshark:
+
+   > 🔮 **PREDICȚIE:** Vei putea citi conținutul răspunsului HTTPS în Wireshark?
+
    - Filtru: `tcp.port == 4443`
    - Observați handshake-ul TLS (Client Hello, Server Hello, Certificate)
 
@@ -676,6 +791,9 @@ python3 tests/test_exercitii.py --exercitiu 5
    ```
 
 2. Testați Nivelul 0 (RPC):
+
+   > 🔮 **PREDICȚIE:** La Nivelul 0, toate cererile vor fi POST pe același endpoint. De ce nu e considerat RESTful?
+
    ```bash
    curl http://localhost:5000/api/nivel0
    
@@ -693,6 +811,9 @@ python3 tests/test_exercitii.py --exercitiu 5
    ```
 
 4. Testați Nivelul 2 (Verbe HTTP):
+
+   > 🔮 **PREDICȚIE:** Ce cod de stare vei primi pentru DELETE reușit? 200, 201 sau 204?
+
    ```bash
    curl http://localhost:5000/api/nivel2/produse
    curl -X POST -H "Content-Type: application/json" \
@@ -705,6 +826,9 @@ python3 tests/test_exercitii.py --exercitiu 5
    ```
 
 5. Testați Nivelul 3 (HATEOAS):
+
+   > 🔮 **PREDICȚIE:** Ce vei găsi în plus în răspunsul de la Nivelul 3 față de Nivelul 2?
+
    ```bash
    curl http://localhost:5000/api/nivel3/produse
    # Observați linkurile _links în răspuns
@@ -827,87 +951,6 @@ Extindeți serverul DNS pentru a suporta înregistrări MX și CNAME.
 
 ### Tema 2: Client REST Complet
 Implementați un client Python care interacționează cu toate cele 4 niveluri REST.
-
----
-
-## Depanare
-
-### Probleme Frecvente
-
-#### Problema: Containerele nu pornesc
-**Soluție:** Verificați că Docker rulează și are suficientă memorie alocată.
-
-```bash
-# Verificați starea Docker
-sudo service docker status
-docker info
-
-# Porniți Docker dacă nu rulează
-sudo service docker start
-```
-
-#### Problema: Porturile sunt ocupate
-**Soluție:** Identificați și opriți procesele care utilizează porturile necesare.
-
-```bash
-# În WSL
-ss -tlnp | grep 8000
-
-# Opriți procesul sau alegeți alt port
-```
-
-#### Problema: Eroare de conectare SSH "Host key verification failed"
-**Soluție:** Ștergeți vechea cheie din known_hosts.
-
-```bash
-ssh-keygen -R "[localhost]:2222"
-```
-
-#### Problema: Certificatul HTTPS nu este acceptat
-**Soluție:** Pentru certificate auto-semnate, folosiți flag-ul `-k` cu curl sau acceptați excepția în browser.
-
-Consultați `docs/depanare.md` pentru mai multe soluții.
-
----
-
-## Fundamente Teoretice
-
-### Protocolul HTTP/HTTPS
-
-HTTP (Hypertext Transfer Protocol) operează la nivelul aplicație, folosind TCP ca transport. Structura unei cereri include: linia de cerere (metodă, URI, versiune), headere și opțional un corp. HTTPS adaugă un strat TLS/SSL pentru criptare, autentificare și integritate.
-
-### Modelul REST
-
-REST (Representational State Transfer) definește un stil arhitectural pentru sisteme distribuite. Modelul de maturitate Richardson clasifică API-urile în 4 niveluri:
-- **Nivelul 0:** HTTP ca tunel pentru RPC
-- **Nivelul 1:** Resurse individuale cu URI-uri distincte
-- **Nivelul 2:** Utilizarea corectă a verbelor HTTP
-- **Nivelul 3:** HATEOAS - hypermedia ca motor al stării aplicației
-
-### Protocolul DNS
-
-DNS (Domain Name System) traduce nume de domenii în adrese IP. Mesajele DNS conțin secțiuni pentru întrebare, răspuns, autoritate și informații adiționale. Tipurile comune de înregistrări includ A (IPv4), AAAA (IPv6), MX (mail) și CNAME (alias).
-
-### Protocolul SSH
-
-SSH (Secure Shell) oferă comunicație criptată pentru acces remote. Arhitectura include trei straturi: transport (criptare, integritate), autentificare utilizator și conexiune (multiplexare canale).
-
-### Protocolul FTP
-
-FTP (File Transfer Protocol) utilizează două conexiuni separate: canalul de control (port 21) pentru comenzi și canalul de date pentru transferuri. Modul pasiv rezolvă problemele de traversare a firewall-urilor prin inițierea conexiunii de date de către client.
-
----
-
-## Referințe
-
-- Kurose, J. & Ross, K. (2016). *Computer Networking: A Top-Down Approach* (7th ed.). Pearson.
-- Rhodes, B. & Goetzen, J. (2014). *Foundations of Python Network Programming*. Apress.
-- Fielding, R. T. (2000). *Architectural Styles and the Design of Network-based Software Architectures*. Doctoral dissertation, University of California, Irvine.
-- RFC 2616 - Hypertext Transfer Protocol -- HTTP/1.1
-- RFC 8446 - The Transport Layer Security (TLS) Protocol Version 1.3
-- RFC 1035 - Domain Names - Implementation and Specification
-- RFC 4253 - The Secure Shell (SSH) Transport Layer Protocol
-- RFC 959 - File Transfer Protocol
 
 ---
 
@@ -1178,6 +1221,47 @@ docker volume ls      # Volume
 # - Volum: portainer_data
 # - Rețele: bridge, host, none (implicite)
 ```
+
+---
+
+## Fundamente Teoretice
+
+### Protocolul HTTP/HTTPS
+
+HTTP (Hypertext Transfer Protocol) operează la nivelul aplicație, folosind TCP ca transport. Structura unei cereri include: linia de cerere (metodă, URI, versiune), headere și opțional un corp. HTTPS adaugă un strat TLS/SSL pentru criptare, autentificare și integritate.
+
+### Modelul REST
+
+REST (Representational State Transfer) definește un stil arhitectural pentru sisteme distribuite. Modelul de maturitate Richardson clasifică API-urile în 4 niveluri:
+- **Nivelul 0:** HTTP ca tunel pentru RPC
+- **Nivelul 1:** Resurse individuale cu URI-uri distincte
+- **Nivelul 2:** Utilizarea corectă a verbelor HTTP
+- **Nivelul 3:** HATEOAS - hypermedia ca motor al stării aplicației
+
+### Protocolul DNS
+
+DNS (Domain Name System) traduce nume de domenii în adrese IP. Mesajele DNS conțin secțiuni pentru întrebare, răspuns, autoritate și informații adiționale. Tipurile comune de înregistrări includ A (IPv4), AAAA (IPv6), MX (mail) și CNAME (alias).
+
+### Protocolul SSH
+
+SSH (Secure Shell) oferă comunicație criptată pentru acces remote. Arhitectura include trei straturi: transport (criptare, integritate), autentificare utilizator și conexiune (multiplexare canale).
+
+### Protocolul FTP
+
+FTP (File Transfer Protocol) folosește două conexiuni separate: canalul de control (port 21) pentru comenzi și canalul de date pentru transferuri. Modul pasiv rezolvă problemele de traversare a firewall-urilor prin inițierea conexiunii de date de către client.
+
+---
+
+## Referințe
+
+- Kurose, J. & Ross, K. (2016). *Computer Networking: A Top-Down Approach* (7th ed.). Pearson.
+- Rhodes, B. & Goetzen, J. (2014). *Foundations of Python Network Programming*. Apress.
+- Fielding, R. T. (2000). *Architectural Styles and the Design of Network-based Software Architectures*. Doctoral dissertation, University of California, Irvine.
+- RFC 2616 - Hypertext Transfer Protocol -- HTTP/1.1
+- RFC 8446 - The Transport Layer Security (TLS) Protocol Version 1.3
+- RFC 1035 - Domain Names - Implementation and Specification
+- RFC 4253 - The Secure Shell (SSH) Transport Layer Protocol
+- RFC 959 - File Transfer Protocol
 
 ---
 

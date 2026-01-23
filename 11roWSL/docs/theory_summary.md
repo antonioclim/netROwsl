@@ -2,11 +2,18 @@
 
 > Laborator Rețele de Calculatoare — ASE, Informatică Economică | de Revolvix
 
+> 📚 **Documente înrudite:**
+> - [Analogii pentru Concepte](./analogii_concepte.md) — Explicații vizuale CPA
+> - [Glosar](./glosar.md) — Definiții termeni
+> - [Întrebări Peer Instruction](./peer_instruction_questions.md) — Pentru discuții
+
+---
+
 ## 1. File Transfer Protocol (FTP)
 
 ### 1.1 Arhitectură cu Conexiune Duală
 
-FTP utilizează o arhitectură distinctă cu două conexiuni separate:
+FTP folosește o arhitectură distinctă cu două conexiuni separate:
 
 **Canal de control (Portul 21)**
 - Conexiune TCP persistentă pe toată durata sesiunii
@@ -52,6 +59,8 @@ Client                              Server
   |<-------- 226 Transfer complet -----|
 ```
 
+> 🧪 **Verifică înțelegerea:** Dacă un client din spatele unui NAT încearcă FTP activ, ce se va întâmpla? De ce modul pasiv rezolvă problema?
+
 **Comparație**
 
 | Aspect | Mod Activ | Mod Pasiv |
@@ -59,7 +68,7 @@ Client                              Server
 | Inițiator conexiune date | Server | Client |
 | Compatibil NAT | Nu | Da |
 | Compatibil firewall | Dificil | Mai ușor |
-| Utilizare modernă | Rar | Standard |
+| Folosire modernă | Rar | Standard |
 
 ### 1.3 Comenzi FTP Comune
 
@@ -99,6 +108,8 @@ DNS funcționează ca o bază de date distribuită ierarhic:
      [www.google.com] → 142.250.185.78
 ```
 
+> 💡 **Analogie:** DNS cache este ca agenda ta de telefon — prima dată cauți numărul în cartea de telefon (server DNS), apoi îl salvezi local. Vezi [Analogii Concepte](./analogii_concepte.md#2-dns-cache).
+
 ### 2.2 Tipuri de Rezolvere
 
 **Rezolvare Recursivă**
@@ -110,6 +121,8 @@ DNS funcționează ca o bază de date distribuită ierarhic:
 - Serverul returnează cel mai bun răspuns cunoscut
 - Clientul continuă să interogheze
 - Folosită între servere DNS
+
+> 🧪 **Experiment mental:** Dacă cache-ul DNS local expiră și serverul root este temporar inaccesibil, ce se întâmplă cu rezolvarea `google.com`?
 
 ### 2.3 Tipuri de Înregistrări DNS
 
@@ -198,8 +211,8 @@ Client                                    Server
 
 ### 3.3 Tipuri de Canale SSH
 
-| Canal | Utilizare | Port Implicit |
-|-------|-----------|---------------|
+| Canal | Folosire | Port Implicit |
+|-------|----------|---------------|
 | session | Shell interactiv | - |
 | direct-tcpip | Port forwarding local | - |
 | forwarded-tcpip | Port forwarding remote | - |
@@ -207,6 +220,8 @@ Client                                    Server
 | auth-agent | Forwarding agent | - |
 
 ### 3.4 Port Forwarding
+
+> 💡 **Analogie:** SSH tunneling este ca un tunel secret care trece prin munți (firewall). Vezi [Analogii Concepte](./analogii_concepte.md#8-ssh-tunneling-port-forwarding).
 
 **Local Forwarding (-L)**
 ```
@@ -232,6 +247,8 @@ ssh -D 1080 server
 
 ### 4.1 Concepte Fundamentale
 
+> 💡 **Analogie:** Load balancer = ospătar-șef care distribuie comenzile între bucătari. Vezi [Analogii Concepte](./analogii_concepte.md#1-load-balancer-echilibror-de-sarcină).
+
 **Echiliborul de sarcină** distribuie traficul de intrare pe multiple servere backend pentru a:
 
 - **Îmbunătăți disponibilitatea** - Dacă un server cade, altele preiau
@@ -250,6 +267,8 @@ def selecteaza_backend_round_robin(backends, index):
 - Distribuție ciclică simplă
 - Presupune servere identice
 - Nu ține cont de încărcare
+
+> 🤔 **Predicție:** Cu 3 backend-uri și round-robin, dacă trimiți 9 cereri, câte primește fiecare?
 
 **Weighted Round Robin**
 ```python
@@ -281,7 +300,11 @@ def selecteaza_ip_hash(backends, ip_client):
 - Bun pentru aplicații cu stare
 - Sesiuni persistente fără cookies
 
+> 🤔 **Predicție:** Cu IP Hash și 3 backend-uri, dacă 100 de clienți diferiți fac câte o cerere, cum se va distribui traficul?
+
 ### 4.3 Verificări de Stare
+
+> 💡 **Analogie:** Health check = doctor care verifică pulsul pacientului. Vezi [Analogii Concepte](./analogii_concepte.md#3-health-check).
 
 **Verificări Pasive**
 - Monitorizează răspunsurile reale
@@ -301,6 +324,8 @@ upstream backend {
     server web3:80 max_fails=3 fail_timeout=30s;
 }
 ```
+
+> 🧪 **Verifică înțelegerea:** Cu `max_fails=3` și `fail_timeout=30s`, cât timp durează până când un backend căzut este scos din rotație?
 
 ### 4.4 Nginx ca Echilibror
 
@@ -365,6 +390,15 @@ server {
 5. RFC 1035 - Domain Names - Implementation and Specification
 6. RFC 4251-4254 - Secure Shell Protocol
 7. Nginx Documentation - https://nginx.org/en/docs/
+
+---
+
+## Navigare Rapidă
+
+- [← Înapoi la README](../README.md)
+- [Comenzi Utile →](./commands_cheatsheet.md)
+- [Depanare →](./troubleshooting.md)
+- [Glosar →](./glosar.md)
 
 ---
 

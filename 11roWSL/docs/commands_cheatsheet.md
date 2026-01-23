@@ -2,6 +2,14 @@
 
 > Laborator Rețele de Calculatoare — ASE, Informatică Economică | de Revolvix
 
+> 📚 **Documente înrudite:**
+> - [Depanare](./troubleshooting.md) — Soluții probleme comune
+> - [Rezumat Teorie](./theory_summary.md) — Concepte fundamentale
+> - [Analogii Concepte](./analogii_concepte.md) — Explicații vizuale
+> - [Glosar](./glosar.md) — Termeni și definiții
+
+---
+
 ## Docker
 
 ### Gestionare Containere
@@ -60,7 +68,7 @@ docker inspect s11_nginx_lb
 # Elimină containere oprite
 docker container prune
 
-# Elimină imagini neutilizate
+# Elimină imagini nefolosite
 docker image prune
 
 # Elimină tot ce nu e folosit
@@ -371,6 +379,15 @@ kill $(lsof -t -i:8080)
 # Găsește procesul pe un port
 lsof -i :8080
 ```
+
+---
+
+## Navigare Rapidă
+
+- [← Înapoi la README](../README.md)
+- [Depanare →](./troubleshooting.md)
+- [Rezumat Teorie →](./theory_summary.md)
+- [Glosar →](./glosar.md)
 
 ---
 

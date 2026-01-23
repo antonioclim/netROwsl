@@ -2,6 +2,14 @@
 
 > Laborator Rețele de Calculatoare — ASE, Informatică Economică | de Revolvix
 
+> 📚 **Documente înrudite:**
+> - [Fișă Comenzi](./commands_cheatsheet.md) — Referință rapidă
+> - [Rezumat Teorie](./theory_summary.md) — Concepte fundamentale
+> - [Analogii Concepte](./analogii_concepte.md) — Explicații vizuale
+> - [Glosar](./glosar.md) — Termeni și definiții
+
+---
+
 ## Probleme Docker
 
 ### Containerele nu pornesc
@@ -126,6 +134,8 @@
    # Toate containerele s11_backend_* ar trebui să fie "Up"
    ```
 
+> 💡 Pentru înțelegerea algoritmilor de echilibrare, vezi [Analogii Concepte](./analogii_concepte.md#6-round-robin-vs-least-connections).
+
 ---
 
 ### Connection refused
@@ -155,6 +165,8 @@
    ```powershell
    docker exec s11_nginx_lb wget -qO- http://localhost/health
    ```
+
+> 💡 Pentru înțelegerea port mapping-ului, vezi [Analogii Concepte](./analogii_concepte.md#4-port-mapping).
 
 ---
 
@@ -393,6 +405,15 @@ Dacă problemele persistă:
 3. **Contactați instructorul**
    - Includeți mesajele de eroare
    - Includeți output-ul de la `docker compose logs`
+
+---
+
+## Navigare Rapidă
+
+- [← Înapoi la README](../README.md)
+- [Comenzi Utile →](./commands_cheatsheet.md)
+- [Rezumat Teorie →](./theory_summary.md)
+- [Glosar →](./glosar.md)
 
 ---
 

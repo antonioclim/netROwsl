@@ -9,12 +9,17 @@ NOTĂ: Portainer rulează global pe portul 9000 și NU este gestionat de acest s
 Accesați Portainer la: http://localhost:9000 (credențiale: stud / studstudstud)
 """
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
 import argparse
 import socket
 from pathlib import Path
+from typing import Optional
 
 # Adaugă rădăcina proiectului în path
 RADACINA_PROIECT = Path(__file__).parent.parent
@@ -25,14 +30,34 @@ from scripts.utils.logger import configureaza_logger
 
 logger = configureaza_logger("start_lab")
 
-# Credențiale standard
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIGURARE_CONSTANTE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Timeout-uri (în secunde)
+TIMEOUT_DOCKER_INFO = 10
+TIMEOUT_DOCKER_START = 30
+TIMEOUT_PORT_WAIT = 30
+TIMEOUT_SOCKET = 2
+TIMEOUT_HTTP_REQUEST = 5
+
+# Pauze (în secunde)
+SLEEP_AFTER_DOCKER_START = 2
+SLEEP_AFTER_COMPOSE_UP = 5
+SLEEP_PORT_CHECK_INTERVAL = 0.5
+
+# Configurări test
+NUM_REQUESTS_TEST_DISTRIBUTION = 6
+
+# Credențiale Portainer
 PORTAINER_PORT = 9000
 PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
 PORTAINER_USER = "stud"
 PORTAINER_PASS = "studstudstud"
 
 # Definirea serviciilor și configurațiilor lor (FĂRĂ Portainer - rulează global)
-SERVICII = {
+SERVICII: dict[str, dict] = {
     "nginx_lb": {
         "container": "s11_nginx_lb",
         "port": 8080,
@@ -64,31 +89,56 @@ SERVICII = {
 }
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICARE_DOCKER
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def verifica_docker_disponibil() -> bool:
-    """Verifică dacă Docker este disponibil și rulează."""
+    """
+    Verifică dacă Docker este disponibil și rulează.
+    
+    Returns:
+        True dacă daemon-ul Docker răspunde, False altfel.
+    
+    Example:
+        >>> verifica_docker_disponibil()
+        True
+    """
     try:
         result = subprocess.run(
             ["docker", "info"],
             capture_output=True,
-            timeout=10
+            timeout=TIMEOUT_DOCKER_INFO
         )
         return result.returncode == 0
+    except subprocess.TimeoutExpired:
+        return False
+    except FileNotFoundError:
+        return False
     except Exception:
         return False
 
 
 def porneste_docker_service() -> bool:
-    """Încearcă să pornească serviciul Docker în WSL."""
+    """
+    Încearcă să pornească serviciul Docker în WSL.
+    
+    Returns:
+        True dacă Docker a pornit cu succes, False altfel.
+    
+    Raises:
+        Nu ridică excepții — toate sunt gestionate intern.
+    """
     logger.info("Se încearcă pornirea serviciului Docker...")
     try:
         result = subprocess.run(
             ["sudo", "service", "docker", "start"],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=TIMEOUT_DOCKER_START
         )
         if result.returncode == 0:
-            time.sleep(2)
+            time.sleep(SLEEP_AFTER_DOCKER_START)
             return verifica_docker_disponibil()
         else:
             logger.error(f"Eroare la pornirea Docker: {result.stderr}")
@@ -101,15 +151,24 @@ def porneste_docker_service() -> bool:
         return False
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICARE_PORTAINER
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def verifica_portainer_status() -> bool:
-    """Verifică dacă Portainer rulează pe portul 9000."""
+    """
+    Verifică dacă Portainer rulează pe portul 9000.
+    
+    Returns:
+        True dacă Portainer este accesibil, False altfel.
+    """
     try:
         # Verifică prin docker ps
         result = subprocess.run(
             ["docker", "ps", "--filter", "name=portainer", "--format", "{{.Status}}"],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=TIMEOUT_DOCKER_INFO
         )
         if result.returncode == 0 and "Up" in result.stdout:
             return True
@@ -117,10 +176,10 @@ def verifica_portainer_status() -> bool:
         # Verifică prin socket
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(2)
-            result = sock.connect_ex(('localhost', PORTAINER_PORT))
+            sock.settimeout(TIMEOUT_SOCKET)
+            result_connect = sock.connect_ex(('localhost', PORTAINER_PORT))
             sock.close()
-            return result == 0
+            return result_connect == 0
         except Exception:
             return False
             
@@ -128,7 +187,7 @@ def verifica_portainer_status() -> bool:
         return False
 
 
-def afiseaza_avertisment_portainer():
+def afiseaza_avertisment_portainer() -> None:
     """Afișează avertisment dacă Portainer nu rulează."""
     print()
     logger.warning("=" * 60)
@@ -147,18 +206,32 @@ def afiseaza_avertisment_portainer():
     print()
 
 
-def asteapta_port(host: str, port: int, timeout: int = 30) -> bool:
+# ═══════════════════════════════════════════════════════════════════════════════
+# AȘTEPTARE_SERVICII
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def asteapta_port(host: str, port: int, timeout: int = TIMEOUT_PORT_WAIT) -> bool:
     """
     Așteaptă ca un port să devină disponibil.
     
     Args:
-        host: Adresa gazdei
-        port: Numărul portului
+        host: Adresa gazdei (ex: 'localhost', '192.168.1.1')
+        port: Numărul portului (1-65535)
         timeout: Timpul maxim de așteptare în secunde
     
     Returns:
-        True dacă portul este disponibil, False altfel
+        True dacă portul este disponibil, False dacă timeout expiră.
+    
+    Raises:
+        ValueError: Dacă portul nu e în intervalul valid (1-65535).
+    
+    Example:
+        >>> asteapta_port('localhost', 8080, timeout=10)
+        True
     """
+    if not (1 <= port <= 65535):
+        raise ValueError(f"Port invalid: {port}. Trebuie să fie între 1 și 65535.")
+    
     timp_start = time.time()
     while time.time() - timp_start < timeout:
         try:
@@ -167,24 +240,39 @@ def asteapta_port(host: str, port: int, timeout: int = 30) -> bool:
                 s.connect((host, port))
                 return True
         except (socket.timeout, ConnectionRefusedError, OSError):
-            time.sleep(0.5)
+            time.sleep(SLEEP_PORT_CHECK_INTERVAL)
     return False
 
 
-def testeaza_echilibror() -> dict:
+# ═══════════════════════════════════════════════════════════════════════════════
+# TESTARE_ECHILIBROR
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def testeaza_echilibror() -> dict[str, int]:
     """
     Testează distribuția echilibrului de sarcină.
     
-    Returns:
-        Dicționar cu statistici de distribuție
-    """
-    import requests
+    Trimite mai multe cereri către echilibror și contorizează
+    răspunsurile de la fiecare backend.
     
-    distributie = {}
+    Returns:
+        Dicționar cu statistici de distribuție {backend_id: count}.
+    
+    Example:
+        >>> testeaza_echilibror()
+        {'backend_1': 2, 'backend_2': 2, 'backend_3': 2}
+    """
+    try:
+        import requests
+    except ImportError:
+        logger.warning("Modulul requests nu este disponibil pentru testare")
+        return {}
+    
+    distributie: dict[str, int] = {}
     
     try:
-        for i in range(6):
-            resp = requests.get("http://localhost:8080/", timeout=5)
+        for _ in range(NUM_REQUESTS_TEST_DISTRIBUTION):
+            resp = requests.get("http://localhost:8080/", timeout=TIMEOUT_HTTP_REQUEST)
             # Extrage identificatorul backend-ului din răspuns
             continut = resp.text.lower()
             for j in range(1, 4):
@@ -198,8 +286,17 @@ def testeaza_echilibror() -> dict:
     return distributie
 
 
-def afiseaza_stare(docker: ManagerDocker):
-    """Afișează starea curentă a containerelor."""
+# ═══════════════════════════════════════════════════════════════════════════════
+# AFIȘARE_STARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def afiseaza_stare(docker: ManagerDocker) -> None:
+    """
+    Afișează starea curentă a containerelor.
+    
+    Args:
+        docker: Instanță ManagerDocker pentru interogarea containerelor.
+    """
     print("\nStare containere:")
     print("-" * 50)
     
@@ -221,7 +318,17 @@ def afiseaza_stare(docker: ManagerDocker):
         print(f"  Portainer (port {PORTAINER_PORT}): \033[91m○ INACTIV\033[0m")
 
 
-def main():
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN_ORCHESTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def main() -> int:
+    """
+    Funcția principală care orchestrează pornirea laboratorului.
+    
+    Returns:
+        Cod de ieșire: 0 pentru succes, 1 pentru eroare.
+    """
     parser = argparse.ArgumentParser(
         description="Pornește mediul de laborator pentru Săptămâna 11"
     )
@@ -248,7 +355,10 @@ def main():
     logger.info("Mediu: WSL2 + Ubuntu 22.04 + Docker + Portainer")
     logger.info("=" * 60)
 
-    # Verifică Docker
+    # ═══════════════════════════════════════════════════════════════════════════
+    # VERIFICARE_PREREQUISITE
+    # ═══════════════════════════════════════════════════════════════════════════
+    
     logger.info("Verificare disponibilitate Docker...")
     if not verifica_docker_disponibil():
         logger.warning("Docker nu este disponibil. Se încearcă pornirea automată...")
@@ -271,6 +381,10 @@ def main():
         afiseaza_stare(docker)
         return 0
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # PORNIRE_CONTAINERE
+    # ═══════════════════════════════════════════════════════════════════════════
+    
     try:
         # Construiește și pornește containerele
         if args.rebuild:
@@ -282,10 +396,14 @@ def main():
 
         # Așteaptă inițializarea serviciilor
         logger.info("Se așteaptă inițializarea serviciilor...")
-        time.sleep(5)
+        time.sleep(SLEEP_AFTER_COMPOSE_UP)
 
+        # ═══════════════════════════════════════════════════════════════════════
+        # VERIFICARE_SERVICII
+        # ═══════════════════════════════════════════════════════════════════════
+        
         # Verifică dacă portul principal este accesibil
-        if asteapta_port("localhost", 8080, timeout=30):
+        if asteapta_port("localhost", 8080, timeout=TIMEOUT_PORT_WAIT):
             logger.info("✓ Echiliborul de sarcină este accesibil pe portul 8080")
         else:
             logger.error("✗ Echiliborul de sarcină nu răspunde pe portul 8080")
@@ -300,6 +418,10 @@ def main():
         # Verificări de stare
         toate_sanatoase = docker.verifica_servicii(SERVICII)
 
+        # ═══════════════════════════════════════════════════════════════════════
+        # LOGHEAZA_REZULTATE
+        # ═══════════════════════════════════════════════════════════════════════
+        
         if toate_sanatoase:
             logger.info("")
             logger.info("=" * 60)
