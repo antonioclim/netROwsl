@@ -178,8 +178,53 @@ print(sesiune.istoric())  # Lista tuturor stărilor
 
 - `docs/sumar_teorie.md` - Concepte teoretice
 - `docs/fisa_comenzi.md` - Referință rapidă pentru struct și CRC
+- `docs/peer_instruction.md` - Întrebări pentru auto-verificare
 - `src/exercises/ex_9_01_endianness.py` - Exemplu endianness
 - `src/exercises/ex_9_02_pseudo_ftp.py` - Exemplu protocol FTP
+- `src/exercises/ex_9_03_comparatie_moduri.py` - Comparație moduri FTP
+
+---
+
+## 👥 Lucru în Perechi (Opțional, Bonus 10%)
+
+Pentru **Tema 2 (Mașină de Stări)**, puteți lucra în perechi folosind metodologia **Driver/Navigator**:
+
+### Cum funcționează
+
+| Rol | Responsabilități | Timp |
+|-----|------------------|------|
+| **Driver** | Scrie codul, tastează, implementează | 15 min |
+| **Navigator** | Revizuiește, ghidează strategia, verifică erori | 15 min |
+
+### Reguli
+
+1. **Schimbați rolurile** la fiecare 15 minute (folosiți un timer)
+2. **Navigatorul NU atinge tastatura** - doar ghidează verbal
+3. **Driver-ul verbalizează** ce scrie pentru a menține comunicarea
+4. **Ambii semnează tema** cu contribuții egale documentate
+
+### Beneficii demonstrate prin cercetare
+
+- Detectarea erorilor mai timpurie (Williams et al., 2000)
+- Înțelegere mai profundă a codului
+- Dezvoltarea abilităților de comunicare tehnică
+- Reducerea timpului total de debugging
+
+### Documentare pentru predare
+
+Dacă lucrați în perechi, adăugați la începutul fișierului:
+
+```python
+"""
+Tema 9.02: Mașină de Stări pentru Sesiuni
+
+Echipă:
+- [Nume Student 1] - [Contribuții: funcții implementate]
+- [Nume Student 2] - [Contribuții: funcții implementate]
+
+Metodă: Driver/Navigator cu schimb la fiecare 15 minute
+"""
+```
 
 ---
 

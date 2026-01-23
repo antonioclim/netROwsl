@@ -7,6 +7,11 @@ Acest script facilitează capturarea traficului de rețea
 pentru analiză cu Wireshark.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -15,6 +20,11 @@ from pathlib import Path
 from datetime import datetime
 
 # Adaugă directorul rădăcină la cale
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -32,6 +42,11 @@ logger = configureaza_logger("captureaza_trafic")
 # Directorul pentru salvarea capturilor
 DIRECTOR_CAPTURI = RADACINA_PROIECT / "pcap"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifica_instrumente() -> dict:
     """
@@ -193,6 +208,11 @@ def afiseaza_instructiuni_tcpdump():
     print("   wireshark ./pcap/captura.pcap")
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -293,6 +313,11 @@ def main():
 
     return 0 if succes else 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -1,4 +1,4 @@
-# 🗳️ Întrebări Peer Instruction — Săptămâna 10
+# 🗳️ Întrebări Peer Instruction — Săptămâna 9
 ## Rețele de Calculatoare — ASE, CSIE | by Revolvix
 
 ---
@@ -22,40 +22,40 @@
 ---
 
 
-## Întrebarea 1: DNS
+## Întrebarea 1: TLS Handshake
 
-> 💭 **PREDICȚIE:** Câte tipuri de înregistrări DNS cunoști?
+> 💭 **PREDICȚIE:** Câte mesaje sunt schimbate într-un TLS 1.3 handshake complet?
 
 ### Scenariu
-Cauți adresa IP pentru www.example.com.
+Te conectezi la https://example.com.
 
 ### Întrebare
-Ce tip de înregistrare DNS returnează adresa IPv4?
+Ce se negociază în TLS handshake?
 
 ### Opțiuni
-- **A)** AAAA
-- **B)** A
-- **C)** CNAME
-- **D)** MX
+- **A)** Doar versiunea TLS
+- **B)** Cipher suite, certificate, și chei de sesiune
+- **C)** Doar certificatul serverului
+- **D)** Username și parolă
 
 ### Răspuns corect
-**B** — A record = IPv4, AAAA = IPv6, CNAME = alias, MX = mail server.
+**B** — Handshake-ul negociază algoritmii criptografici, verifică identitatea și stabilește cheile de sesiune.
 
 ---
 
-## Întrebarea 2: HTTP Methods
+## Întrebarea 2: Compresie date
 
 ### Întrebare
-Ce metodă HTTP este idempotentă?
+De ce HTTP/2 folosește compresie pentru headere (HPACK)?
 
 ### Opțiuni
-- **A)** POST
-- **B)** PUT
-- **C)** Ambele
-- **D)** Niciuna
+- **A)** Pentru securitate
+- **B)** Pentru a reduce overhead-ul headerelor repetitive
+- **C)** Pentru compatibilitate cu HTTP/1.1
+- **D)** Nu folosește compresie
 
 ### Răspuns corect
-**B** — PUT este idempotent (același rezultat la apeluri repetate), POST nu este (poate crea resurse duplicate).
+**B)** — Headerele HTTP sunt adesea repetitive; HPACK reduce semnificativ bandwidth-ul necesar.
 
 
 ---

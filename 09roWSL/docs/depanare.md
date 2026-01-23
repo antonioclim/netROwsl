@@ -5,6 +5,17 @@
 
 ---
 
+## Documente Conexe
+
+| Document | Conținut |
+|----------|----------|
+| [README.md](../README.md) | Ghid complet laborator, instrucțiuni pas-cu-pas |
+| [sumar_teorie.md](sumar_teorie.md) | Concepte teoretice L5/L6 |
+| [fisa_comenzi.md](fisa_comenzi.md) | Referință rapidă comenzi struct, CRC |
+| [peer_instruction.md](peer_instruction.md) | Întrebări pentru discuții în clasă |
+
+---
+
 ## Probleme Docker
 
 ### Docker Desktop nu pornește

@@ -6,6 +6,11 @@ Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
 Rulează demonstrații automate ale serviciilor de laborator.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -13,6 +18,11 @@ import argparse
 from pathlib import Path
 
 # Adaugă rădăcina proiectului la calea Python
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -21,6 +31,11 @@ from scripts.utils.network_utils import TesterRetea
 
 logger = configureaza_logger("demo")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def pauza(mesaj: str = "Apăsați Enter pentru a continua..."):
     """Afișează un mesaj și așteaptă confirmarea utilizatorului."""
@@ -200,6 +215,11 @@ def demo_complet():
     print("=" * 60)
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -239,6 +259,11 @@ def main():
         logger.error(f"Eroare în demonstrație: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

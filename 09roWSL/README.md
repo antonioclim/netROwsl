@@ -236,6 +236,27 @@ Alternativ, din PowerShell:
 
 **Cum selectezi:** Dublu-click pe numele interfeței SAU selecteaz-o și click pe icoana aripioarei albastre de rechin.
 
+#### 🔮 PREDICȚIE: Captură Wireshark
+
+**Înainte de a porni captura, răspunde:**
+
+1. Ce interfață trebuie selectată pentru trafic WSL/Docker? ____
+2. Ce filtru ar arăta DOAR comenzile FTP de la client? ____
+3. Câte stream-uri TCP vei vedea pentru o sesiune FTP cu LIST? ____
+4. Ce culoare vor avea pachetele TCP normale în Wireshark? ____
+
+<details>
+<summary>▶ Click pentru a verifica răspunsurile</summary>
+
+1. **vEthernet (WSL)** - interfața virtuală pentru WSL2
+2. **ftp.request** - afișează doar cererile clientului
+3. **2 stream-uri** - unul pentru control (comenzi), unul pentru date (listing)
+4. **Violet deschis** - culoarea implicită pentru TCP normal
+
+</details>
+
+---
+
 ### Pasul 3: Generează Trafic
 
 Cu Wireshark capturând (vei vedea pachete apărând în timp real), rulează exercițiile:
@@ -423,6 +444,27 @@ python3 setup/instaleaza_prerequisite.py
 
 ### Pornirea Laboratorului
 
+#### 🔮 PREDICȚIE: Înainte de Pornire
+
+**Răspunde înainte de a rula comenzile:**
+
+1. Câte containere vor porni? ____
+2. Ce rețea Docker va fi creată? ____
+3. Pe ce port va fi accesibil serverul FTP? ____
+4. Ce credențiale FTP sunt configurate? User: ____ / Parolă: ____
+
+<details>
+<summary>▶ Click pentru a verifica răspunsurile</summary>
+
+1. **3 containere**: s9_ftp-server, s9_client1, s9_client2
+2. **week9_ftp_network** (172.29.9.0/24)
+3. **Port 2121** (mapat din portul 21 intern)
+4. **test / 12345**
+
+</details>
+
+---
+
 ```bash
 # În terminalul Ubuntu
 cd /mnt/d/RETELE/SAPT9/09roWSL
@@ -452,6 +494,31 @@ python3 scripts/porneste_lab.py --status
 
 **Durată estimată:** 30 minute
 
+#### 🔮 PREDICȚIE: Endianness
+
+**Înainte de a studia codul, răspunde:**
+
+Valoarea `0x12345678` (4 bytes) va fi stocată astfel în memorie:
+
+| Format | Primul octet (adresa 0) | Ultimul octet (adresa 3) |
+|--------|-------------------------|--------------------------|
+| Big-Endian | ____ | ____ |
+| Little-Endian | ____ | ____ |
+
+<details>
+<summary>▶ Click pentru a verifica răspunsurile</summary>
+
+| Format | Primul octet | Ultimul octet |
+|--------|--------------|---------------|
+| Big-Endian | `0x12` | `0x78` |
+| Little-Endian | `0x78` | `0x12` |
+
+**Regulă:** Protocoalele de rețea folosesc **Big-Endian** (network byte order).
+
+</details>
+
+---
+
 **Pași:**
 
 1. Deschideți fișierul `src/exercises/ex_9_01_endianness.py`
@@ -474,6 +541,27 @@ python3 tests/test_exercitii.py --exercitiu 1
 **Obiectiv:** Implementarea unui protocol de tip FTP cu gestiunea sesiunii
 
 **Durată estimată:** 45 minute
+
+#### 🔮 PREDICȚIE: Fluxul FTP
+
+**Înainte de a testa conexiunea FTP, răspunde:**
+
+1. Ce cod de răspuns va trimite serverul la conectare? ____
+2. Ce cod indică "parolă necesară" după USER? ____
+3. Ce cod confirmă autentificarea reușită? ____
+4. Câte conexiuni TCP sunt necesare pentru comanda LIST? ____
+
+<details>
+<summary>▶ Click pentru a verifica răspunsurile</summary>
+
+1. **220** - Server ready (mesaj de bun venit)
+2. **331** - User OK, need password
+3. **230** - Login successful
+4. **2 conexiuni** - una pentru control (comenzi), una pentru date (listing)
+
+</details>
+
+---
 
 **Pași:**
 
@@ -503,6 +591,49 @@ python3 tests/test_exercitii.py --exercitiu 2
 **Verificare:**
 ```bash
 python3 scripts/ruleaza_demo.py --demo multi_client
+```
+
+### Exercițiul 4: Comparație Mod Activ vs Pasiv (EVALUATE)
+
+**Obiectiv:** Evaluarea și justificarea alegerii modului FTP pentru diferite scenarii de rețea
+
+**Durată estimată:** 25 minute
+
+**Nivel Bloom:** EVALUATE - Analiză critică și luare de decizii
+
+#### 🔮 PREDICȚIE: Moduri FTP
+
+**Înainte de a începe, răspunde:**
+
+| Scenariu | Mod optim? |
+|----------|------------|
+| Client în rețea corporativă cu NAT strict | ____ |
+| Ambele calculatoare în același LAN | ____ |
+| Client pe 4G/5G (CGNAT) | ____ |
+
+<details>
+<summary>▶ Click pentru a verifica răspunsurile</summary>
+
+| Scenariu | Mod optim |
+|----------|-----------|
+| Client cu NAT strict | **PASIV** (clientul inițiază toate conexiunile) |
+| Același LAN | **AMBELE** (fără restricții de firewall) |
+| Client pe 4G/5G | **PASIV** (CGNAT blochează inbound) |
+
+</details>
+
+---
+
+**Pași:**
+
+1. Rulați demonstrația pentru a vedea tabelul comparativ
+2. Parcurgeți scenariile interactive
+3. Justificați alegerile pe baza configurației de rețea
+
+**Verificare:**
+```bash
+python3 src/exercises/ex_9_03_comparatie_moduri.py --demo
+python3 src/exercises/ex_9_03_comparatie_moduri.py --interactiv
 ```
 
 ## Demonstrații
@@ -948,6 +1079,32 @@ docker volume ls      # Volume
 # - Volum: portainer_data
 # - Rețele: bridge, host, none (implicite)
 ```
+
+---
+
+## 📚 Resurse Suplimentare pentru Învățare
+
+### Materiale Interactive
+
+| Resursă | Descriere | Utilizare |
+|---------|-----------|-----------|
+| [Întrebări Peer Instruction](docs/peer_instruction.md) | 5 întrebări pentru discuții în clasă | Verificare înțelegere concepte |
+| [Comparație Moduri FTP](src/exercises/ex_9_03_comparatie_moduri.py) | Quiz interactiv Activ vs Pasiv | `--interactiv` pentru auto-testare |
+
+### Documentație Tehnică
+
+| Document | Conținut |
+|----------|----------|
+| [Sumar Teoretic](docs/sumar_teorie.md) | Concepte L5/L6, diagrame, referințe |
+| [Ghid Depanare](docs/depanare.md) | Soluții pentru probleme frecvente |
+| [Fișă Comenzi](docs/fisa_comenzi.md) | Referință rapidă struct, CRC, FTP |
+
+### Auto-verificare Recomandată
+
+Înainte de laborator, parcurge:
+1. **Predicțiile** din acest README (secțiunile 🔮)
+2. **Întrebările Peer Instruction** din `docs/peer_instruction.md`
+3. **Quiz-ul interactiv**: `python3 src/exercises/ex_9_03_comparatie_moduri.py --interactiv`
 
 ---
 

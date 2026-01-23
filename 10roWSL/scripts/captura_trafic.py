@@ -6,6 +6,11 @@ Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
 Oferă funcții helper pentru capturarea și analiza traficului de rețea.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -13,6 +18,11 @@ from pathlib import Path
 from datetime import datetime
 
 # Adaugă rădăcina proiectului la calea Python
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -30,6 +40,11 @@ FILTRE_RECOMANDATE = {
     "toate": "ip.addr == 172.20.0.0/24",
 }
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_filtre():
     """Afișează filtrele Wireshark recomandate."""
@@ -173,6 +188,11 @@ def listeaza_capturi():
     print()
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -253,6 +273,11 @@ def main():
         logger.error(f"Eroare: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

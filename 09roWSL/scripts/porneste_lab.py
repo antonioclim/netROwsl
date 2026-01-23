@@ -10,6 +10,11 @@ NOTĂ: Portainer rulează global pe portul 9000 și NU este gestionat de acest s
 Accesați Portainer la: http://localhost:9000 (credențiale: stud / studstudstud)
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -18,6 +23,11 @@ import socket
 from pathlib import Path
 
 # Adaugă directorul rădăcină la cale
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -57,6 +67,11 @@ SERVICII = {
 # Porturile passive FTP
 PORTURI_PASSIVE = range(60000, 60011)
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifica_docker_disponibil() -> bool:
     """Verifică dacă Docker este disponibil și rulează."""
@@ -155,6 +170,11 @@ def verifica_porturi_passive(gazda: str = "localhost") -> bool:
     
     return True
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     """Funcția principală."""
@@ -278,6 +298,11 @@ def main():
         logger.error(f"Eroare la pornirea laboratorului: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

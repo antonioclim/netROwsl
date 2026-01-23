@@ -193,4 +193,44 @@ FTP folosește **două conexiuni separate**:
 
 ---
 
+## Diagramă: Mașină de Stări Sesiune FTP
+
+```
+┌─────────────┐  conectare   ┌─────────────┐
+│ DECONECTAT  │─────────────→│  CONECTAT   │
+└─────────────┘              └──────┬──────┘
+       ↑                            │ USER
+       │ quit/timeout               ↓
+       │                    ┌───────────────┐
+       │                    │ AUTENTIFICARE │
+       │                    └───────┬───────┘
+       │                      PASS  │  PASS
+       │                      greșit│  corect
+       │                       ↓    ↓
+       │              ┌────────┐  ┌──────────────┐
+       │              │ EROARE │  │ AUTENTIFICAT │←──┐
+       │              └────┬───┘  └──────┬───────┘   │
+       │                   │             │ RETR/STOR │ transfer
+       └───────────────────┴─────────────┼───────────┘ complet
+                                         ↓
+                                  ┌──────────────┐
+                                  │  TRANSFER    │
+                                  └──────────────┘
+```
+
+---
+
+## Vezi și
+
+| Tip | Document | Descriere |
+|-----|----------|-----------|
+| **Practică** | `src/exercises/ex_9_01_endianness.py` | Implementare conversii endianness |
+| **Practică** | `src/exercises/ex_9_02_pseudo_ftp.py` | Server/client FTP personalizat |
+| **Practică** | `src/exercises/ex_9_03_comparatie_moduri.py` | Comparație mod activ vs pasiv |
+| **Depanare** | `docs/depanare.md` | Soluții probleme frecvente |
+| **Teme** | `homework/README.md` | Exerciții de consolidare |
+| **Discuții** | `docs/peer_instruction.md` | Întrebări pentru clasă |
+
+---
+
 *Curs REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix*

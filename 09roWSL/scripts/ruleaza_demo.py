@@ -7,6 +7,11 @@ Acest script execută demonstrații automate pentru
 nivelul Sesiune (L5) și nivelul Prezentare (L6).
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -16,6 +21,11 @@ import argparse
 from pathlib import Path
 
 # Adaugă directorul rădăcină la cale
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -50,6 +60,11 @@ DEMONSTRATII = {
     }
 }
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def demo_endianness():
     """Demonstrație conversie endianness."""
@@ -246,6 +261,11 @@ def afiseaza_lista_demo():
     print("  python scripts/ruleaza_demo.py --toate")
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -290,6 +310,11 @@ def main():
     afiseaza_lista_demo()
     return 0
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

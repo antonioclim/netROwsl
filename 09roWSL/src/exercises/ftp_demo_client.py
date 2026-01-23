@@ -1,13 +1,31 @@
 #!/usr/bin/env python3
 """
-FTP Demo Client - using ftplib (Python standard library)
+FTP Demo Client - Client FTP folosind ftplib (biblioteca standard Python)
 
-FTP client for comparison with our pseudo-FTP.
+Acest modul oferă un client FTP simplu pentru comparație cu implementarea
+pseudo-FTP din exercițiul 9.02. Demonstrează utilizarea bibliotecii standard
+Python pentru operații FTP.
 
-Usage:
-    python3 ftp_demo_client.py --host 127.0.0.1 --port 2121 --user test --password 12345 list
-    python3 ftp_demo_client.py ... get hello.txt
-    python3 ftp_demo_client.py ... put myfile.txt
+Funcționalități:
+    - Conectare în mod activ sau pasiv
+    - Listare directoare (LIST)
+    - Descărcare fișiere (GET/RETR)
+    - Încărcare fișiere (PUT/STOR)
+    - Afișare director curent (PWD)
+
+Utilizare:
+    python3 ftp_demo_client.py --host 127.0.0.1 --port 2121 list
+    python3 ftp_demo_client.py --host 127.0.0.1 --port 2121 get hello.txt
+    python3 ftp_demo_client.py --host 127.0.0.1 --port 2121 put myfile.txt
+
+Credențiale implicite:
+    Utilizator: test
+    Parolă: 12345
+
+Comparație cu pseudo-FTP:
+    Acest client folosește ftplib (protocol FTP standard, RFC 959).
+    Pseudo-FTP din ex_9_02 implementează un protocol simplificat pentru
+    scopuri didactice, cu header binar personalizat.
 """
 
 import argparse
@@ -16,13 +34,22 @@ from ftplib import FTP
 from pathlib import Path
 
 
-def main():
+def main() -> int:
+    """
+    Funcția principală a clientului FTP.
+    
+    Parsează argumentele, conectează la server, execută comanda și
+    returnează codul de ieșire.
+    
+    Returns:
+        int: 0 pentru succes, 1 pentru eroare
+    """
     parser = argparse.ArgumentParser(description="FTP Demo Client")
     parser.add_argument("--host", default="127.0.0.1", help="Server address")
     parser.add_argument("--port", type=int, default=2121, help="Port")
     parser.add_argument("--user", default="test", help="Username")
     parser.add_argument("--password", default="12345", help="Password")
-    parser.add_argument("--local-dir", default="./client-files", help="Local directoryy")
+    parser.add_argument("--local-dir", default="./client-files", help="Local directory")
     parser.add_argument("--passive", action="store_true", default=True, 
                         help="Passive mode (default)")
     parser.add_argument("--active", action="store_true", help="Active mode")
@@ -56,11 +83,11 @@ def main():
         cmd = args.command.lower()
         
         if cmd == "list" or cmd == "ls":
-            print("[CLIENT] === Directoryy listing ===")
+            print("[CLIENT] === Directory listing ===")
             ftp.retrlines("LIST")
         
         elif cmd == "pwd":
-            print(f"[CLIENT] Current directoryy: {ftp.pwd()}")
+            print(f"[CLIENT] Current directory: {ftp.pwd()}")
         
         elif cmd == "get":
             if not args.argument:

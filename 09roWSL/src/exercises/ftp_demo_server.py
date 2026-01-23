@@ -1,12 +1,31 @@
 #!/usr/bin/env python3
 """
-FTP Demo Server - using pyftpdlib
+FTP Demo Server - Server FTP folosind pyftpdlib
 
-Example of a real FTP server for comparison with our pseudo-FTP.
-Demonstrates standard FTP protocols and commands.
+Acest modul oferă un server FTP complet pentru comparație cu implementarea
+pseudo-FTP din exercițiul 9.02. Folosește biblioteca pyftpdlib care
+implementează protocolul FTP standard conform RFC 959.
 
-Usage:
+Funcționalități:
+    - Autentificare utilizatori
+    - Mod activ și pasiv
+    - Operații complete de fișiere (list, get, put, delete)
+    - Configurare porturi passive
+
+Utilizare:
     python3 ftp_demo_server.py --host 127.0.0.1 --port 2121 --root ./server-files
+
+Cerințe:
+    pip install pyftpdlib --break-system-packages
+
+Credențiale implicite:
+    Utilizator: test
+    Parolă: 12345
+
+Comparație cu pseudo-FTP:
+    Acest server implementează protocolul FTP complet (RFC 959).
+    Pseudo-FTP din ex_9_02 este o versiune simplificată pentru
+    scopuri didactice, cu header binar personalizat.
 """
 
 import argparse
@@ -23,11 +42,17 @@ except ImportError:
     sys.exit(1)
 
 
-def main():
+def main() -> None:
+    """
+    Funcția principală a serverului FTP.
+    
+    Configurează autorizarea, handler-ul și pornește serverul.
+    Serverul rulează până la întrerupere (Ctrl+C).
+    """
     parser = argparse.ArgumentParser(description="FTP Demo Server")
     parser.add_argument("--host", default="127.0.0.1", help="Bind address")
     parser.add_argument("--port", type=int, default=2121, help="Port (default: 2121)")
-    parser.add_argument("--root", default="./server-files", help="Root directoryy")
+    parser.add_argument("--root", default="./server-files", help="Root directory")
     parser.add_argument("--user", default="test", help="Username")
     parser.add_argument("--password", default="12345", help="Password")
     parser.add_argument("--passive-ports", default="60000-60100", 
@@ -35,7 +60,7 @@ def main():
     
     args = parser.parse_args()
     
-    # Ensure root directoryy exists
+    # Ensure root directory exists
     root_path = Path(args.root).resolve()
     root_path.mkdir(parents=True, exist_ok=True)
     
