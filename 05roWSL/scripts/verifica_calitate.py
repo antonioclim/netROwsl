@@ -15,12 +15,22 @@ Rulare:
     python3 scripts/verifica_calitate.py --verbose
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 from pathlib import Path
 from typing import List, Tuple
 
 # Directorul rădăcină al proiectului
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
 # Cuvinte-semnal AI de căutat
@@ -57,6 +67,11 @@ FISIERE_OBLIGATORII = [
     "docker/docker-compose.yml",
 ]
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def print_header(titlu: str):
     """Afișează un header formatat."""
@@ -187,6 +202,11 @@ def verifica_teste(verbose: bool = False) -> Tuple[bool, str]:
         return False, f"Eroare: {e}"
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Funcția principală de verificare."""
     import argparse
@@ -279,6 +299,11 @@ def main():
     
     return 0 if all_passed else 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

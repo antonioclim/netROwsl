@@ -7,12 +7,22 @@ Acest script elimină toate containerele, rețelele și opțional volumele
 pentru a pregăti sistemul pentru următoarea sesiune de laborator.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
 from pathlib import Path
 
 # Adaugă rădăcina proiectului în path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -24,6 +34,11 @@ logger = configureaza_logger("curata")
 PREFIX_SAPTAMANA = "week5"
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def confirma_actiune(mesaj: str) -> bool:
     """Cere confirmarea utilizatorului pentru acțiuni distructive."""
     while True:
@@ -34,6 +49,11 @@ def confirma_actiune(mesaj: str) -> bool:
             return False
         print("Vă rog răspundeți cu 'da' sau 'nu'.")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     parser = argparse.ArgumentParser(
@@ -142,6 +162,11 @@ Exemple:
         logger.error(f"Curățarea a eșuat: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

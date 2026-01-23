@@ -8,6 +8,11 @@ Acest script oprește toate containerele Docker păstrând datele.
 IMPORTANT: Portainer NU este oprit - rulează global pe portul 9000!
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import socket
@@ -15,6 +20,11 @@ import argparse
 from pathlib import Path
 
 # Adaugă rădăcina proiectului în path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -30,6 +40,11 @@ PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
 # Containere care NU trebuie oprite (rulează global)
 CONTAINERE_EXCLUSE = ["portainer"]
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifica_portainer_status() -> bool:
     """Verifică dacă Portainer rulează pe portul 9000."""
@@ -55,6 +70,11 @@ def verifica_portainer_status() -> bool:
     except Exception:
         return False
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     parser = argparse.ArgumentParser(
@@ -130,6 +150,11 @@ NOTĂ: Portainer NU este oprit - rulează global pe portul 9000.
             traceback.print_exc()
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

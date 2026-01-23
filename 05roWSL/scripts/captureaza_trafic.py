@@ -7,6 +7,11 @@ Acest script facilitează captura de pachete folosind tcpdump în containerele D
 sau deschide Wireshark pentru analiză în timp real.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -15,6 +20,11 @@ from pathlib import Path
 from datetime import datetime
 
 # Adaugă rădăcina proiectului în path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -33,6 +43,11 @@ FILTRE_PREDEFINITE = {
     "tcp": "tcp",
 }
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def obtine_timestamp() -> str:
     """Generează un timestamp pentru numele fișierului."""
@@ -138,6 +153,11 @@ def listeaza_interfete(container: str):
     else:
         logger.error(f"Eroare la listarea interfețelor: {rezultat.stderr}")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     parser = argparse.ArgumentParser(
@@ -252,6 +272,11 @@ Exemple:
 
     return 0
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())
