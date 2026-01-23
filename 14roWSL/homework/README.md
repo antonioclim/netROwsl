@@ -15,6 +15,35 @@ Acest director conține exercițiile de realizat individual pentru consolidarea 
 
 ---
 
+## 👥 Lucru în Perechi (Pair Programming)
+
+Deși temele sunt individuale, **se încurajează** lucrul în perechi pentru **faza de dezvoltare** (nu și livrarea finală). Această metodă îmbunătățește înțelegerea și reduce erorile.
+
+### Cum funcționează
+
+| Rol | Responsabilități | Durata |
+|-----|------------------|--------|
+| **Driver** | Scrie codul, controlează tastatura | 15-20 min |
+| **Navigator** | Revizuiește, sugerează, verifică logica | 15-20 min |
+
+**Schimbați rolurile** după fiecare funcție completată sau la fiecare 15-20 minute.
+
+### Aplicare pe Teme
+
+| Tema | Sugestie Pair Programming |
+|------|---------------------------|
+| **Tema 1** (Echo) | Driver: implementează `cmd_echo`, Navigator: verifică RFC. Schimb pentru `cmd_calc`. |
+| **Tema 2** (LB) | Driver: algoritm weighted RR, Navigator: desenează diagrama distribuției. Schimb pentru least-connections. |
+| **Tema 3** (PCAP) | Driver: parser pachete, Navigator: verifică cu Wireshark manual. |
+
+### Reguli
+
+1. **Fiecare student livrează individual** - codul final trebuie să fie propriu
+2. Menționați partenerul de pair programming în raport (opțional, dar apreciat)
+3. Discuțiile sunt OK, copy-paste nu este
+
+---
+
 ## Tema 1: Protocol Echo Îmbunătățit
 
 **Fișier:** `exercises/tema_14_01_echo_avansat.py`

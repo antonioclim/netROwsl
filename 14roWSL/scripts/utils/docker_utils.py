@@ -4,7 +4,7 @@ Docker Management Utilities for Week 14 Laboratory.
 
 NETWORKING class - ASE, Informatics | by Revolvix
 
-This module provides a comprehensive interface for managing Docker
+This module provides a complete interface for managing Docker
 containers, networks, and volumes within the laboratory environment.
 """
 

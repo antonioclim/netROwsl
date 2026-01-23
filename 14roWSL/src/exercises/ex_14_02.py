@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ex_14_02.py — Verification harness for the team project.
+"""ex_14_02.py — Project verification toolkit.
 
 Features:
   - Verifies connectivity (ping)
@@ -28,7 +28,7 @@ from urllib.error import URLError, HTTPError
 def log(msg: str) -> None:
     """Logging with timestamp."""
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{ts}] [harness] {msg}")
+    print(f"[{ts}] [validator] {msg}")
 
 
 def check_ping(host: str, timeout: int = 2) -> Dict[str, Any]:
@@ -206,7 +206,7 @@ def load_config(path: str) -> Dict:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Project verification harness W14")
+    parser = argparse.ArgumentParser(description="Project verification toolkit W14")
     parser.add_argument("--config", required=True, help="JSON configuration file")
     parser.add_argument("--out", help="Output file for JSON report")
     parser.add_argument("--verbose", "-v", action="store_true", help="Detailed output")

@@ -7,7 +7,7 @@ Week 14 - Computer Networks Laboratory
 
 OBJECTIVE:
 Develop a Python tool that analyses PCAP files and generates
-comprehensive network traffic reports.
+detailed network traffic reports.
 
 REQUIREMENTS:
 1. Parse PCAP files using scapy or pyshark

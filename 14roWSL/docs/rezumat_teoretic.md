@@ -57,21 +57,42 @@ Datele parcurg stiva de protocoale, fiecare nivel adăugând propriul antet:
 
 ### Handshake-ul în Trei Pași
 
+#### 🧱 CONCRET (Analogie)
+
+Imaginează-ți un apel telefonic internațional:
+
+1. **Tu suni** → "Alo, mă auzi?" (SYN)
+2. **Prietenul răspunde** → "Te aud! Tu mă auzi?" (SYN-ACK)
+3. **Tu confirmi** → "Da, te aud perfect!" (ACK)
+
+Abia după aceste trei schimburi puteți vorbi în siguranță.
+
+#### 🖼️ PICTORIAL (Diagramă)
+
 Stabilirea unei conexiuni TCP necesită un schimb de trei segmente:
 
 ```
 Client                          Server
    |                               |
-   |-------- SYN (seq=x) -------->|
+   |-------- SYN (seq=x) -------->|  ← "Vreau să vorbim, numărul meu e X"
    |                               |
-   |<----- SYN-ACK (seq=y, -------|
+   |<----- SYN-ACK (seq=y, -------|  ← "OK, numărul meu e Y, am primit X"
    |       ack=x+1)               |
    |                               |
-   |-------- ACK (seq=x+1, ------>|
+   |-------- ACK (seq=x+1, ------>|  ← "Confirmat, am primit Y"
    |       ack=y+1)               |
    |                               |
    |===== Conexiune Stabilită ====|
 ```
+
+#### 🔣 ABSTRACT (Wireshark)
+
+În Wireshark, aplică filtrul `tcp.flags.syn == 1` pentru a vedea doar pachetele SYN.
+
+**De observat:**
+- Câmpul `Sequence Number` crește cu fiecare segment
+- `Acknowledgment Number` = Sequence primit + 1
+- Flags: `[SYN]`, `[SYN, ACK]`, `[ACK]`
 
 ### Flag-uri TCP
 
@@ -86,14 +107,24 @@ Client                          Server
 
 ### Terminarea Conexiunii
 
+#### 🧱 CONCRET
+
+Ca la sfârșitul unui apel telefonic politicos:
+1. Tu: "Trebuie să închid" (FIN)
+2. Prietenul: "OK, am înțeles" (ACK)
+3. Prietenul: "Și eu trebuie să închid" (FIN)  
+4. Tu: "OK, pa!" (ACK)
+
+#### 🖼️ PICTORIAL
+
 ```
 Client                          Server
    |                               |
-   |-------- FIN ---------------->|
-   |<------- ACK -----------------|
+   |-------- FIN ---------------->|  ← "Am terminat de trimis"
+   |<------- ACK -----------------|  ← "Am primit, OK"
    |                               |
-   |<------- FIN -----------------|
-   |-------- ACK ---------------->|
+   |<------- FIN -----------------|  ← "Și eu am terminat"
+   |-------- ACK ---------------->|  ← "OK, conexiune închisă"
    |                               |
    |===== Conexiune Închisă ======|
 ```
@@ -148,29 +179,37 @@ Coduri frecvente:
 
 ## Echilibrarea Încărcării
 
-### Arhitectura Reverse Proxy
+### 🧱 CONCRET (Analogie)
+
+Un load balancer funcționează ca un **ospătar-șef** într-un restaurant:
+- Clienții (cereri HTTP) sosesc la intrare
+- Ospătarul-șef (LB) îi direcționează către mese libere (backend-uri)
+- Dacă un chelner (backend) e ocupat, clientul merge la altul
+- Dacă un chelner e bolnav (unhealthy), nu mai primește clienți
+
+### 🖼️ PICTORIAL (Diagramă)
 
 ```
                                     ┌─────────────┐
-                                 ┌─►│  Backend 1  │
+                                 ┌─►│  Backend 1  │ (app1:8001)
 ┌─────────┐      ┌────────────┐  │  └─────────────┘
 │ Client  │─────►│ Load       │──┤
 └─────────┘      │ Balancer   │  │  ┌─────────────┐
-                 └────────────┘  └─►│  Backend 2  │
-                                    └─────────────┘
+                 └────────────┘  └─►│  Backend 2  │ (app2:8001)
+                    :8080           └─────────────┘
 ```
 
-### Algoritmi de Echilibrare
+### 🔣 ABSTRACT (Algoritmi)
 
 **Round-Robin**
-- Distribuie cererile secvențial, ciclic
+- Distribuie cererile secvențial, ciclic: A → B → A → B → ...
 - Simplu de implementat
 - Presupune capacitate egală a serverelor
 
 **Round-Robin Ponderat**
 - Fiecare server are o pondere (greutate)
 - Serverele puternice primesc mai multe cereri
-- Exemplu: app1(3), app2(1) → 75% / 25%
+- Exemplu: app1(weight=3), app2(weight=1) → 75% / 25%
 
 **Least Connections**
 - Direcționează către serverul cu cele mai puține conexiuni active

@@ -69,7 +69,8 @@ D:\RETELE\
         │   └── Dockerfile
         ├── docs/            # Documentație suplimentară
         │   ├── rezumat_teoretic.md
-        │   └── depanare.md
+        │   ├── depanare.md
+        │   └── glosar.md    # 📖 Definiții termeni tehnici
         ├── homework/        # Teme pentru acasă
         │   ├── README.md
         │   └── exercises/
@@ -86,6 +87,8 @@ D:\RETELE\
         ├── tests/           # Teste automatizate
         └── README.md        # Acest fișier
 ```
+
+> 💡 **Termen necunoscut?** Consultă [`docs/glosar.md`](docs/glosar.md) pentru definiții.
 
 ---
 
@@ -244,13 +247,33 @@ cd /mnt/d/RETELE/SAPT14/14roWSL
 
 # Pornește mediul de laborator
 python3 scripts/porneste_lab.py
+```
 
-# Testează load balancer
+#### 🔮 Exercițiu de Predicție #1: Load Balancer
+
+**Înainte de a rula comanda de mai jos, răspunde:**
+1. Câte răspunsuri diferite vei vedea? (app1, app2, sau ambele?)
+2. În ce ordine vor apărea? (aleatoriu, alternativ, sau altceva?)
+3. Ce se întâmplă dacă oprești un backend în timpul testului?
+
+```bash
+# Testează load balancer - observă distribuția!
 for i in {1..10}; do curl -s http://localhost:8080/; echo; done
+```
 
+**După rulare:** Compară predicția cu rezultatul. Dacă ai ghicit alternare app1/app2, felicitări - ai înțeles round-robin!
+
+#### 🔮 Exercițiu de Predicție #2: Echo Server
+
+**Înainte de a rula:**
+- Ce crezi că va returna serverul echo? Exact același text, sau cu modificări?
+
+```bash
 # Testează echo server
 echo "Test Message" | nc localhost 9090
 ```
+
+**Verifică:** Răspunsul trebuie să conțină exact "Test Message".
 
 ### Pasul 4: Oprește Captura
 

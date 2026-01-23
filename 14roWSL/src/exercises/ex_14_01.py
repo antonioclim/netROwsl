@@ -170,6 +170,41 @@ QUESTIONS: List[Tuple[str, List[str], int, str]] = [
         1,
         "/16 = 16 bits for network → 255.255.0.0."
     ),
+    
+    # Docker/Container misconceptions
+    (
+        "In docker-compose.yml, 'ports: 8080:80' means...",
+        ["Container listens on 8080, host on 80", "Host listens on 8080, container on 80",
+         "Both listen on 8080", "Both listen on 80"],
+        1,
+        "Format is HOST:CONTAINER. Access via localhost:8080 reaches container's port 80."
+    ),
+    (
+        "Stopping a Docker container (docker stop)...",
+        ["Deletes all data in the container", "Preserves data in volumes, loses container layer",
+         "Pauses the container temporarily", "Removes the container from memory"],
+        1,
+        "Volumes persist. Container layer (non-volume data) is preserved until 'docker rm'."
+    ),
+    (
+        "Two containers on the same Docker network can communicate by...",
+        ["Only IP address", "Container name (DNS)", "Only localhost", "MAC address"],
+        1,
+        "Docker provides DNS resolution for container names on user-defined networks."
+    ),
+    (
+        "In WSL2, files in /home/stud/ are accessible from Windows at...",
+        ["C:\\Users\\stud\\", "\\\\wsl$\\Ubuntu\\home\\stud\\", "D:\\WSL\\home\\stud\\", "Not accessible"],
+        1,
+        "WSL2 filesystem is accessible via the \\\\wsl$\\ network path."
+    ),
+    (
+        "A load balancer marks a backend as 'unhealthy' when...",
+        ["The server returns 404", "Health check fails multiple times consecutively",
+         "CPU usage exceeds 80%", "The first request fails"],
+        1,
+        "Usually requires 2-3 consecutive failures (configurable) to avoid false positives."
+    ),
 ]
 
 
