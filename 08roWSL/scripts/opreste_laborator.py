@@ -8,6 +8,11 @@ Acest script oprește toate containerele Docker fără a șterge datele.
 IMPORTANT: Portainer NU este oprit - rulează global pe portul 9000!
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -15,6 +20,11 @@ import socket
 from pathlib import Path
 
 # Adaugă rădăcina proiectului la calea Python
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -31,6 +41,11 @@ BOLD = "\033[1m"
 PORTAINER_PORT = 9000
 PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_banner():
     """Afișează banner-ul de oprire."""
@@ -114,6 +129,11 @@ def afiseaza_containere_active():
         print("  Niciun container activ")
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Punctul principal de intrare."""
     parser = argparse.ArgumentParser(
@@ -181,6 +201,11 @@ Note:
     
     return 0 if succes else 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

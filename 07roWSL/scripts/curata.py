@@ -7,6 +7,11 @@ Acest script elimină toate containerele, rețelele și opțional volumele
 pentru a pregăti sistemul pentru următoarea sesiune de laborator.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 from __future__ import annotations
 
 import argparse
@@ -14,6 +19,11 @@ import sys
 from pathlib import Path
 
 # Adaugă rădăcina proiectului în path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -24,6 +34,11 @@ logger = configureaza_logger("curata")
 
 PREFIX_SAPTAMANA = "week7"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def curata_director(director: Path, extensii: list[str] | None = None):
     """
@@ -50,6 +65,11 @@ def curata_director(director: Path, extensii: list[str] | None = None):
     if fisiere_sterse > 0:
         logger.info(f"  Șterse {fisiere_sterse} fișiere din {director.name}/")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     """Funcția principală."""
@@ -131,6 +151,11 @@ def main():
         logger.error(f"Eroare la curățare: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

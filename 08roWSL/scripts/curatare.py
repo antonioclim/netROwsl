@@ -7,12 +7,22 @@ Acest script elimină toate containerele, rețelele și opțional volumele
 pentru a pregăti sistemul pentru următoarea sesiune de laborator.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
 from pathlib import Path
 
 # Adaugă rădăcina proiectului la calea Python
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -27,6 +37,11 @@ BOLD = "\033[1m"
 
 PREFIX_SAPTAMANA = "week8"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_banner():
     """Afișează banner-ul de curățare."""
@@ -195,6 +210,11 @@ def curata_sistem(simulare: bool = False):
         print(f"{GALBEN}[ATENȚIE]{RESETARE} Curățarea sistemului a eșuat parțial")
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Punctul principal de intrare."""
     parser = argparse.ArgumentParser(
@@ -268,6 +288,11 @@ Exemple:
     
     return 0
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

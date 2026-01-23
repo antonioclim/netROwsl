@@ -10,6 +10,11 @@ Utilizare:
     python scripts/captureaza_trafic.py --lista-interfete
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import argparse
 import subprocess
 import sys
@@ -17,6 +22,11 @@ import time
 from pathlib import Path
 
 # Coduri culori
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 VERDE = "\033[92m"
 ROSU = "\033[91m"
 GALBEN = "\033[93m"
@@ -27,6 +37,11 @@ BOLD = "\033[1m"
 
 RADACINA_PROIECT = Path(__file__).parent.parent
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_titlu(titlu: str):
     """Afișează un titlu formatat."""
@@ -195,6 +210,11 @@ def afiseaza_instructiuni_wireshark():
 """.format(BOLD=BOLD, RESETARE=RESETARE))
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Punctul principal de intrare."""
     parser = argparse.ArgumentParser(
@@ -268,6 +288,11 @@ Exemple:
     
     return 0 if succes else 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

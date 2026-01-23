@@ -6,6 +6,11 @@ Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 Script pentru capturarea traficului de rețea folosind tcpdump sau tshark.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 from __future__ import annotations
 
 import argparse
@@ -16,6 +21,11 @@ from pathlib import Path
 from datetime import datetime
 
 # Adaugă rădăcina proiectului în path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -23,6 +33,11 @@ from scripts.utils.logger import configureaza_logger
 
 logger = configureaza_logger("capteaza_trafic")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifica_instrument(nume: str) -> bool:
     """Verifică dacă un instrument este disponibil."""
@@ -160,6 +175,11 @@ def capteaza_cu_tshark(
         return False
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -263,6 +283,11 @@ def main():
     else:
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

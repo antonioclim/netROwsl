@@ -9,6 +9,11 @@ NOTĂ: Portainer rulează global pe portul 9000 și NU este gestionat de acest s
 Accesați Portainer la: http://localhost:9000 (credențiale: stud / studstudstud)
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -19,6 +24,11 @@ from urllib.request import urlopen
 from urllib.error import URLError
 
 # Adaugă rădăcina proiectului la calea Python
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -65,6 +75,11 @@ SERVICII = {
     }
 }
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_banner():
     """Afișează banner-ul de pornire."""
@@ -334,6 +349,11 @@ def porneste_laborator(reconstruieste: bool = False, verbose: bool = False):
     return True
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Punctul principal de intrare."""
     parser = argparse.ArgumentParser(
@@ -376,6 +396,11 @@ Exemple:
     
     return 0 if succes else 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())
