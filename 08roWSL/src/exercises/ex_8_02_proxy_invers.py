@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 """
-EXERCISE 2: Completare Reverse Proxy
-======================================
-Subject: Computer Networks, Week 8
-Level: Advanced
-estimated time: 30 minutes
+EXERCIȚIUL 2: Proxy Invers cu Echilibrare Round-Robin
+=====================================================
+Disciplina: Rețele de Calculatoare, Săptămâna 8
+Nivel: Avansat
+Timp estimat: 45-60 minute
 
-OBJECTIVES:
-- Intelegerea conceptului de reverse proxy
-- Implementarea forward-arii cererilor
-- Adaugarea headers de proxy (X-Forwarded-For, Via)
-- Implementarea health check For backend-uri
+OBIECTIVE DE ÎNVĂȚARE:
+- Înțelegerea conceptului de reverse proxy
+- Implementarea redirecționării cererilor
+- Adăugarea headers de proxy (X-Forwarded-For, Via)
+- Implementarea health check pentru backend-uri
 
-INSTRUCTIONS:
-1. Complete the functions marked with TODO
-2. Run the tests: python3 -m pytest tests/test_ex02.py -v
-3. Test manually:
-   - Terminal 1: python3 demo_http_server.py --port 8081
-   - Terminal 2: python3 demo_http_server.py --port 8082
-   - Terminal 3: python3 ex02_reverse_proxy.py --port 8080 --backends localhost:8081,localhost:8082
+INSTRUCȚIUNI:
+1. Completați funcțiile marcate cu TODO
+2. Rulați testele: python3 -m pytest tests/test_ex02.py -v
+3. Test manual:
+   - Terminal 1: python3 -m http.server 8001 --directory www/
+   - Terminal 2: python3 -m http.server 8002 --directory www/
+   - Terminal 3: python3 ex_8_02_proxy_invers.py --port 8080 --backends localhost:8001,localhost:8002
 
-EVALUATION:
+EVALUARE:
 - Forward corect: 30%
 - Headers proxy: 30%
 - Round Robin: 20%
 - Health check: 20%
 
-© Revolvix&Hypotheticalandrei
+© Revolvix & ASE-CSIE București
 """
 
 import socket
@@ -36,9 +36,9 @@ import time
 from typing import List, Tuple, Dict, Optional
 from dataclasses import dataclass
 
-# ============================================================================
-# CONSTANTS
-# ============================================================================
+# =============================================================================
+# CONSTANTE
+# =============================================================================
 
 CRLF = "\r\n"
 DOUBLE_CRLF = "\r\n\r\n"
@@ -47,13 +47,13 @@ CONNECT_TIMEOUT = 5.0
 READ_TIMEOUT = 10.0
 
 
-# ============================================================================
+# =============================================================================
 # STRUCTURI DE DATE
-# ============================================================================
+# =============================================================================
 
 @dataclass
 class Backend:
-    """Reprezentarea a backend server."""
+    """Reprezentarea unui server backend."""
     host: str
     port: int
     healthy: bool = True
@@ -68,118 +68,165 @@ class Backend:
         return (self.host, self.port)
 
 
-# ============================================================================
-# TODO: Implement this CLASA
-# ============================================================================
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ CLASĂ
+# =============================================================================
 
 class RoundRobinBalancer:
     """
     Load balancer cu algoritm Round Robin.
     
-    Functionare:
-    - Mentine o lista de backend-uri
-    - to fiecare apel next_backend(), returneaza urmatorul backend sanatos
-    - Cicleaza through backend-uri in ordine
+    FUNCȚIONARE:
+    ────────────
+    - Menține o listă de backend-uri
+    - La fiecare apel next_backend(), returnează următorul backend sănătos
+    - Ciclează prin backend-uri în ordine: 1→2→3→1→2→3...
     
-    Thread Safety:
-    - Trebuie sa fie thread-safe (use Lock)
+    THREAD SAFETY:
+    ──────────────
+    - Trebuie să fie thread-safe (folosește Lock)
     - Mai multe thread-uri pot apela next_backend() simultan
     
     Exemple:
-        >>> backends = [Backend("localhost", 8081), Backend("localhost", 8082)]
+        >>> backends = [Backend("localhost", 8001), Backend("localhost", 8002)]
         >>> balancer = RoundRobinBalancer(backends)
         >>> balancer.next_backend().port
-        8081
+        8001
         >>> balancer.next_backend().port
-        8082
-        >>> balancer.next_backend().port  # revine to primul
-        8081
+        8002
+        >>> balancer.next_backend().port  # revine la primul
+        8001
+    
+    🔮 PREDICȚIE: Dacă ai 3 backend-uri și apelezi next_backend() de 7 ori,
+       care va fi secvența de porturi returnate?
+       Notează predicția ta înainte de implementare!
     """
     
     def __init__(self, backends: List[Backend]):
         """
-        Initializeaza balancer-ul cu lista de backend-uri.
+        Inițializează balancer-ul cu lista de backend-uri.
         
-        TODO: Implement:
-        - Stocare lista backend-uri
-        - Index curent (incepe from 0)
-        - Lock For thread safety
+        PAȘI DE IMPLEMENTARE:
+        ─────────────────────
+        1. Stochează lista de backend-uri
+           self.backends = backends
+        
+        2. Inițializează indexul curent (începe de la 0)
+           self.current_index = 0
+        
+        3. Creează un Lock pentru thread safety
+           self.lock = threading.Lock()
         """
-        # TODO: Implement initializarea
-        raise NotImplementedError("TODO: Implement __init__")
+        # TODO: Implementează inițializarea
+        # Scrie codul tău aici...
+        
+        raise NotImplementedError("TODO: Implementează __init__")
     
     def next_backend(self) -> Optional[Backend]:
         """
-        Returns urmatorul backend sanatos.
+        Returnează următorul backend sănătos.
         
         Returns:
-            Backend-ul selectat or None if niciunul nu e sanatos
+            Backend-ul selectat sau None dacă niciunul nu e sănătos
         
-        TODO: Implement:
-        1. obtain lock-ul
-        2. Cautati primul backend healthy incepand from index curent
-        3. Actualizati indexul For urmatorul apel
-        4. Returnati backend-ul or None
+        PAȘI DE IMPLEMENTARE:
+        ─────────────────────
+        1. Obține lock-ul pentru thread safety
+           with self.lock:
         
-        HINT:
-        - use with self.lock For thread safety
-        - Parcurgeti circular (modulo len(backends))
-        - Verificati maximum len(backends) backend-uri
+        2. Parcurge backend-urile începând de la indexul curent
+           - Încearcă maximum len(backends) backend-uri
+           - Caută primul care e healthy
+        
+        3. Dacă găsești unul healthy:
+           - Actualizează indexul pentru următorul apel
+           - Returnează backend-ul
+        
+        4. Dacă niciunul nu e healthy, returnează None
+        
+        ALGORITM ROUND-ROBIN:
+        ─────────────────────
+        ```
+        tries = 0
+        while tries < len(self.backends):
+            backend = self.backends[self.current_index]
+            self.current_index = (self.current_index + 1) % len(self.backends)
+            if backend.healthy:
+                return backend
+            tries += 1
+        return None
+        ```
+        
+        🔮 PREDICȚIE: Dacă backend-ul 2 din 3 e nesănătos, ce se întâmplă
+           cu distribuția? (Hint: 1→3→1→3→...)
         """
-        # TODO: Implement selectia round robin
-        raise NotImplementedError("TODO: Implement next_backend")
+        # TODO: Implementează selecția round robin
+        # Scrie codul tău aici...
+        
+        raise NotImplementedError("TODO: Implementează next_backend")
     
     def mark_unhealthy(self, backend: Backend):
         """
-        Marcheaza un backend ca nesanatos.
+        Marchează un backend ca nesănătos.
         
-        TODO: Setati backend.healthy = False
+        Simplu: backend.healthy = False
         """
-        # TODO: Implement
-        raise NotImplementedError("TODO: Implement mark_unhealthy")
+        # TODO: Implementează
+        raise NotImplementedError("TODO: Implementează mark_unhealthy")
     
     def mark_healthy(self, backend: Backend):
         """
-        Marcheaza un backend ca sanatos.
+        Marchează un backend ca sănătos.
         
-        TODO: Setati backend.healthy = True
+        Simplu: backend.healthy = True
         """
-        # TODO: Implement
-        raise NotImplementedError("TODO: Implement mark_healthy")
+        # TODO: Implementează
+        raise NotImplementedError("TODO: Implementează mark_healthy")
     
     def get_stats(self) -> Dict[str, any]:
         """
-        Returns statistici despre backend-uri.
+        Returnează statistici despre backend-uri.
         
         Returns:
             Dict cu: total, healthy, unhealthy, backends
+        
+        Exemplu return:
+            {
+                "total": 3,
+                "healthy": 2,
+                "unhealthy": 1,
+                "backends": ["localhost:8001 [✓]", "localhost:8002 [✗]", ...]
+            }
         """
-        # TODO: Implement statistici
-        raise NotImplementedError("TODO: Implement get_stats")
+        # TODO: Implementează statistici
+        raise NotImplementedError("TODO: Implementează get_stats")
 
 
-# ============================================================================
-# TODO: IMPLEMENT THIS FUNCTION
-# ============================================================================
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE
+# =============================================================================
 
 def add_proxy_headers(request_str: str, client_ip: str, proxy_name: str = "proxy") -> str:
     """
-    Adauga or actualizeaza headers specifice proxy-ului.
+    Adaugă sau actualizează headers specifice proxy-ului.
     
     Args:
-        request_str: Request-ul HTTP ca string
+        request_str: Cererea HTTP ca string
         client_ip: IP-ul clientului original
-        proxy_name: Numele proxy-ului For header Via
+        proxy_name: Numele proxy-ului pentru header Via
     
     Returns:
-        Request-ul modificat cu headers adaugate
+        Cererea modificată cu headers adăugate
     
-    HEADERS DE ADAUGAT:
+    HEADERS DE ADĂUGAT:
+    ───────────────────
     1. X-Forwarded-For: IP-ul clientului original
-       - If exists deja, adaugati to sfarandtul listei: "ip1, ip2, ip3"
+       - Dacă există deja, adaugă la sfârșitul listei: "ip1, ip2, ip3"
+    
     2. X-Forwarded-Proto: "http" (presupunem HTTP)
-    3. Via: "1.1 {proxy_name}" 
-       - If exists deja, adaugati to sfarandtul listei
+    
+    3. Via: "1.1 {proxy_name}"
+       - Dacă există deja, adaugă la sfârșitul listei
     
     Exemple:
         >>> req = "GET / HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n"
@@ -189,127 +236,182 @@ def add_proxy_headers(request_str: str, client_ip: str, proxy_name: str = "proxy
         >>> "Via: 1.1 myproxy" in modified
         True
     
-    HINT:
-    - Separati request line de headers
-    - Parsati headers existente
-    - Adaugati/actualizati headers necesare
-    - Reconstruiti request-ul
+    🔮 PREDICȚIE: Dacă cererea originală are deja X-Forwarded-For: 10.0.0.1,
+       cum va arăta header-ul după ce adaugi 192.168.1.100?
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Separă cererea în părți: headers vs body
+       parts = request_str.split(DOUBLE_CRLF, 1)
+       header_section = parts[0]
+       body = parts[1] if len(parts) > 1 else ""
+    
+    2. Separă header_section pe linii
+       lines = header_section.split(CRLF)
+       request_line = lines[0]  # "GET / HTTP/1.1"
+       header_lines = lines[1:]
+    
+    3. Parsează headers existente într-un dicționar
+       headers = {}
+       for line in header_lines:
+           if ': ' in line:
+               key, value = line.split(': ', 1)
+               headers[key.lower()] = (key, value)  # păstrează case original
+    
+    4. Actualizează/adaugă X-Forwarded-For
+       if 'x-forwarded-for' in headers:
+           old_val = headers['x-forwarded-for'][1]
+           new_val = f"{old_val}, {client_ip}"
+       else:
+           new_val = client_ip
+       headers['x-forwarded-for'] = ('X-Forwarded-For', new_val)
+    
+    5. Similar pentru X-Forwarded-Proto și Via
+    
+    6. Reconstruiește cererea
     """
     
-    # TODO: Implement adaugarea headers
-    #
-    # steps sugerati:
-    # 1. Split pe DOUBLE_CRLF For a separa headers de body
-    # 2. Split prima parte pe CRLF For to obtain lines
-    # 3. Prima linie = request line (pastrati intact)
-    # 4. Parsati restul ca headers in dictionar
-    # 5. Actualizati/adaugati X-Forwarded-For, X-Forwarded-Proto, Via
-    # 6. Reconstruiti request-ul
+    # TODO: Implementează adăugarea headers
+    # Scrie codul tău aici...
     
-    raise NotImplementedError("TODO: Implement add_proxy_headers")
+    raise NotImplementedError("TODO: Implementează add_proxy_headers")
 
 
-# ============================================================================
-# TODO: IMPLEMENT THIS FUNCTION
-# ============================================================================
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE
+# =============================================================================
 
 def forward_request(request: bytes, backend: Backend, client_ip: str) -> Optional[bytes]:
     """
-    Send request-ul catre un backend and returneaza responseul.
+    Trimite cererea către un backend și returnează răspunsul.
     
     Args:
-        request: Request-ul HTTP original in bytes
-        backend: Backend-ul tinta
+        request: Cererea HTTP originală în bytes
+        backend: Backend-ul țintă
         client_ip: IP-ul clientului original
     
     Returns:
-        Raspunsul from backend in bytes, or None in caz de error
+        Răspunsul de la backend în bytes, sau None în caz de eroare
     
-    steps:
-    1. Decodifica request-ul
-    2. Modifica Host header For backend
-    3. Adauga headers proxy
-    4. Deschide conexiune TCP catre backend
-    5. Send request-ul modificat
-    6. Read responseul complete
-    7. Inchide conexiunea
-    8. Returns responseul
+    🔮 PREDICȚIE: Ce se întâmplă dacă backend-ul nu răspunde în 5 secunde?
+       Ce valoare va returna funcția?
     
-    EDGE CASES:
-    - Timeout to conectare
-    - error de retea
-    - Backend inavailable
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Decodifică cererea în string
+       request_str = request.decode('utf-8', errors='replace')
     
-    HINT:
-    - use socket.settimeout() For timeout
-    - Cititi responseul in bucle pana cand recv returneaza b""
-    - Tratati exceptiile and returnati None to error
+    2. Modifică header-ul Host pentru backend
+       - Găsește linia "Host: ..." și înlocuiește cu backend
+       - Sau: parsează și reconstruiește
+    
+    3. Adaugă headers de proxy cu add_proxy_headers()
+       modified_request = add_proxy_headers(request_str, client_ip)
+    
+    4. Creează socket TCP
+       sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+    5. Setează timeout pentru conectare și citire
+       sock.settimeout(CONNECT_TIMEOUT)
+    
+    6. Conectează-te la backend
+       sock.connect(backend.address)
+    
+    7. Trimite cererea modificată
+       sock.sendall(modified_request.encode())
+    
+    8. Citește răspunsul complet (în buclă până primești tot)
+       response = b""
+       sock.settimeout(READ_TIMEOUT)
+       while True:
+           chunk = sock.recv(BUFFER_SIZE)
+           if not chunk:
+               break
+           response += chunk
+    
+    9. Închide socket-ul și returnează răspunsul
+    
+    CAZURI DE EROARE:
+    ─────────────────
+    - socket.timeout → returnează None
+    - ConnectionRefusedError → returnează None
+    - Orice altă excepție → loghează și returnează None
     """
     
-    # TODO: Implement forwarding-ul
-    #
-    # steps sugerati:
-    # 1. Decodifica request in string
-    # 2. Modifica Host header (inlocuiti host original cu backend.host:backend.port)
-    # 3. Adaugati headers proxy cu add_proxy_headers()
-    # 4. Creati socket TCP
-    # 5. Setati timeout
-    # 6. Conectati to backend
-    # 7. Sendti request-ul
-    # 8. Cititi responseul (in bucle)
-    # 9. Inchideti socket-ul
-    # 10. Returnati responseul
+    # TODO: Implementează forwarding-ul
+    # Scrie codul tău aici...
     
-    raise NotImplementedError("TODO: Implement forward_request")
+    raise NotImplementedError("TODO: Implementează forward_request")
 
 
-# ============================================================================
-# TODO: IMPLEMENT THIS FUNCTION
-# ============================================================================
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE
+# =============================================================================
 
 def check_backend_health(backend: Backend) -> bool:
     """
-    Check if un backend este sanatos (raspunde to cereri).
+    Verifică dacă un backend este sănătos (răspunde la cereri).
     
     Args:
         backend: Backend-ul de verificat
     
     Returns:
-        True if backend-ul raspunde, False altfel
+        True dacă backend-ul răspunde, False altfel
     
-    METODA:
-    - Send un request HEAD /
-    - Daca primeste response in timeout, e sanatos
-    - Actualizeaza backend.last_check cu timestamp curent
+    METODĂ:
+    ───────
+    - Trimite un request HEAD /
+    - Dacă primește răspuns în timeout, e sănătos
+    - Actualizează backend.last_check cu timestamp-ul curent
     
-    HINT:
-    - Timeout scurt (2 secunde)
-    - Nu conteaza continutul response, doar ca raspunde
-    - Tratati toate exceptiile ca nesanatos
+    🔮 PREDICȚIE: Dacă backend-ul e oprit, cât timp va dura funcția
+       până returnează False? (Hint: verifică timeout-ul)
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Creează socket TCP
+       sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+    2. Setează timeout scurt (2 secunde)
+       sock.settimeout(2.0)
+    
+    3. Încearcă să te conectezi la backend
+       try:
+           sock.connect(backend.address)
+       except (socket.timeout, ConnectionRefusedError):
+           return False
+    
+    4. Trimite cererea HEAD
+       request = f"HEAD / HTTP/1.1\\r\\nHost: {backend.host}\\r\\n\\r\\n"
+       sock.sendall(request.encode())
+    
+    5. Încearcă să citești răspuns (orice răspuns = sănătos)
+       try:
+           response = sock.recv(1024)
+           return len(response) > 0
+       except socket.timeout:
+           return False
+    
+    6. Actualizează timestamp-ul
+       backend.last_check = time.time()
+    
+    7. Închide socket-ul în finally block
     """
     
-    # TODO: Implement health check
-    #
-    # steps sugerati:
-    # 1. Creati socket TCP
-    # 2. Setati timeout scurt (2s)
-    # 3. Incercati sa you conectati to backend
-    # 4. Sendti "HEAD / HTTP/1.1\r\nHost: {host}\r\n\r\n"
-    # 5. Incercati sa cititi response
-    # 6. Actualizati backend.last_check = time.time()
-    # 7. Returnati True/False
+    # TODO: Implementează health check
+    # Scrie codul tău aici...
     
-    raise NotImplementedError("TODO: Implement check_backend_health")
+    raise NotImplementedError("TODO: Implementează check_backend_health")
 
 
-# ============================================================================
-# COD FURNIZAT - NU MODIFICATI
-# ============================================================================
+# =============================================================================
+# COD FURNIZAT - NU MODIFICA
+# =============================================================================
 
 class ReverseProxy:
     """
-    Reverse proxy server.
-    Cod partial furnizat - trebuie sa Implement metodele TODO.
+    Server reverse proxy.
+    Cod parțial furnizat - trebuie să implementezi metodele TODO.
     """
     
     def __init__(self, host: str, port: int, backends: List[Backend]):
@@ -319,12 +421,12 @@ class ReverseProxy:
         self.running = False
         self.server_socket = None
         
-        # Health check thread
+        # Thread pentru health check
         self.health_check_interval = 30  # secunde
         self.health_thread = None
     
     def start_health_checks(self):
-        """starts thread-ul de health check."""
+        """Pornește thread-ul de health check."""
         def health_loop():
             while self.running:
                 for backend in self.balancer.backends:
@@ -340,7 +442,7 @@ class ReverseProxy:
         self.health_thread.start()
     
     def handle_client(self, client_socket: socket.socket, client_addr: Tuple[str, int]):
-        """Proceseaza o conexiune client."""
+        """Procesează o conexiune client."""
         client_ip = client_addr[0]
         
         try:
@@ -348,7 +450,7 @@ class ReverseProxy:
             if not request:
                 return
             
-            # Selectam backend
+            # Selectăm backend
             backend = self.balancer.next_backend()
             if not backend:
                 error_response = (
@@ -368,7 +470,7 @@ class ReverseProxy:
             if response:
                 client_socket.sendall(response)
             else:
-                # Backend a esuat
+                # Backend a eșuat
                 self.balancer.mark_unhealthy(backend)
                 error_response = (
                     b"HTTP/1.1 502 Bad Gateway\r\n"
@@ -379,12 +481,12 @@ class ReverseProxy:
                 client_socket.sendall(error_response)
                 
         except Exception as e:
-            print(f"[error] {e}")
+            print(f"[EROARE] {e}")
         finally:
             client_socket.close()
     
     def run(self):
-        """starts serverul proxy."""
+        """Pornește serverul proxy."""
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
@@ -395,15 +497,15 @@ class ReverseProxy:
             
             print(f"[INFO] Reverse proxy pornit pe http://{self.host}:{self.port}/")
             print(f"[INFO] Backend-uri: {[str(b) for b in self.balancer.backends]}")
-            print("[INFO] Press Ctrl+C For oprire")
+            print("[INFO] Apasă Ctrl+C pentru oprire")
             
-            # starts health checks
+            # Pornește health checks
             self.start_health_checks()
             
             while self.running:
                 try:
                     client_socket, client_addr = self.server_socket.accept()
-                    # Handle in thread separat
+                    # Handle în thread separat
                     thread = threading.Thread(
                         target=self.handle_client,
                         args=(client_socket, client_addr),
@@ -414,7 +516,7 @@ class ReverseProxy:
                     break
                     
         except KeyboardInterrupt:
-            print("\n[INFO] Proxy stopped by user")
+            print("\n[INFO] Proxy oprit de utilizator")
         finally:
             self.running = False
             if self.server_socket:
@@ -422,7 +524,7 @@ class ReverseProxy:
 
 
 def parse_backends(backends_str: str) -> List[Backend]:
-    """Parseaza string-ul de backend-uri."""
+    """Parsează string-ul de backend-uri."""
     backends = []
     for backend_str in backends_str.split(","):
         host, port = backend_str.strip().split(":")
@@ -436,7 +538,7 @@ def main():
     parser.add_argument("--port", type=int, default=8080, help="Portul proxy")
     parser.add_argument(
         "--backends", 
-        default="localhost:8081,localhost:8082",
+        default="localhost:8001,localhost:8002",
         help="Lista de backend-uri (host:port,host:port,...)"
     )
     

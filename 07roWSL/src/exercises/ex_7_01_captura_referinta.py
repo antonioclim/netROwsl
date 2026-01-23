@@ -149,6 +149,19 @@ def main():
     logheaza("FAZA 1: Testare TCP Echo")
     print("-" * 40)
     
+    # ═══════════════════════════════════════════════════════════════════════════════
+    # PREDICTIE — Întreabă studentul înainte de a genera traficul
+    # ═══════════════════════════════════════════════════════════════════════════════
+    print()
+    print("🔮 PREDICȚIE înainte de testul TCP:")
+    print("   Câte pachete vei vedea în Wireshark pentru O SINGURĂ conexiune echo?")
+    print("   a) 2 pachete (cerere + răspuns)")
+    print("   b) 4 pachete (SYN, SYN-ACK, date, ACK)")
+    print("   c) 6+ pachete (handshake + date + închidere)")
+    print()
+    predicție_tcp = input("   Alege (a/b/c): ").strip().lower()
+    print()
+    
     mesaje_tcp = [
         "Salut de la exercitiul 7.01",
         "Test handshake TCP",
@@ -160,11 +173,33 @@ def main():
         pauza_pentru_captura(2.0)
     
     print()
+    print("📊 VERIFICARE PREDICȚIE TCP:")
+    if predicție_tcp == 'c':
+        print("   ✅ CORECT! TCP implică handshake (3 pachete) + date + confirmare + închidere")
+    else:
+        print("   ❌ Răspunsul corect era (c). TCP are overhead mare:")
+        print("      - Handshake: SYN → SYN-ACK → ACK (3 pachete)")
+        print("      - Date: PSH-ACK → ACK (2+ pachete)")
+        print("      - Închidere: FIN → FIN-ACK (2+ pachete)")
+    print()
     
     # Faza 2: Test UDP
     print("-" * 40)
     logheaza("FAZA 2: Testare UDP")
     print("-" * 40)
+    
+    # ═══════════════════════════════════════════════════════════════════════════════
+    # PREDICTIE — Compară cu TCP
+    # ═══════════════════════════════════════════════════════════════════════════════
+    print()
+    print("🔮 PREDICȚIE înainte de testul UDP:")
+    print("   Pentru 3 mesaje UDP, câte pachete vei vedea în Wireshark?")
+    print("   a) 3 pachete (câte unul per mesaj)")
+    print("   b) 6 pachete (cerere + răspuns pentru fiecare)")
+    print("   c) 9+ pachete (ca la TCP)")
+    print()
+    predicție_udp = input("   Alege (a/b/c): ").strip().lower()
+    print()
     
     mesaje_udp = [
         "Datagrama UDP #1",
@@ -174,6 +209,16 @@ def main():
     
     test_udp_trimitere(UDP_HOST, UDP_PORT, mesaje_udp)
     
+    print()
+    print("📊 VERIFICARE PREDICȚIE UDP:")
+    if predicție_udp == 'a':
+        print("   ✅ CORECT! UDP e 'fire-and-forget' - doar datagramele trimise, fără confirmare!")
+    else:
+        print("   ❌ Răspunsul corect era (a). UDP NU are:")
+        print("      - Niciun handshake")
+        print("      - Nicio confirmare de primire")
+        print("      - Nicio închidere de conexiune")
+        print("      - Fiecare datagramă e independentă")
     print()
     
     # Sumar

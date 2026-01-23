@@ -5,51 +5,93 @@ Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 
 Un expeditor UDP simplu pentru testarea conectivității UDP
 și demonstrarea comportamentului DROP.
+
+NOTĂ IMPORTANTĂ: UDP este "fire-and-forget"!
+    - sendto() returnează succes chiar dacă destinatarul nu există
+    - Nu există confirmare de primire
+    - Dacă DROP este activ, expeditorul NU va ști
+
+Exemplu de utilizare:
+    python expeditor_udp.py --host localhost --port 9091 --mesaj "Test"
 """
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTURI
+# ═══════════════════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
 import argparse
 import socket
-from datetime import datetime
+import sys
+from pathlib import Path
+
+# Configurare cale pentru importul modulelor locale
+RADACINA_PROIECT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(RADACINA_PROIECT))
+
+# Import logger unificat
+try:
+    from scripts.utils.logger import configureaza_logger
+    logger = configureaza_logger("expeditor_udp")
+except ImportError:
+    import logging
+    logging.basicConfig(
+        format='[%(asctime)s] %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=logging.INFO
+    )
+    logger = logging.getLogger("expeditor_udp")
 
 
-def logheaza(mesaj: str):
-    """Logare cu timestamp."""
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{timestamp}] {mesaj}", flush=True)
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# TRIMITERE_DATAGRAMA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def trimite_datagrama(host: str, port: int, mesaj: str) -> bool:
     """
     Trimite o datagramă UDP.
     
+    NOTĂ PEDAGOGICĂ: sendto() returnează ÎNTOTDEAUNA succes pentru UDP,
+    chiar dacă nu există nimeni care să asculte pe acel port!
+    Aceasta este diferența fundamentală față de TCP.
+    
     Args:
-        host: Adresa destinație
+        host: Adresa destinație (IP sau hostname)
         port: Portul destinație
-        mesaj: Mesajul de trimis
+        mesaj: Mesajul de trimis (va fi encodat UTF-8)
     
     Returns:
         True dacă trimiterea a reușit (nu garantează recepția!)
     """
     try:
+        # ───────────────────────────────────────────────────────────────────────
+        # CREARE_SOCKET — SOCK_DGRAM = UDP
+        # ───────────────────────────────────────────────────────────────────────
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
-        logheaza(f"Trimitere datagramă către {host}:{port}")
-        logheaza(f"Conținut: {mesaj}")
+        logger.info(f"Trimitere datagramă către {host}:{port}")
+        logger.info(f"Conținut: {mesaj}")
         
-        sock.sendto(mesaj.encode(), (host, port))
+        # ───────────────────────────────────────────────────────────────────────
+        # SENDTO — Trimite datagrama (nu necesită connect() prealabil)
+        # ───────────────────────────────────────────────────────────────────────
+        bytes_trimisi = sock.sendto(mesaj.encode('utf-8'), (host, port))
         
-        logheaza("Datagramă trimisă!")
-        logheaza("Notă: UDP nu garantează livrarea - receptorul poate să nu primească mesajul")
+        logger.info(f"Datagramă trimisă! ({bytes_trimisi} bytes)")
+        logger.warning("UDP nu garantează livrarea - receptorul poate să nu primească mesajul")
         
         sock.close()
         return True
         
     except Exception as e:
-        logheaza(f"EROARE: {e}")
+        logger.error(f"Eroare la trimitere: {e}")
         return False
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     """Funcția principală."""
@@ -75,7 +117,7 @@ def main():
     args = parser.parse_args()
 
     succes = trimite_datagrama(args.host, args.port, args.mesaj)
-    exit(0 if succes else 1)
+    sys.exit(0 if succes else 1)
 
 
 if __name__ == "__main__":

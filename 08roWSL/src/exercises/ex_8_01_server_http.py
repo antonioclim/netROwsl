@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
 """
-EXERCISE 1: Completare Server HTTP
-=====================================
-Subject: Computer Networks, Week 8
-Level: Intermediate
-estimated time: 30 minutes
+EXERCIȚIUL 1: Server HTTP de Bază
+=================================
+Disciplina: Rețele de Calculatoare, Săptămâna 8
+Nivel: Intermediar
+Timp estimat: 30-45 minute
 
-OBJECTIVES:
-- Understanding the format HTTP request/response
-- Implementing parsing HTTP requests
-- Serving static files with security
+OBIECTIVE DE ÎNVĂȚARE:
+- Înțelegerea formatului cerere/răspuns HTTP
+- Implementarea parsării cererilor HTTP
+- Servirea fișierelor statice cu securitate
 
-INSTRUCTIONS:
-1. Complete the functions marked with TODO
-2. Run the tests: python3 -m pytest tests/test_ex01.py -v
-3. Test manually: python3 ex01_http_server.py --port 8081
+INSTRUCȚIUNI:
+1. Completați funcțiile marcate cu TODO
+2. Rulați testele: python3 -m pytest tests/test_ex01.py -v
+3. Testați manual: python3 ex_8_01_server_http.py --port 8888
 
-EVALUATION:
-- Correct parsing request: 30%
-- File serving: 30%
-- Security (directory traversal): 20%
-- HEAD method: 20%
+EVALUARE:
+- Parsare corectă cerere: 30%
+- Servire fișiere: 30%
+- Securitate (path traversal): 20%
+- Metoda HEAD: 20%
 
-© Revolvix&Hypotheticalandrei
+© Revolvix & ASE-CSIE București
 """
 
 import socket
@@ -32,9 +32,9 @@ import argparse
 from pathlib import Path
 from typing import Tuple, Dict, Optional
 
-# ============================================================================
-# CONSTANTS
-# ============================================================================
+# =============================================================================
+# CONSTANTE
+# =============================================================================
 
 CRLF = "\r\n"
 DOUBLE_CRLF = "\r\n\r\n"
@@ -65,68 +65,84 @@ MIME_TYPES = {
 DEFAULT_TYPE = "application/octet-stream"
 
 
-# ============================================================================
-# TODO: IMPLEMENT THIS FUNCTION
-# ============================================================================
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE
+# =============================================================================
 
 def parse_request(raw_request: bytes) -> Tuple[str, str, str, Dict[str, str]]:
     """
-    Parse an HTTP request and extract the components.
+    Parsează o cerere HTTP și extrage componentele.
     
     Args:
-        raw_request: Bytes received from the client
+        raw_request: Bytes primiți de la client
     
     Returns:
-        Tuple with: (method, path, version, headers_dict)
+        Tuple cu: (metodă, cale, versiune, dicționar_headers)
         
     Exemple:
         >>> data = b'GET /index.html HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n'
-        >>> method, path, version, headers = parse_request(data)
-        >>> method
+        >>> metoda, cale, versiune, headers = parse_request(data)
+        >>> metoda
         'GET'
-        >>> path
+        >>> cale
         '/index.html'
         >>> headers['host']
         'localhost'
     
-    HINT:
-    1. Decodifica raw_request in string (utf-8)
-    2. Separa pe linii (\\r\\n)
-    3. Prima linie contine: METHOD PATH VERSION
-    4. Restul liniilor sunt headers in format "Key: Value"
-    5. Normalizeaza key-urile to lowercase
+    🔮 PREDICȚIE: Ce ar trebui să returneze funcția pentru cererea:
+       b'GET / HTTP/1.1\\r\\nHost: test\\r\\n\\r\\n'
+       Notează predicția ta înainte de a implementa!
     
-    Attention:
-    - Tratati cazul cand request-ul este invalid (returnati error sensibila)
-    - Header keys ar trebui sa fie case-insensitive
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Decodifică raw_request din bytes în string (encoding='utf-8')
+       Hint: raw_request.decode('utf-8')
+    
+    2. Separă pe linii folosind CRLF (\\r\\n)
+       Hint: text.split(CRLF)
+    
+    3. Prima linie conține: METODĂ CALE VERSIUNE
+       Hint: prima_linie.split(' ') → ['GET', '/index.html', 'HTTP/1.1']
+    
+    4. Restul liniilor sunt headers în format "Cheie: Valoare"
+       Hint: linie.split(': ', 1) pentru a separa cheie de valoare
+    
+    5. Normalizează cheile headers la lowercase pentru comparații ușoare
+       Hint: cheie.lower()
+    
+    CAZURI SPECIALE DE TRATAT:
+    ──────────────────────────
+    - Cerere goală sau invalidă → returnează valori implicite sau aruncă excepție
+    - Linie de cerere cu mai puțin de 3 părți → eroare
+    - Headers fără ':' → ignoră-le
+    
+    GREȘELI COMUNE:
+    ───────────────
+    ✗ Folosirea split('\\n') în loc de split('\\r\\n')
+    ✗ Uitarea să decodifici bytes în string
+    ✗ Nepunerea cheilor la lowercase
     """
     
-    # TODO: Implement parsing request HTTP
-    # 
-    # steps sugerati:
-    # 1. Decodifica bytes -> string
-    # 2. Split pe CRLF For to obtain lines
-    # 3. Parseaza prima linie (request line): method, path, version
-    # 4. Parseaza headers (key: value)
-    # 5. Returns tuple-ul
+    # TODO: Implementează parsarea cererii HTTP
+    # Scrie codul tău aici...
     
-    raise NotImplementedError("TODO: Implement parse_request()")
+    raise NotImplementedError("TODO: Implementează parse_request()")
 
 
-# ============================================================================
-# TODO: IMPLEMENT THIS FUNCTION
-# ============================================================================
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE
+# =============================================================================
 
 def is_safe_path(requested_path: str, docroot: str) -> bool:
     """
-    Check if path ceruta este sigura (nu permite directory traversal).
+    Verifică dacă calea cerută este sigură (nu permite directory traversal).
     
     Args:
-        requested_path: path ceruta de client (ex: "/images/../../../etc/passwd")
-        docroot: Directorul radacina For files statice
+        requested_path: Calea cerută de client (ex: "/images/../../../etc/passwd")
+        docroot: Directorul rădăcină pentru fișiere statice
     
     Returns:
-        True if path este sigura, False altfel
+        True dacă calea este sigură, False altfel
     
     Exemple:
         >>> is_safe_path("/index.html", "/var/www")
@@ -135,43 +151,62 @@ def is_safe_path(requested_path: str, docroot: str) -> bool:
         False
         >>> is_safe_path("/images/logo.png", "/var/www")
         True
+        >>> is_safe_path("/images/../../../etc/passwd", "/var/www")
+        False
     
-    HINT:
-    - use os.path.normpath() For to normalise path
-    - use os.path.abspath() For to obtain absolute path
-    - Verificati ca rezultatul este in interiorul docroot-ului
+    🔮 PREDICȚIE: Pentru calea "/a/b/../../c.txt" cu docroot="/var/www",
+       este sigură? Ce cale reală reprezintă? Notează înainte de implementare!
     
-    SECURITATE:
-    - this este o functie CRITICA For securitate
-    - Atacatorii vor incerca ../../../etc/passwd
-    - Trebuie sa preveniti ORICE ieandre din docroot
+    ⚠️ ATENȚIE SECURITATE:
+    ──────────────────────
+    Aceasta este o funcție CRITICĂ pentru securitate!
+    Atacatorii vor încerca:
+    - /../../../etc/passwd
+    - /..\\..\\..\\windows\\system32\\config\\sam
+    - /%2e%2e%2f (URL-encoded ..)
+    - /images/../../../etc/shadow
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Normalizează requested_path (elimină .. și .)
+       Hint: os.path.normpath(requested_path)
+    
+    2. Construiește calea completă: docroot + requested_path
+       Hint: os.path.join(docroot, requested_path.lstrip('/'))
+    
+    3. Obține calea absolută pentru ambele
+       Hint: os.path.abspath()
+    
+    4. Verifică că calea completă începe cu docroot
+       Hint: cale_completa.startswith(docroot_absolut)
+    
+    GREȘELI COMUNE:
+    ───────────────
+    ✗ Compararea string-urilor fără normalizare
+    ✗ Uitarea să normalizezi și docroot-ul
+    ✗ Nefolosirea abspath() (căi relative pot păcăli verificarea)
     """
     
-    # TODO: Implement security check path
-    #
-    # steps sugerati:
-    # 1. Normalizati requested_path (elimina .. and .)
-    # 2. Construiti path completea: docroot + requested_path
-    # 3. obtain absolute path For ambele
-    # 4. Verificati ca path completea incepe cu docroot
+    # TODO: Implementează verificarea securității căii
+    # Scrie codul tău aici...
     
-    raise NotImplementedError("TODO: Implement is_safe_path()")
+    raise NotImplementedError("TODO: Implementează is_safe_path()")
 
 
-# ============================================================================
-# TODO: IMPLEMENT THIS FUNCTION
-# ============================================================================
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE
+# =============================================================================
 
 def serve_file(path: str, docroot: str) -> Tuple[int, Dict[str, str], bytes]:
     """
-    Serveste un file static de pe disc.
+    Servește un fișier static de pe disc.
     
     Args:
-        path: path ceruta (ex: "/index.html")
-        docroot: Directorul radacina
+        path: Calea cerută (ex: "/index.html")
+        docroot: Directorul rădăcină
     
     Returns:
-        Tuple with: (status_code, headers_dict, body_bytes)
+        Tuple cu: (cod_status, dicționar_headers, corp_bytes)
     
     Exemple:
         >>> status, headers, body = serve_file("/index.html", "./www")
@@ -179,125 +214,186 @@ def serve_file(path: str, docroot: str) -> Tuple[int, Dict[str, str], bytes]:
         200
         >>> headers['content-type']
         'text/html'
+        >>> len(body) > 0
+        True
     
-    HINT:
-    1. Verificati securitatea path cu is_safe_path()
-    2. Daca path e "/" use "/index.html" implicit
-    3. Determinati MIME type din extensie
-    4. Cititi fianderul in mod binar ('rb')
-    5. Returnati headers corespunzatoare
+    🔮 PREDICȚIE: Ce cod de status și headers aștepți pentru:
+       - serve_file("/hello.txt", "./www") dacă fișierul există?
+       - serve_file("/inexistent.txt", "./www")?
+       - serve_file("/../etc/passwd", "./www")?
     
-    CAZURI DE TRATAT:
-    - 403: cale nesigura (directory traversal)
-    - 404: file nu exista
-    - 200: file gasit and servit
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Normalizează calea: "/" → "/index.html"
+       if path == "/":
+           path = "/index.html"
+    
+    2. Verifică securitatea cu is_safe_path()
+       Dacă nesigură → returnează (403, {}, b"Forbidden")
+    
+    3. Construiește calea completă către fișier
+       cale_fisier = os.path.join(docroot, path.lstrip('/'))
+    
+    4. Verifică dacă fișierul există
+       Dacă nu există → returnează (404, {}, b"Not Found")
+    
+    5. Determină Content-Type din extensie
+       extensie = os.path.splitext(path)[1].lower()
+       content_type = MIME_TYPES.get(extensie, DEFAULT_TYPE)
+    
+    6. Citește conținutul fișierului în mod binar ('rb')
+       with open(cale_fisier, 'rb') as f:
+           continut = f.read()
+    
+    7. Construiește headers-ele răspunsului
+       headers = {
+           "Content-Type": content_type,
+           "Content-Length": str(len(continut))
+       }
+    
+    8. Returnează (200, headers, continut)
+    
+    GREȘELI COMUNE:
+    ───────────────
+    ✗ Citirea fișierului în mod text ('r') în loc de binar ('rb')
+    ✗ Nesetarea Content-Length
+    ✗ Returnarea stringului în loc de bytes pentru body
     """
     
-    # TODO: Implement serving file
-    #
-    # steps sugerati:
-    # 1. Normalizati path (if e "/" → "/index.html")
-    # 2. Verificati securitatea cu is_safe_path()
-    # 3. Construiti path completea
-    # 4. Verificati if fianderul exista
-    # 5. Determinati Content-Type din extensie
-    # 6. Cititi continutul file
-    # 7. Construiti headers (Content-Type, Content-Length)
-    # 8. Returnati (status_code, headers, body)
+    # TODO: Implementează servirea fișierului
+    # Scrie codul tău aici...
     
-    raise NotImplementedError("TODO: Implement serve_file()")
+    raise NotImplementedError("TODO: Implementează serve_file()")
 
 
-# ============================================================================
-# TODO: IMPLEMENT THIS FUNCTION
-# ============================================================================
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE
+# =============================================================================
 
 def build_response(status_code: int, headers: Dict[str, str], body: bytes) -> bytes:
     """
-    Build un response HTTP complete.
+    Construiește un răspuns HTTP complet.
     
     Args:
         status_code: Codul de status HTTP (200, 404, etc.)
-        headers: Dictionary with headers
-        body: Continutul response in bytes
+        headers: Dicționar cu headers
+        body: Conținutul răspunsului în bytes
     
     Returns:
-        Raspunsul HTTP complete ca bytes
+        Răspunsul HTTP complet ca bytes
     
     Exemple:
         >>> resp = build_response(200, {"Content-Type": "text/plain"}, b"Hello")
         >>> resp.startswith(b"HTTP/1.1 200 OK")
         True
+        >>> b"Content-Type: text/plain" in resp
+        True
+        >>> resp.endswith(b"Hello")
+        True
     
-    FORMAT:
-        HTTP/1.1 {status_code} {status_text}\r\n
-        Header1: Value1\r\n
-        Header2: Value2\r\n
-        \r\n
+    FORMAT RĂSPUNS HTTP:
+    ────────────────────
+        HTTP/1.1 {status_code} {status_text}\\r\\n
+        Header1: Value1\\r\\n
+        Header2: Value2\\r\\n
+        \\r\\n
         {body}
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Construiește linia de status: "HTTP/1.1 {code} {text}\\r\\n"
+       status_text = HTTP_STATUS.get(status_code, "Unknown")
+       status_line = f"HTTP/1.1 {status_code} {status_text}{CRLF}"
+    
+    2. Construiește liniile de headers: "{Key}: {Value}\\r\\n"
+       header_lines = ""
+       for key, value in headers.items():
+           header_lines += f"{key}: {value}{CRLF}"
+    
+    3. Adaugă linia goală de separare: "\\r\\n"
+       header_lines += CRLF
+    
+    4. Convertește header-ele în bytes și concatenează cu body
+       return status_line.encode() + header_lines.encode() + body
+    
+    🔮 PREDICȚIE: Pentru build_response(404, {}, b"Not Found"),
+       câți bytes va avea răspunsul final? Calculează înainte de a testa!
     """
     
-    # TODO: Implement building response HTTP
-    #
-    # steps sugerati:
-    # 1. Construiti status line: "HTTP/1.1 {code} {text}\r\n"
-    # 2. Adaugati fiecare header: "{Key}: {Value}\r\n"
-    # 3. Adaugati linie goala: "\r\n"
-    # 4. Convertiti totul to bytes and adaugati body
+    # TODO: Implementează construirea răspunsului HTTP
+    # Scrie codul tău aici...
     
-    raise NotImplementedError("TODO: Implement build_response()")
+    raise NotImplementedError("TODO: Implementează build_response()")
 
 
-# ============================================================================
-# TODO: IMPLEMENT THIS FUNCTION
-# ============================================================================
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE
+# =============================================================================
 
 def handle_request(raw_request: bytes, docroot: str) -> bytes:
     """
-    Proceseaza un request HTTP complete and returneaza responseul.
+    Procesează o cerere HTTP completă și returnează răspunsul.
     
     Args:
-        raw_request: Request-ul HTTP in bytes
-        docroot: Directorul radacina For files
+        raw_request: Cererea HTTP în bytes
+        docroot: Directorul rădăcină pentru fișiere
     
     Returns:
-        Raspunsul HTTP complete in bytes
+        Răspunsul HTTP complet în bytes
     
     METODE SUPORTATE:
-    - GET: returneaza fianderul complete (headers + body)
-    - HEAD: returns headers only (no body)
-    - Altele: returneaza 405 Method Not Allowed
+    ─────────────────
+    - GET: returnează fișierul complet (headers + body)
+    - HEAD: returnează doar headers (fără body)
+    - Altele: returnează 405 Method Not Allowed
     
-    HINT:
-    - use functiile implementate previous
-    - For HEAD, apelati serve_file dar nu includeti body-ul in response
+    🔮 PREDICȚIE: Ce diferență va fi între răspunsurile pentru:
+       - GET /hello.txt HTTP/1.1
+       - HEAD /hello.txt HTTP/1.1
+       (Hint: unul are body, celălalt nu)
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Parsează cererea cu parse_request()
+       try:
+           metoda, cale, versiune, headers = parse_request(raw_request)
+       except Exception:
+           return build_response(400, {}, b"Bad Request")
+    
+    2. Verifică metoda (GET sau HEAD)
+       if metoda not in ["GET", "HEAD"]:
+           return build_response(405, {"Allow": "GET, HEAD"}, b"Method Not Allowed")
+    
+    3. Servește fișierul cu serve_file()
+       status, resp_headers, body = serve_file(cale, docroot)
+    
+    4. Pentru HEAD, setează body la b"" (dar păstrează headers!)
+       if metoda == "HEAD":
+           body = b""
+    
+    5. Construiește și returnează răspunsul
+       return build_response(status, resp_headers, body)
     """
     
-    # TODO: Implement handler complete
-    #
-    # steps sugerati:
-    # 1. Parsati request-ul
-    # 2. Verificati metoda (GET, HEAD, altele)
-    # 3. For GET/HEAD, apelati serve_file()
-    # 4. For HEAD, setati body to b""
-    # 5. Construiti and returnati responseul
+    # TODO: Implementează handler-ul complet
+    # Scrie codul tău aici...
     
-    raise NotImplementedError("TODO: Implement handle_request()")
+    raise NotImplementedError("TODO: Implementează handle_request()")
 
 
-# ============================================================================
-# COD FURNIZAT - NU MODIFICATI
-# ============================================================================
+# =============================================================================
+# COD FURNIZAT - NU MODIFICA
+# =============================================================================
 
 def run_server(host: str, port: int, docroot: str):
     """
-    starts serverul HTTP.
-    Cod furnizat - nu necesita modificari.
+    Pornește serverul HTTP.
+    Cod furnizat - nu necesită modificări.
     """
     docroot = os.path.abspath(docroot)
     
     if not os.path.isdir(docroot):
-        print(f"[error] Directorul docroot nu exista: {docroot}")
+        print(f"[EROARE] Directorul docroot nu există: {docroot}")
         sys.exit(1)
     
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -308,11 +404,11 @@ def run_server(host: str, port: int, docroot: str):
         server_socket.listen(5)
         print(f"[INFO] Server pornit pe http://{host}:{port}/")
         print(f"[INFO] Document root: {docroot}")
-        print("[INFO] Press Ctrl+C For oprire")
+        print("[INFO] Apasă Ctrl+C pentru oprire")
         
         while True:
             client_socket, client_addr = server_socket.accept()
-            print(f"[CONN] Conexiune from {client_addr[0]}:{client_addr[1]}")
+            print(f"[CONN] Conexiune de la {client_addr[0]}:{client_addr[1]}")
             
             try:
                 raw_request = client_socket.recv(4096)
@@ -320,7 +416,7 @@ def run_server(host: str, port: int, docroot: str):
                     response = handle_request(raw_request, docroot)
                     client_socket.sendall(response)
             except Exception as e:
-                print(f"[error] {e}")
+                print(f"[EROARE] {e}")
                 error_response = build_response(
                     500, 
                     {"Content-Type": "text/plain"}, 
@@ -331,7 +427,7 @@ def run_server(host: str, port: int, docroot: str):
                 client_socket.close()
                 
     except KeyboardInterrupt:
-        print("\n[INFO] Server stopped by user")
+        print("\n[INFO] Server oprit de utilizator")
     finally:
         server_socket.close()
 
@@ -339,8 +435,8 @@ def run_server(host: str, port: int, docroot: str):
 def main():
     parser = argparse.ArgumentParser(description="Server HTTP simplu")
     parser.add_argument("--host", default="0.0.0.0", help="Adresa de bind")
-    parser.add_argument("--port", type=int, default=8081, help="Portul de ascultare")
-    parser.add_argument("--docroot", default="www", help="Directorul cu files statice")
+    parser.add_argument("--port", type=int, default=8888, help="Portul de ascultare")
+    parser.add_argument("--docroot", default="www", help="Directorul cu fișiere statice")
     
     args = parser.parse_args()
     run_server(args.host, args.port, args.docroot)

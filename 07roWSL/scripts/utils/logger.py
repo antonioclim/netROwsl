@@ -126,3 +126,75 @@ def error(mesaj: str):
 def debug(mesaj: str):
     """Logare nivel DEBUG."""
     logger_implicit.debug(mesaj)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTIE_COMPATIBILITATE — Pentru migrarea codului existent
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def logheaza(mesaj: str, nivel: str = "info"):
+    """
+    Funcție de compatibilitate pentru codul existent.
+    
+    NOTĂ: Această funcție există pentru a facilita migrarea de la
+    funcțiile logheaza() duplicate din alte module. Pentru cod nou,
+    preferă utilizarea directă a logger-ului:
+    
+        from scripts.utils.logger import configureaza_logger
+        logger = configureaza_logger(__name__)
+        logger.info("mesaj")
+    
+    Args:
+        mesaj: Mesajul de logat
+        nivel: Nivelul de logging ("debug", "info", "warning", "error")
+        
+    Exemplu:
+        >>> logheaza("Serverul a pornit")
+        [2025-01-23 10:30:00] INFO    : Serverul a pornit
+        
+        >>> logheaza("Conexiune eșuată", nivel="error")
+        [2025-01-23 10:30:01] EROARE  : Conexiune eșuată
+    """
+    nivel_lower = nivel.lower()
+    
+    if nivel_lower == "debug":
+        logger_implicit.debug(mesaj)
+    elif nivel_lower == "warning" or nivel_lower == "atentie":
+        logger_implicit.warning(mesaj)
+    elif nivel_lower == "error" or nivel_lower == "eroare":
+        logger_implicit.error(mesaj)
+    else:  # implicit: info
+        logger_implicit.info(mesaj)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN — Demonstrație și testare modul
+# ═══════════════════════════════════════════════════════════════════════════════
+
+if __name__ == "__main__":
+    print("=" * 60)
+    print("  Test Modul Logger - Săptămâna 7")
+    print("=" * 60)
+    print()
+    
+    # Test logger configurat
+    test_logger = configureaza_logger("test_logger", nivel=logging.DEBUG)
+    
+    print("Test niveluri logging (cu culori dacă colorama e instalat):")
+    print("-" * 40)
+    test_logger.debug("Acesta este un mesaj DEBUG")
+    test_logger.info("Acesta este un mesaj INFO")
+    test_logger.warning("Acesta este un mesaj WARNING")
+    test_logger.error("Acesta este un mesaj ERROR")
+    
+    print()
+    print("Test funcție compatibilitate logheaza():")
+    print("-" * 40)
+    logheaza("Mesaj implicit (info)")
+    logheaza("Mesaj debug explicit", nivel="debug")
+    logheaza("Mesaj warning explicit", nivel="warning")
+    logheaza("Mesaj error explicit", nivel="error")
+    
+    print()
+    print("✓ Modul logger funcțional!")
+    print("=" * 60)

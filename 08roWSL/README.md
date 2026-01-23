@@ -6,6 +6,26 @@
 
 ---
 
+## 📑 Cuprins
+
+- [Notificare Mediu](#️-notificare-mediu)
+- [Clonarea Laboratorului](#-clonarea-laboratorului-acestei-săptămâni)
+- [Configurarea Inițială](#-configurarea-inițială-a-mediului-doar-prima-dată)
+- [Portainer](#️-înțelegerea-interfeței-portainer)
+- [Wireshark](#-configurarea-și-utilizarea-wireshark)
+- [Teorie](#prezentare-generală)
+  - [TCP vs UDP](#tcp-vs-udp)
+  - [Proxy Invers](#arhitectura-proxy-invers)
+- [Exerciții de Laborator](#exerciții-de-laborator)
+  - [Ex. 1: Server HTTP](#exercițiul-1-server-http-de-bază)
+  - [Ex. 2: Proxy Invers](#exercițiul-2-proxy-invers-cu-echilibrare-round-robin)
+- [Peer Instruction](#-secțiune-peer-instruction)
+- [Demonstrații](#demonstrații)
+- [Depanare](#-depanare-extinsă)
+- [Curățare](#-procedura-completă-de-curățare)
+
+---
+
 ## ⚠️ Notificare Mediu
 
 Acest kit de laborator este proiectat pentru mediul **WSL2 + Ubuntu 22.04 + Docker + Portainer**.
@@ -46,6 +66,8 @@ cd SAPT8
 
 ### Pasul 3: Verifică Clonarea
 
+**🔮 PREDICȚIE:** Ce foldere și fișiere te aștepți să vezi după clonare? Notează cel puțin 5 foldere pe care le anticipezi.
+
 ```powershell
 dir
 # Ar trebui să vezi: 08roWSL/
@@ -53,6 +75,8 @@ cd 08roWSL
 dir
 # Ar trebui să vezi: docker/, scripts/, src/, www/, README.md, etc.
 ```
+
+**Verificare:** Compară cu predicția ta. Ai găsit toate folderele așteptate? Lipsește vreunul?
 
 ### Structura Completă a Directoarelor
 
@@ -103,6 +127,8 @@ stud@CALCULATOR:~$
 
 ### Pasul 2: Pornește Serviciul Docker
 
+**🔮 PREDICȚIE:** Câte containere crezi că vor apărea în output-ul `docker ps` dacă Docker tocmai a pornit?
+
 ```bash
 # Pornește Docker (necesar după fiecare restart Windows)
 sudo service docker start
@@ -111,6 +137,8 @@ sudo service docker start
 # Verifică că Docker rulează
 docker ps
 ```
+
+**Verificare:** Ai văzut containerul `portainer`? Dacă nu, consultă secțiunea Depanare.
 
 **Output așteptat:**
 ```
@@ -157,6 +185,34 @@ ls -la
 
 ## 🖥️ Înțelegerea Interfeței Portainer
 
+### 💡 De la Concret la Abstract: Portainer
+
+**CONCRET (analogie):**
+> Portainer este ca un **panou de control pentru un terminal de containere maritime**. În loc să mergi fizic la fiecare container să verifici ce e înăuntru, stai într-o cameră de control cu ecrane care îți arată starea tuturor containerelor: care sunt încărcate (running), care sunt goale (stopped), ce conțin (logs), și poți trimite comenzi către oricare dintre ele.
+
+**PICTORIAL:**
+```
+┌────────────────────────────────────────────────────────────┐
+│                    PORTAINER (localhost:9000)              │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  📦 week8-nginx-proxy     [▶ Running]  [Logs] [Stop] │  │
+│  │  📦 week8-backend-1       [▶ Running]  [Logs] [Stop] │  │
+│  │  📦 week8-backend-2       [▶ Running]  [Logs] [Stop] │  │
+│  │  📦 week8-backend-3       [▶ Running]  [Logs] [Stop] │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  [Networks]  [Volumes]  [Images]  [Stacks]                 │
+└────────────────────────────────────────────────────────────┘
+```
+
+**ABSTRACT:**
+```bash
+# Portainer face vizual ce aceste comenzi fac în terminal:
+docker ps                    # Lista containere
+docker logs <container>      # Vizualizare jurnale
+docker stop <container>      # Oprire container
+docker network ls            # Lista rețele
+```
+
 ### Prezentare Generală Dashboard
 
 După autentificare la http://localhost:9000, vei vedea:
@@ -167,11 +223,15 @@ După autentificare la http://localhost:9000, vei vedea:
 
 Navighează: **Home → local → Containers**
 
+**🔮 PREDICȚIE:** Înainte de a naviga, câte containere crezi că vei vedea pentru laborator? Ce nume vor avea?
+
 Vei vedea containerele specifice laboratorului:
 - **week8-nginx-proxy** - Proxy invers nginx (172.28.8.10:8080/8443)
 - **week8-backend-1** - Backend Alpha (172.28.8.21:8080 intern)
 - **week8-backend-2** - Backend Beta (172.28.8.22:8080 intern)
 - **week8-backend-3** - Backend Gamma (172.28.8.23:8080 intern)
+
+**Verificare:** Ai ghicit corect numărul și numele? Toate sunt în starea "Running"?
 
 ### Acțiuni asupra Containerelor în Portainer
 
@@ -194,13 +254,6 @@ Pentru orice container, poți efectua următoarele operații:
 3. Vezi configurația IPAM: 172.28.8.0/24, gateway 172.28.8.1
 4. Vezi toate containerele conectate și IP-urile lor
 
-### Monitorizarea Load Balancing-ului
-
-În Portainer poți observa echilibrarea încărcării:
-1. **Containers** → Click pe **week8-backend-1** → **Stats**
-2. Repetă pentru backend-2 și backend-3
-3. Observă distribuția traficului între cele 3 backend-uri
-
 **⚠️ NU folosi NICIODATĂ portul 9000** - acesta este rezervat exclusiv pentru Portainer!
 
 ---
@@ -219,11 +272,6 @@ Deschide Wireshark în următoarele situații:
 
 Din Meniul Start Windows: Caută "Wireshark" → Click pentru a deschide
 
-Alternativ, din PowerShell:
-```powershell
-& "C:\Program Files\Wireshark\Wireshark.exe"
-```
-
 ### Pasul 2: Selectează Interfața de Captură
 
 **CRITIC:** Selectează interfața corectă pentru traficul WSL:
@@ -231,15 +279,13 @@ Alternativ, din PowerShell:
 | Numele Interfeței | Când să Folosești |
 |-------------------|-------------------|
 | **vEthernet (WSL)** | ✅ Cel mai frecvent - capturează traficul Docker WSL |
-| **vEthernet (WSL) (Hyper-V firewall)** | Alternativă dacă prima nu funcționează |
 | **Loopback Adapter** | Doar pentru trafic localhost (127.0.0.1) |
-| **Ethernet/Wi-Fi** | Trafic rețea fizică (nu Docker) |
-
-**Cum selectezi:** Dublu-click pe numele interfeței SAU selecteaz-o și click pe icoana aripioarei albastre de rechin.
 
 ### Pasul 3: Generează Trafic
 
-Cu Wireshark capturând (vei vedea pachete apărând în timp real), rulează exercițiile:
+**🔮 PREDICȚIE:** Câte pachete TCP crezi că vor fi necesare pentru a stabili o conexiune HTTP? (Hint: gândește-te la handshake)
+
+Cu Wireshark capturând, rulează:
 
 ```bash
 # În terminalul Ubuntu
@@ -247,127 +293,62 @@ cd /mnt/d/RETELE/SAPT8/08roWSL
 
 # Test proxy HTTP
 curl -i http://localhost:8080/
-
-# Observă echilibrarea round-robin
-for i in {1..6}; do curl -s http://localhost:8080/ | grep Backend; done
-
-# Test server HTTP local
-python3 src/exercises/ex_8_01_server_http.py &
-curl -i http://localhost:8888/hello.txt
 ```
 
-### Pasul 4: Oprește Captura
-
-Click pe butonul pătrat roșu (Stop) când ai terminat de generat trafic.
+**Verificare:** Ai văzut cele 3 pachete de handshake (SYN, SYN-ACK, ACK) urmate de cererea HTTP?
 
 ### Filtre Wireshark Esențiale pentru Săptămâna 8
 
-Tastează în bara de filtrare (devine verde când filtrul este valid) și apasă Enter:
-
 **Filtre pentru Trafic HTTP:**
 
-| Filtru | Scop | Când să îl folosești |
-|--------|------|----------------------|
-| `http` | Tot traficul HTTP | Analiză generală HTTP |
-| `http.request` | Doar cereri HTTP | Vezi ce trimite clientul |
-| `http.response` | Doar răspunsuri HTTP | Vezi ce returnează serverul |
-| `http.request.method == GET` | Cereri GET | Metoda principală |
-| `http.request.method == POST` | Cereri POST | Trimitere date |
-| `http.response.code == 200` | Răspunsuri OK | Cereri reușite |
-| `http.response.code >= 400` | Erori HTTP | Cereri eșuate |
-
-**Filtre pentru Porturi:**
-
-| Filtru | Scop | Serviciu |
-|--------|------|----------|
-| `tcp.port == 8080` | Proxy HTTP nginx | Trafic principal |
-| `tcp.port == 8443` | Proxy HTTPS nginx | Trafic criptat |
-| `tcp.port == 8888` | Server HTTP exercițiu | Ex. 1 |
-| `tcp.port == 8001 or tcp.port == 8002 or tcp.port == 8003` | Servere backend | Ex. 2 |
+| Filtru | Scop |
+|--------|------|
+| `http` | Tot traficul HTTP |
+| `http.request` | Doar cereri HTTP |
+| `http.response` | Doar răspunsuri HTTP |
+| `http.response.code == 200` | Răspunsuri OK |
 
 **Filtre pentru Analiza TCP:**
 
-| Filtru | Scop | Ce să observi |
-|--------|------|---------------|
-| `tcp.flags.syn == 1` | Pachete SYN | Inițieri conexiuni |
-| `tcp.flags.syn == 1 && tcp.flags.ack == 0` | Doar SYN inițial | Prima cerere |
-| `tcp.flags.syn == 1 && tcp.flags.ack == 1` | SYN-ACK | Răspuns server |
-| `tcp.flags.fin == 1` | Pachete FIN | Închidere conexiuni |
-| `tcp.analysis.retransmission` | Retransmisii | Probleme rețea |
+| Filtru | Ce să observi |
+|--------|---------------|
+| `tcp.flags.syn == 1` | Pachete SYN |
+| `tcp.flags.syn == 1 && tcp.flags.ack == 0` | Doar SYN inițial |
+| `tcp.flags.syn == 1 && tcp.flags.ack == 1` | SYN-ACK |
+| `tcp.flags.fin == 1` | Închidere conexiuni |
 
-**Filtre pentru Backend-uri:**
+### 💡 De la Concret la Abstract: TCP Three-Way Handshake
 
-| Filtru | Scop | Backend |
-|--------|------|---------|
-| `ip.addr == 172.28.8.10` | nginx proxy | Proxy |
-| `ip.addr == 172.28.8.21` | Backend Alpha | #1 |
-| `ip.addr == 172.28.8.22` | Backend Beta | #2 |
-| `ip.addr == 172.28.8.23` | Backend Gamma | #3 |
+**CONCRET (analogie):**
+> Ca un apel telefonic politicos:
+> 1. **Tu:** "Alo, mă auzi?" (SYN)
+> 2. **Ei:** "Da, te aud. Tu mă auzi?" (SYN-ACK)
+> 3. **Tu:** "Da, te aud." (ACK)
+> 
+> Acum puteți vorbi. Nimeni nu începe să vorbească până nu confirmă că celălalt ascultă.
 
-**Combinarea filtrelor:**
-- ȘI: `http && tcp.port == 8080`
-- SAU: `tcp.port == 8080 || tcp.port == 8443`
-- NU: `!arp && !dns`
+**PICTORIAL:**
+```
+Client                              Server
+  │                                    │
+  │ ──── SYN (seq=100) ──────────────► │  "Vreau să vorbim"
+  │                                    │
+  │ ◄──── SYN-ACK (seq=300, ack=101) ─ │  "OK, și eu vreau"
+  │                                    │
+  │ ──── ACK (ack=301) ───────────────►│  "Perfect, începem"
+  │                                    │
+  │ ════════ CONEXIUNE STABILITĂ ══════│
+  │                                    │
+  │ ──── HTTP GET / ──────────────────►│  Cererea ta
+  │ ◄──── HTTP 200 OK ─────────────────│  Răspunsul
+```
 
-### Analiza Handshake-ului TCP în Trei Pași
-
-Caută această secvență pentru o conexiune HTTP:
-1. **SYN**: Client → nginx (Flags: SYN)
-2. **SYN-ACK**: nginx → Client (Flags: SYN, ACK)
-3. **ACK**: Client → nginx (Flags: ACK)
-
-Apoi urmează:
-4. **HTTP GET**: Client → nginx (cererea HTTP)
-5. **HTTP 200**: nginx → Client (răspunsul HTTP)
-
-Filtru pentru a vedea doar handshake-uri: `tcp.flags.syn == 1`
-
-### Analiza Echilibrării Round-Robin în Wireshark
-
-Pentru a observa cum nginx distribuie cererile:
-
-1. Aplică filtrul: `http.request`
-2. Generează 6 cereri consecutive:
-   ```bash
-   for i in {1..6}; do curl -s http://localhost:8080/; done
-   ```
-3. Observă în Wireshark distribuția: 1→2→3→1→2→3
-4. Examinează antetul `X-Backend-ID` în răspunsuri
-
-### Urmărirea unei Conversații HTTP Complete
-
-1. Găsește un pachet HTTP din conversația pe care vrei să o examinezi
-2. Click dreapta → **Follow → TCP Stream**
-3. Vei vedea:
-   - **Roșu**: Cererea HTTP (GET /path HTTP/1.1, antete)
-   - **Albastru**: Răspunsul HTTP (HTTP/1.1 200 OK, antete, corp)
-4. Observă antetele adăugate de nginx: `X-Forwarded-For`, `X-Backend-ID`
-
-### Codificarea Culorilor în Wireshark
-
-| Culoare | Semnificație |
-|---------|--------------|
-| Violet deschis | Trafic TCP normal |
-| Verde deschis | Trafic HTTP |
-| Fundal gri | TCP SYN/FIN (evenimente conexiune) |
-| Text negru, fundal roșu | Erori TCP |
-| Text negru, fundal galben | Avertismente, retransmisii |
-
-### Salvarea Capturilor
-
-1. **File → Save As** (sau Ctrl+Shift+S)
-2. Navighează la: `D:\RETELE\SAPT8\08roWSL\pcap\`
-3. Nume fișier conform exercițiului:
-   - `captura_s8_handshake.pcap`
-   - `captura_s8_roundrobin.pcap`
-   - `captura_s8_http_local.pcap`
-4. Format: Wireshark/pcap sau pcapng (implicit)
-
-### Exportarea Datelor pentru Analiză
-
-1. **File → Export Packet Dissections → As CSV**
-2. Selectează câmpurile de exportat
-3. Salvează în folderul `artifacts/` pentru procesare Python
+**ABSTRACT (filtru Wireshark):**
+```
+tcp.flags.syn == 1 && tcp.flags.ack == 0   → Pachet #1 (SYN)
+tcp.flags.syn == 1 && tcp.flags.ack == 1   → Pachet #2 (SYN-ACK)  
+tcp.flags.syn == 0 && tcp.flags.ack == 1   → Pachet #3+ (ACK, date)
+```
 
 ---
 
@@ -375,9 +356,9 @@ Pentru a observa cum nginx distribuie cererile:
 
 Nivelul transport reprezintă fundamentul comunicării fiabile între aplicații în rețelele de calculatoare. Acest nivel asigură transferul de date între procesele care rulează pe gazde diferite, oferind servicii de multiplexare, demultiplexare și, în cazul TCP, transfer fiabil de date cu control al fluxului și al congestiei.
 
-În cadrul acestei sesiuni de laborator, vom explora implementarea practică a protocoalelor de nivel transport prin construirea unui server HTTP de la zero și configurarea unui proxy invers cu echilibrare a încărcării. Aceste exerciții demonstrează modul în care protocoalele de nivel aplicație se bazează pe serviciile oferite de TCP pentru a realiza comunicarea client-server.
+În cadrul acestei sesiuni de laborator, vom studia implementarea practică a protocoalelor de nivel transport prin construirea unui server HTTP de la zero și configurarea unui proxy invers cu echilibrare a încărcării. Aceste exerciții demonstrează modul în care protocoalele de nivel aplicație se bazează pe serviciile oferite de TCP pentru a realiza comunicarea client-server.
 
-Infrastructura de laborator utilizează Docker pentru a crea un mediu izolat și reproductibil, cu nginx ca proxy invers și mai multe servere backend Python. Această arhitectură reflectă configurațiile reale din producție și oferă experiență practică cu algoritmi de echilibrare a încărcării.
+Infrastructura de laborator folosește Docker pentru a crea un mediu izolat și reproductibil, cu nginx ca proxy invers și mai multe servere backend Python. Această arhitectură reflectă configurațiile reale din producție și oferă experiență practică cu algoritmi de echilibrare a încărcării.
 
 ## Obiective de Învățare
 
@@ -406,13 +387,6 @@ La finalul acestei sesiuni de laborator, veți fi capabili să:
 - Portainer CE (rulează global pe portul 9000)
 - Wireshark (aplicație Windows nativă)
 - Python 3.11 sau ulterior
-- Git (recomandat)
-
-### Cerințe Hardware
-
-- Minim 8GB RAM (16GB recomandat)
-- 10GB spațiu liber pe disc
-- Conectivitate la rețea
 
 ## Pornire Rapidă
 
@@ -431,6 +405,8 @@ python3 setup/instaleaza_cerinte.py
 
 ### Pornirea Laboratorului
 
+**🔮 PREDICȚIE:** Câte containere crezi că vor porni? Ce nume vor avea?
+
 ```bash
 # În terminalul Ubuntu
 cd /mnt/d/RETELE/SAPT8/08roWSL
@@ -441,6 +417,8 @@ python3 scripts/porneste_laborator.py
 # Verificați că totul funcționează
 python3 scripts/porneste_laborator.py --status
 ```
+
+**Verificare:** Ai văzut 4 containere (nginx + 3 backend-uri)? Dacă nu, consultă secțiunea Depanare.
 
 ### Accesarea Serviciilor
 
@@ -453,7 +431,276 @@ python3 scripts/porneste_laborator.py --status
 | Backend 2 | intern: 172.28.8.22:8080 | - |
 | Backend 3 | intern: 172.28.8.23:8080 | - |
 
+**🔮 PREDICȚIE:** De ce crezi că backend-urile nu au porturi expuse direct (precum 8081, 8082, 8083)? Ce avantaj oferă accesul doar prin proxy?
+
 **Notă:** Portainer rulează global și nu trebuie pornit/oprit cu laboratorul.
+
+---
+
+## 🗳️ SECȚIUNE PEER INSTRUCTION
+
+### PI-1: TCP Three-Way Handshake
+
+**Scenariu:**
+Un client dorește să stabilească o conexiune TCP cu un server web.
+
+**Întrebare:**
+Care este ordinea corectă a flag-urilor TCP în three-way handshake?
+
+**Opțiuni:**
+- A) ACK → SYN-ACK → SYN
+- B) SYN → ACK → SYN-ACK
+- C) SYN → SYN-ACK → ACK
+- D) SYN → SYN → ACK
+
+<details>
+<summary>📋 Note Instructor</summary>
+
+**Răspuns corect:** C
+
+**Țintă:** ~50% corect la primul vot
+
+**Analiza distractorilor:**
+- **A:** Studenții care inversează ordinea (confundă cine începe)
+- **B:** Studenții care confundă pozițiile ACK și SYN-ACK
+- **D:** Studenții care cred că serverul trimite SYN simplu, nu SYN-ACK
+
+**După discuție:** Desenează diagrama cu săgeți și explică de ce serverul răspunde cu SYN-ACK (confirmă SYN-ul clientului ȘI trimite propriul SYN).
+
+**Timing:** Prezentare (1 min) → Vot (1 min) → Discuție (3 min) → Revot (30 sec)
+</details>
+
+---
+
+### PI-2: Docker Port Mapping
+
+**Scenariu:**
+```yaml
+services:
+  web:
+    image: nginx
+    ports:
+      - "8080:80"
+```
+
+**Întrebare:**
+Pentru a accesa nginx din browser pe Windows, ce URL folosești?
+
+**Opțiuni:**
+- A) http://localhost:80
+- B) http://localhost:8080
+- C) http://nginx:80
+- D) http://172.28.8.10:80
+
+<details>
+<summary>📋 Note Instructor</summary>
+
+**Răspuns corect:** B
+
+**Analiza distractorilor:**
+- **A:** Confundă portul containerului (80) cu portul expus (8080)
+- **C:** Crede că numele serviciului se rezolvă din afara Docker
+- **D:** Încearcă să folosească IP-ul intern Docker din Windows
+
+**După discuție:** Desenează: `Windows:8080 ──► Container:80`
+</details>
+
+---
+
+### PI-3: Proxy Headers (X-Forwarded-For)
+
+**Scenariu:**
+```
+Client (IP: 192.168.1.100) ──► nginx proxy ──► backend server
+```
+
+**Întrebare:**
+Fără header-ul X-Forwarded-For, ce IP vede backend-ul în cererea HTTP?
+
+**Opțiuni:**
+- A) 192.168.1.100 (IP-ul clientului original)
+- B) IP-ul proxy-ului nginx
+- C) 127.0.0.1 (localhost)
+- D) Nu se poate determina
+
+<details>
+<summary>📋 Note Instructor</summary>
+
+**Răspuns corect:** B
+
+**Concept cheie:** Proxy-ul rescrie cererea. Backend-ul vede conexiunea venind de la proxy, nu de la client.
+
+**De aceea există X-Forwarded-For:** Pentru a păstra IP-ul original al clientului.
+</details>
+
+---
+
+### PI-4: Round-Robin Load Balancing
+
+**Scenariu:**
+3 backend-uri configurate: Alpha, Beta, Gamma
+Algoritm: round-robin (fără ponderi)
+
+**Întrebare:**
+Dacă trimiți 7 cereri consecutive, care backend primește cererea #7?
+
+**Opțiuni:**
+- A) Alpha (primul)
+- B) Beta (al doilea)
+- C) Gamma (al treilea)
+- D) Aleatoriu, depinde de încărcare
+
+<details>
+<summary>📋 Note Instructor</summary>
+
+**Răspuns corect:** A
+
+**Calcul:** 
+- Cereri 1,4,7 → Alpha
+- Cereri 2,5 → Beta  
+- Cereri 3,6 → Gamma
+- 7 mod 3 = 1 → Alpha
+
+**Distractori:**
+- **D:** Confundă round-robin cu random sau least-connections
+</details>
+
+---
+
+### PI-5: HTTP Response Codes (Security)
+
+**Scenariu:**
+Serverul tău HTTP primește cererea:
+```
+GET /../../../etc/passwd HTTP/1.1
+Host: localhost
+```
+
+**Întrebare:**
+Ce cod HTTP ar trebui să returneze un server securizat?
+
+**Opțiuni:**
+- A) 404 Not Found
+- B) 403 Forbidden
+- C) 400 Bad Request
+- D) 500 Internal Server Error
+
+<details>
+<summary>📋 Note Instructor</summary>
+
+**Răspuns corect:** B (403 Forbidden)
+
+**Analiza:**
+- **A:** Incorect — fișierul poate exista, dar accesul e interzis
+- **B:** Corect — path traversal = acces interzis din motive de securitate
+- **C:** Incorect — cererea e validă din punct de vedere sintactic
+- **D:** Incorect — nu e o eroare de server, e o decizie de securitate
+
+**Concept cheie:** Diferența între "nu există" (404) și "nu ai voie" (403).
+</details>
+
+---
+
+### PI-6: Health Check și Failover
+
+**Scenariu:**
+Load balancer cu 3 backend-uri. Backend-2 devine indisponibil (crashed).
+
+**Întrebare:**
+Ce se întâmplă cu cererile care ar fi mers la Backend-2?
+
+**Opțiuni:**
+- A) Returnează eroare 503 Service Unavailable
+- B) Se redistribuie automat la Backend-1 și Backend-3
+- C) Așteaptă până când Backend-2 revine online
+- D) Toate cererile merg doar la Backend-1
+
+<details>
+<summary>📋 Note Instructor</summary>
+
+**Răspuns corect:** B
+
+**Concept cheie:** Health check-urile detectează backend-uri nesănătoase și le exclud temporar din rotație.
+
+**Distractori:**
+- **A:** Ar fi adevărat doar dacă TOATE backend-urile ar fi down
+- **C:** Ar bloca toate cererile — design foarte prost
+- **D:** Ignoră existența Backend-3
+</details>
+
+---
+
+### PI-7: TCP vs UDP pentru Streaming
+
+**Scenariu:**
+Dezvolți o aplicație de video streaming live.
+
+**Întrebare:**
+Ce protocol de transport este mai potrivit?
+
+**Opțiuni:**
+- A) TCP, pentru că garantează livrarea tuturor pachetelor
+- B) UDP, pentru că tolerează pierderi și are latență mai mică
+- C) TCP, pentru că streaming-ul necesită ordonare strictă
+- D) HTTP/3, care folosește TCP pentru fiabilitate
+
+<details>
+<summary>📋 Note Instructor</summary>
+
+**Răspuns corect:** B
+
+**Analiza:**
+- La streaming LIVE, un frame pierdut de acum 2 secunde e irelevant
+- Retransmisia TCP ar introduce lag inacceptabil
+- E mai bine să pierzi un frame decât să întârzii toate următoarele
+
+**Notă:** HTTP/3 folosește QUIC care e peste UDP, nu TCP!
+</details>
+
+---
+
+### PI-8: Docker Network Isolation
+
+**Scenariu:**
+```yaml
+services:
+  frontend:
+    networks: [webnet]
+  backend:
+    networks: [webnet, dbnet]
+  database:
+    networks: [dbnet]
+```
+
+**Întrebare:**
+Poate containerul `frontend` să comunice direct cu containerul `database`?
+
+**Opțiuni:**
+- A) Da, sunt în același docker-compose.yml
+- B) Da, folosind IP-ul containerului database
+- C) Nu, sunt pe rețele Docker diferite fără suprapunere
+- D) Depinde de configurația firewall-ului
+
+<details>
+<summary>📋 Note Instructor</summary>
+
+**Răspuns corect:** C
+
+**Concept cheie:** 
+- `frontend` e doar pe `webnet`
+- `database` e doar pe `dbnet`
+- Nu există nicio rețea comună → nu pot comunica direct
+
+**Diagrama:**
+```
+webnet:    [frontend] ←→ [backend]
+dbnet:                   [backend] ←→ [database]
+```
+
+`backend` e pe ambele rețele, deci poate fi "punte", dar direct frontend↔database nu merge.
+</details>
+
+---
 
 ## Exerciții de Laborator
 
@@ -465,16 +712,62 @@ python3 scripts/porneste_laborator.py --status
 
 **Fișier:** `src/exercises/ex_8_01_server_http.py`
 
-**Pași:**
+#### 💡 De la Concret la Abstract: Server HTTP
+
+**CONCRET (analogie):**
+> Un server HTTP e ca un **bibliotecar**. 
+> - Clientul (tu) vine și cere o carte (fișier): "Vreau cartea 'index.html'"
+> - Bibliotecarul verifică dacă ai voie să o iei (securitate)
+> - Caută cartea pe raft (sistem de fișiere)
+> - Dacă există, ți-o dă (200 OK + conținut)
+> - Dacă nu există, îți spune "Nu avem" (404 Not Found)
+> - Dacă e în secțiunea restricționată, îți spune "Nu ai acces" (403 Forbidden)
+
+**PICTORIAL:**
+```
+┌─────────────────────────────────────────────────────────┐
+│                    SERVER HTTP                          │
+│                                                         │
+│   Cerere GET /hello.txt                                │
+│        │                                                │
+│        ▼                                                │
+│   ┌─────────────┐    ┌─────────────┐    ┌───────────┐  │
+│   │ Parsează    │ → │ Verifică    │ → │ Citește   │  │
+│   │ cererea     │    │ securitatea │    │ fișierul  │  │
+│   └─────────────┘    └─────────────┘    └───────────┘  │
+│        │                   │                   │        │
+│        ▼                   ▼                   ▼        │
+│   Metoda: GET         Cale sigură?       Fișier există? │
+│   Cale: /hello.txt    ✓ Da / ✗ 403      ✓ 200 / ✗ 404  │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**ABSTRACT:**
+```python
+def handle_request(raw_request: bytes, docroot: str) -> bytes:
+    method, path, version, headers = parse_request(raw_request)
+    
+    if not is_safe_path(path, docroot):
+        return build_response(403, {}, b"Forbidden")
+    
+    status, headers, body = serve_file(path, docroot)
+    return build_response(status, headers, body)
+```
+
+#### Pași de Implementare
 
 1. Deschideți fișierul exercițiului și examinați structura codului
-2. Implementați funcția `parseaza_cerere()` pentru a extrage metoda, calea și versiunea HTTP
-3. Implementați funcția `este_cale_sigura()` pentru a preveni traversarea directoarelor
-4. Implementați funcția `serveste_fisier()` pentru a citi și returna conținutul fișierelor
-5. Implementați funcția `construieste_raspuns()` pentru a formata răspunsul HTTP
+2. Implementați funcția `parse_request()` pentru a extrage metoda, calea și versiunea HTTP
+3. Implementați funcția `is_safe_path()` pentru a preveni traversarea directoarelor
+4. Implementați funcția `serve_file()` pentru a citi și returna conținutul fișierelor
+5. Implementați funcția `build_response()` pentru a formata răspunsul HTTP
 6. Testați serverul cu curl și browser
 
-**Verificare:**
+#### Verificare
+
+**🔮 PREDICȚIE:** Ce cod HTTP aștepți pentru `/hello.txt`? Dar pentru `/../etc/passwd`?
+
 ```bash
 # Porniți serverul
 python3 src/exercises/ex_8_01_server_http.py
@@ -482,12 +775,51 @@ python3 src/exercises/ex_8_01_server_http.py
 # Într-un alt terminal, testați
 curl -i http://localhost:8888/hello.txt
 curl -I http://localhost:8888/index.html
+curl -i http://localhost:8888/../../../etc/passwd
 ```
+
+**Verificare:** Ai obținut 200 pentru hello.txt, 200 pentru index.html, și 403 pentru path traversal?
 
 **Rezultat Așteptat:**
 - Răspuns 200 OK pentru fișiere existente
 - Răspuns 404 Not Found pentru fișiere inexistente
 - Răspuns 403 Forbidden pentru încercări de traversare a directoarelor
+
+---
+
+### 👥 EXERCIȚIU ÎN PERECHI: Implementare parse_request()
+
+**Timp:** 15 minute
+**Roluri:** Driver (scrie cod) | Navigator (ghidează, verifică)
+
+#### Instrucțiuni
+1. Decideți cine e Driver și cine e Navigator
+2. La jumătatea timpului (7 min), schimbați rolurile
+3. Navigatorul NU atinge tastatura, doar ghidează verbal
+
+#### Sarcina Driver (prima jumătate)
+Implementează pașii 1-3 din funcția `parse_request()`:
+- Decodifică bytes în string
+- Split pe `\r\n` pentru a obține liniile
+- Parsează prima linie (request line): metodă, cale, versiune
+
+#### Sarcina Navigator (verifică)
+- [ ] Codul tratează cereri invalide (linii insuficiente)?
+- [ ] Decodificarea folosește `utf-8`?
+- [ ] Split-ul e pe `\r\n`, nu pe `\n`?
+
+#### Schimbare Roluri (după 7 minute)
+
+#### Sarcina Driver (a doua jumătate)
+Implementează pașii 4-5:
+- Parsează headers în dicționar (key: value)
+- Normalizează cheile la lowercase
+
+#### Discuție Finală (2 minute)
+- Ce a fost mai greu: să scrii sau să ghidezi?
+- Ce edge cases ați descoperit împreună?
+
+---
 
 ### Exercițiul 2: Proxy Invers cu Echilibrare Round-Robin
 
@@ -497,15 +829,56 @@ curl -I http://localhost:8888/index.html
 
 **Fișier:** `src/exercises/ex_8_02_proxy_invers.py`
 
-**Pași:**
+#### 💡 De la Concret la Abstract: Reverse Proxy
 
-1. Examinați clasa `EchilibratorRoundRobin` și înțelegeți algoritmul
-2. Implementați metoda `urmatorul_backend()` pentru selecția ciclică
-3. Implementați funcția `redirectioneaza_cerere()` pentru proxy-ul către backend
+**CONCRET (analogie):**
+> Imaginează-ți un **recepționer la un hotel mare** cu 3 lifturi identice.
+> - Oaspeții (clienții) vin la recepție și cer să urce
+> - Recepționerul (proxy) nu-i lasă să aleagă lift-ul
+> - Îi direcționează pe rând: primul la liftul 1, al doilea la liftul 2, al treilea la liftul 3, al patrulea iar la liftul 1...
+> - Dacă un lift e defect (backend down), recepționerul nu mai trimite pe nimeni acolo
+
+**PICTORIAL:**
+```
+   Clienți             Recepționer              Lifturi (Backend-uri)
+   ┌─────┐                                     ┌─────────────────┐
+   │ 👤1 │ ────────►  ┌─────────────┐  ──1──► │ Lift 1 (Alpha)  │
+   │ 👤2 │            │   nginx     │          │                 │
+   │ 👤3 │ ◄────────  │  (proxy)    │  ──2──► │ Lift 2 (Beta)   │
+   │ 👤4 │            │  :8080      │          │                 │
+   │ 👤5 │            └─────────────┘  ──3──► │ Lift 3 (Gamma)  │
+   └─────┘               ▲    │                └─────────────────┘
+                         │    │
+                    cerere    răspuns
+                    
+   Distribuție: 👤1→Lift1, 👤2→Lift2, 👤3→Lift3, 👤4→Lift1, 👤5→Lift2...
+```
+
+**ABSTRACT:**
+```python
+class RoundRobinBalancer:
+    def __init__(self, backends):
+        self.backends = backends
+        self.current = 0
+    
+    def next_backend(self):
+        backend = self.backends[self.current]
+        self.current = (self.current + 1) % len(self.backends)
+        return backend
+```
+
+#### Pași de Implementare
+
+1. Examinați clasa `RoundRobinBalancer` și înțelegeți algoritmul
+2. Implementați metoda `next_backend()` pentru selecția ciclică
+3. Implementați funcția `forward_request()` pentru proxy-ul către backend
 4. Adăugați antetul `X-Forwarded-For` pentru a păstra IP-ul clientului original
 5. Testați distribuția cererilor
 
-**Verificare:**
+#### Verificare
+
+**🔮 PREDICȚIE:** Dacă trimiți 6 cereri, în ce ordine vor răspunde backend-urile?
+
 ```bash
 # Porniți 3 servere backend (în terminale separate)
 python3 -m http.server 8001 --directory www/
@@ -516,53 +889,93 @@ python3 -m http.server 8003 --directory www/
 python3 src/exercises/ex_8_02_proxy_invers.py
 
 # Testați distribuția
-for i in {1..6}; do curl -s http://localhost:8000/; done
+for i in {1..6}; do echo "Cerere $i:"; curl -s http://localhost:8000/ | head -1; done
 ```
 
-### Exercițiul 3: Suport pentru Metoda POST
+**Verificare:** Ai văzut pattern-ul 1→2→3→1→2→3? Dacă nu, verifică implementarea `next_backend()`.
 
-**Obiectiv:** Extinderea serverului HTTP pentru a gestiona cererile POST cu date în corp.
+---
 
-**Durată:** 30-45 minute
+### 👥 EXERCIȚIU ÎN PERECHI: Debug Health Check
 
-**Fișier:** `src/exercises/ex_8_03_suport_post.py`
+**Timp:** 15 minute
+**Roluri:** Driver (scrie cod) | Navigator (testează)
 
-**Concepte Cheie:**
-- Antetul Content-Length pentru determinarea dimensiunii corpului
-- Citirea corpului cererii după antete
-- Procesarea datelor URL-encoded și JSON
+#### Instrucțiuni
+1. Decideți cine e Driver și cine e Navigator
+2. Driver-ul implementează, Navigator-ul testează în paralel
+3. La jumătatea timpului, schimbați rolurile
 
-### Exercițiul 4: Limitarea Ratei de Cereri
+#### Sarcina Driver (prima jumătate)
+Implementează funcția `check_backend_health()`:
+- Creează socket TCP
+- Setează timeout 2 secunde
+- Trimite `HEAD / HTTP/1.1\r\n\r\n`
+- Returnează True dacă primește răspuns
 
-**Obiectiv:** Implementarea unui mecanism de rate limiting pentru a preveni abuzul.
+#### Sarcina Navigator (testează)
+Pornește/oprește un backend și verifică:
+- [ ] Health check returnează True când backend-ul rulează?
+- [ ] Health check returnează False după oprirea backend-ului?
+- [ ] Timeout-ul de 2 secunde funcționează?
 
-**Durată:** 45-60 minute
+#### Schimbare Roluri (după 7 minute)
 
-**Fișier:** `src/exercises/ex_8_04_limitare_rata.py`
+#### Sarcina Driver (a doua jumătate)
+Adaugă logging pentru debugging:
+```python
+print(f"[HEALTH] Checking {backend}...")
+print(f"[HEALTH] Result: {'healthy' if result else 'unhealthy'}")
+```
 
-**Concepte Cheie:**
-- Algoritmul token bucket
-- Urmărirea cererilor per IP
-- Răspunsul 429 Too Many Requests
+---
 
-### Exercițiul 5: Proxy cu Cache
+## 💡 De la Concret la Abstract: Port Mapping Docker
 
-**Obiectiv:** Adăugarea funcționalității de cache la proxy pentru a îmbunătăți performanța.
+**CONCRET (analogie):**
+> Imaginează-ți un **bloc de apartamente** (host-ul Windows).
+> - Adresa blocului = IP-ul host-ului (`localhost`)
+> - Fiecare apartament are un număr = portul containerului (`80`)
+> - Dar cutia poștală de la intrare are alt număr = portul expus (`8080`)
+> - Când trimiți o scrisoare la "Bloc, cutia 8080", portarul o duce la "Apartamentul 80"
 
-**Durată:** 60-90 minute
+**PICTORIAL:**
+```
+┌─────────────────────────────────────────────────────────┐
+│              BLOC (Windows Host - localhost)            │
+│                                                         │
+│   Intrare (porturi expuse)        Apartamente (containere)
+│   ┌─────────────────┐             ┌─────────────────┐   │
+│   │ Cutia 8080 ─────────────────► │ Apt 80 (nginx)  │   │
+│   │ Cutia 8443 ─────────────────► │ Apt 443 (nginx) │   │
+│   │ Cutia 9000 ─────────────────► │ Apt 9000 (Port.)│   │
+│   └─────────────────┘             └─────────────────┘   │
+│                                                         │
+│   Din exterior accesezi                                 │
+│   localhost:8080                                        │
+│   care ajunge la                                        │
+│   container:80                                          │
+└─────────────────────────────────────────────────────────┘
+```
 
-**Fișier:** `src/exercises/ex_8_05_proxy_cache.py`
+**ABSTRACT:**
+```yaml
+ports:
+  - "8080:80"      # host_port:container_port
+  - "8443:443"     # HTTPS
+  
+# Formatul: "PORT_EXPUS:PORT_INTERN"
+# Din Windows: localhost:8080
+# În container: aplicația ascultă pe :80
+```
 
-**Concepte Cheie:**
-- Cache în memorie cu TTL (Time To Live)
-- Antetele Cache-Control și ETag
-- Invalidarea cache-ului
+---
 
 ## Demonstrații
 
 ### Demo 1: Proxy nginx cu Docker
 
-Demonstrează funcționarea proxy-ului invers nginx cu echilibrare round-robin.
+**🔮 PREDICȚIE:** Dacă oprești Backend-2 în timpul testării, ce se întâmplă cu cererile? Vor eșua sau vor merge la alte backend-uri? Dacă oprești toate backend-urile, ce cod HTTP va returna nginx?
 
 ```bash
 python3 scripts/ruleaza_demo.py --demo docker-nginx
@@ -573,13 +986,15 @@ python3 scripts/ruleaza_demo.py --demo docker-nginx
 - Antetele X-Backend-ID și X-Backend-Name în răspunsuri
 - Contorul de cereri pentru fiecare backend
 
-### Demo 2: Algoritmi de Echilibrare
+**Verificare:** Încearcă să oprești un backend (`docker stop week8-backend-2`) și observă comportamentul.
 
-Compară diferiții algoritmi de echilibrare a încărcării.
+### Demo 2: Algoritmi de Echilibrare
 
 ```bash
 python3 scripts/ruleaza_demo.py --demo echilibrare
 ```
+
+**🔮 PREDICȚIE:** La weighted round-robin cu ponderi 5:3:1, din 9 cereri câte va primi fiecare backend?
 
 **Ce să observați:**
 - Round-robin: distribuție egală (1→2→3→1→2→3)
@@ -587,173 +1002,46 @@ python3 scripts/ruleaza_demo.py --demo echilibrare
 - Least-connections: rutare dinamică
 - IP-hash: persistența sesiunii
 
-### Demo 3: Handshake TCP
+**Verificare:** Pentru weighted 5:3:1 și 9 cereri: Backend1=5, Backend2=3, Backend3=1
 
-Demonstrează stabilirea conexiunii TCP în trei pași.
+### Demo 3: Handshake TCP
 
 ```bash
 python3 scripts/ruleaza_demo.py --demo handshake
 ```
 
+**🔮 PREDICȚIE:** În Wireshark, ce porturi sursă și destinație vei vedea pentru pachetul SYN? Portul sursă va fi fix sau aleatoriu? De ce?
+
 **Ce să observați în Wireshark:**
-- Pachetul SYN inițial de la client
-- Răspunsul SYN-ACK de la server
+- Pachetul SYN inițial de la client (port sursă aleatoriu, destinație 8080)
+- Răspunsul SYN-ACK de la server (inversare porturi)
 - Confirmarea ACK de la client
 
-## Capturarea și Analiza Traficului
+**🔮 PREDICȚIE BONUS:** Dacă clientul trimite o cerere HTTP după handshake, câte pachete TCP în total vor fi schimbate pentru o singură cerere GET simplă? (Hint: handshake + cerere + răspuns + închidere)
 
-### Capturarea Traficului
+---
 
-```bash
-# Folosind scriptul helper (din WSL)
-python3 scripts/captureaza_trafic.py --interfata eth0 --iesire pcap/captura_s8.pcap
+## Concepte Teoretice
 
-# Sau folosind Wireshark direct
-# Deschideți Wireshark > Selectați interfața vEthernet (WSL) > Porniți captura
-```
+### TCP vs UDP
 
-### Filtre Wireshark Recomandate
-
-```
-# Doar trafic HTTP
-http
-
-# Port TCP 8080
-tcp.port == 8080
-
-# Doar cereri HTTP
-http.request
-
-# Doar răspunsuri HTTP
-http.response
-
-# Handshake TCP (pachete SYN)
-tcp.flags.syn == 1
-
-# Backend specific
-ip.addr == 172.28.8.21
-
-# Urmărește flux TCP
-tcp.stream eq 0
-```
-
-## Oprire și Curățare
-
-### Sfârșitul Sesiunii
-
-```bash
-# În terminalul Ubuntu
-cd /mnt/d/RETELE/SAPT8/08roWSL
-
-# Opriți toate containerele (păstrează datele, Portainer rămâne activ!)
-python3 scripts/opreste_laborator.py
-
-# Verificați oprirea
-docker ps
-# Ar trebui să vezi doar: portainer
-```
-
-### Curățare Completă (Înainte de Săptămâna Următoare)
-
-```bash
-# Eliminați toate containerele, rețelele și volumele pentru această săptămână
-python3 scripts/curatare.py --complet
-
-# Verificați curățarea
-docker system df
-```
-
-## Teme pentru Acasă
-
-Consultați directorul `homework/` pentru exercițiile de realizat acasă.
-
-### Tema 1: Server HTTPS cu TLS
-
-**Fișier:** `homework/exercises/tema_8_01_server_https.py`
-
-Extindeți serverul HTTP de bază pentru a suporta conexiuni HTTPS folosind TLS.
-
-**Cerințe:**
-- Generarea unui certificat auto-semnat
-- Implementarea socket-ului TLS
-- Suport pentru ambele protocoale (HTTP pe 8080, HTTPS pe 8443)
-
-### Tema 2: Echilibrator cu Ponderi
-
-**Fișier:** `homework/exercises/tema_8_02_echilibrator_ponderat.py`
-
-Implementați un echilibrator de încărcare weighted round-robin cu verificare a stării de sănătate.
-
-**Cerințe:**
-- Distribuție proporțională cu ponderile configurate
-- Verificarea periodică a sănătății backend-urilor
-- Failover automat pentru backend-uri indisponibile
-
-## Depanare
-
-### Probleme Frecvente
-
-#### Docker nu pornește în WSL
-
-**Simptome:** Eroare "Cannot connect to the Docker daemon"
-
-**Soluție:**
-```bash
-# Pornește serviciul Docker în WSL
-sudo service docker start
-# Parolă: stud
-
-# Verifică statusul
-sudo service docker status
-
-# Verifică cu
-docker info
-```
-
-#### Portul 8080 este ocupat
-
-**Simptome:** Eroare "Bind for 0.0.0.0:8080 failed: port is already allocated"
-
-**Soluție:**
-```bash
-# Găsiți procesul care folosește portul (în WSL)
-ss -tlnp | grep 8080
-
-# Opriți procesul sau folosiți alt port
-```
-
-#### Containerele nu pornesc
-
-**Soluție:**
-```bash
-# Verificați jurnalele containerelor
-docker logs week8-nginx-proxy
-docker logs week8-backend-1
-
-# Reporniți serviciile
-python3 scripts/opreste_laborator.py
-python3 scripts/porneste_laborator.py --reconstruieste
-```
-
-Consultați `docs/depanare.md` pentru mai multe soluții.
-
-## Fundamente Teoretice
-
-### Comparație TCP vs UDP
+**🔮 PREDICȚIE:** Înainte de a citi tabelul, încearcă să răspunzi: Care protocol (TCP sau UDP) ar fi mai potrivit pentru un joc multiplayer online? De ce?
 
 | Caracteristică | TCP | UDP |
 |----------------|-----|-----|
-| Conexiune | Orientat pe conexiune | Fără conexiune |
-| Fiabilitate | Transfer fiabil | Best-effort |
-| Ordonare | Păstrată | Nu este garantată |
-| Control flux | Da | Nu |
+| Tip conexiune | Orientat pe conexiune | Fără conexiune |
+| Fiabilitate | Garantată (retransmisii) | Best-effort (fără garanții) |
+| Ordonare | Garantată | Nu e garantată |
+| Control flux | Da (fereastră glisantă) | Nu |
 | Control congestie | Da | Nu |
 | Overhead | Mai mare | Mai mic |
 | Cazuri de utilizare | HTTP, FTP, SSH | DNS, VoIP, streaming |
 
+**Verificare:** Ai ghicit corect? Jocurile folosesc adesea UDP pentru că latența e mai importantă decât fiabilitatea perfectă.
+
 ### HTTP peste TCP
 
-HTTP utilizează TCP ca protocol de transport deoarece necesită:
+HTTP folosește TCP ca protocol de transport deoarece necesită:
 - **Fiabilitate:** Fiecare octet din cerere/răspuns trebuie livrat corect
 - **Ordonare:** Mesajele trebuie reconstruite în ordinea corectă
 - **Control flux:** Previne supraîncărcarea serverului/clientului
@@ -833,147 +1121,40 @@ Beneficii:
 
 ## 🔧 Depanare Extinsă
 
-### Probleme Docker
+> Pentru ghidul complet de depanare, consultați [`docs/depanare.md`](docs/depanare.md).
 
-**Problemă:** "Cannot connect to Docker daemon"
+### Probleme Frecvente (Rezumat Rapid)
+
+**🔮 PREDICȚIE:** Dacă `curl http://localhost:8080/` returnează "Connection refused", care crezi că e cea mai probabilă cauză? (a) nginx nu rulează, (b) portul e greșit, (c) firewall blochează, (d) backend-urile sunt oprite?
+
+**Docker nu pornește?**
 ```bash
-# Pornește serviciul Docker în WSL
 sudo service docker start
 # Parolă: stud
-
-# Verifică statusul
-sudo service docker status
-
-# Verifică că funcționează
-docker ps
 ```
 
-**Problemă:** Permisiune refuzată la rularea docker
+**Port ocupat?**
 ```bash
-# Adaugă utilizatorul la grupul docker
-sudo usermod -aG docker $USER
-
-# Aplică modificările
-newgrp docker
-
-# Sau deconectează-te și reconectează-te din WSL
-exit
-wsl
-```
-
-**Problemă:** Serviciul Docker nu pornește
-```bash
-# Verifică statusul detaliat
-sudo service docker status
-
-# Rulează daemon-ul manual pentru a vedea erorile
-sudo dockerd
-
-# Verifică log-urile
-sudo cat /var/log/docker.log
-```
-
-### Probleme Portainer
-
-**Problemă:** Nu pot accesa http://localhost:9000
-```bash
-# Verifică dacă containerul Portainer există și rulează
-docker ps -a | grep portainer
-
-# Dacă e oprit, pornește-l
-docker start portainer
-
-# Dacă nu există, creează-l
-docker run -d -p 9000:9000 --name portainer --restart=always \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v portainer_data:/data portainer/portainer-ce:latest
-
-# Verifică log-urile
-docker logs portainer
-```
-
-**Problemă:** Am uitat parola Portainer
-```bash
-# ATENȚIE: Aceasta resetează Portainer (pierde setările dar NU containerele)
-docker stop portainer
-docker rm portainer
-docker volume rm portainer_data
-
-# Recreează cu comanda de mai sus
-# La prima accesare, setează parola nouă: studstudstud
-```
-
-### Probleme Wireshark
-
-**Problemă:** Nu se capturează pachete
-- ✅ Verifică interfața corectă selectată (vEthernet WSL)
-- ✅ Asigură-te că traficul este generat ÎN TIMPUL capturii
-- ✅ Verifică că filtrul de afișare nu ascunde pachetele (șterge filtrul)
-- ✅ Încearcă "Capture → Options" și activează modul promiscuous
-
-**Problemă:** "No interfaces found" sau eroare de permisiune
-- Rulează Wireshark ca Administrator (click dreapta → Run as administrator)
-- Reinstalează Npcap cu opțiunea "WinPcap API-compatible Mode" bifată
-
-**Problemă:** Nu văd traficul containerelor Docker
-- Selectează interfața `vEthernet (WSL)`, nu `Ethernet` sau `Wi-Fi`
-- Asigură-te că containerele sunt pe rețea bridge, nu host
-
-### Probleme Specifice Săptămânii 8
-
-**Problemă:** nginx nu pornește
-```bash
-# Verifică configurația nginx
-docker exec week8-nginx-proxy nginx -t
-
-# Verifică log-urile nginx
-docker logs week8-nginx-proxy
-
-# Verifică că backend-urile sunt pornite
-docker ps | grep week8-backend
-```
-
-**Problemă:** Backend-urile nu răspund
-```bash
-# Verifică starea de sănătate
-curl -i http://localhost:8080/nginx-health
-
-# Verifică direct un backend
-docker exec week8-backend-1 curl -s http://localhost:8080/health
-```
-
-**Problemă:** Echilibrarea nu funcționează corect
-```bash
-# Testează manual
-for i in {1..10}; do
-  echo "Cerere $i:"
-  curl -s http://localhost:8080/ | grep Backend
-done
-```
-
-### Probleme de Rețea
-
-**Problemă:** Containerul nu poate accesa internetul
-```bash
-# Verifică rețeaua Docker
-docker network ls
-docker network inspect week8-laboratory-network
-
-# Verifică DNS în container
-docker exec week8-backend-1 cat /etc/resolv.conf
-```
-
-**Problemă:** Portul este deja utilizat
-```bash
-# Găsește ce folosește portul (în WSL)
 sudo ss -tlnp | grep 8080
-
-# Oprește procesul sau folosește alt port
 ```
+
+**🔮 PREDICȚIE:** Ce proces crezi că ar putea ocupa portul 8080 dacă nu e Docker?
+
+**nginx returnează 502?**
+```bash
+docker ps | grep backend
+docker logs week8-nginx-proxy
+```
+
+**Wireshark nu capturează?**
+- Verifică interfața: `vEthernet (WSL)`
+- Verifică că generezi trafic ÎN TIMPUL capturii
 
 ---
 
 ## 🧹 Procedura Completă de Curățare
+
+**🔮 PREDICȚIE:** După curățarea completă a laboratorului, ce containere ar trebui să rămână în `docker ps`? (Hint: un serviciu rulează global)
 
 ### Sfârșit de Sesiune (Rapidă)
 
@@ -997,49 +1178,8 @@ python3 scripts/curatare.py --complet
 # Elimină imaginile nefolosite
 docker image prune -f
 
-# Elimină rețelele nefolosite
-docker network prune -f
-
 # Verifică utilizarea discului
 docker system df
-```
-
-### Resetare Totală (Înainte de Semestru Nou)
-
-```bash
-# ATENȚIE: Aceasta elimină TOTUL în afară de Portainer
-
-# Oprește toate containerele EXCEPTÂND Portainer
-docker stop $(docker ps -q --filter "name=week8")
-
-# Elimină containerele oprite (nu Portainer)
-docker container prune -f
-
-# Elimină imaginile nefolosite
-docker image prune -a -f
-
-# Elimină rețelele nefolosite
-docker network prune -f
-
-# Verifică că Portainer încă rulează
-docker ps
-```
-
-**⚠️ NU rula NICIODATĂ `docker system prune -a` fără să excluzi Portainer!**
-
-### Verificare Post-Curățare
-
-```bash
-# Verifică ce a rămas
-docker ps -a          # Containere
-docker images         # Imagini
-docker network ls     # Rețele
-docker volume ls      # Volume
-
-# Ar trebui să vezi doar:
-# - Container: portainer
-# - Volum: portainer_data
-# - Rețele: bridge, host, none (implicite)
 ```
 
 ---

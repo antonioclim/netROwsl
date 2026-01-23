@@ -29,6 +29,18 @@ Imaginează-ți o clădire de birouri cu sistem de securitate:
 
 Așa cum securitatea poate revizui filmările pentru a investiga un incident, tu poți analiza capturile pentru a diagnostica probleme de rețea.
 
+### 💡 Analogie Alternativă: Detectivul și Scrisorile
+
+Gândește-te la interceptarea pachetelor ca la un detectiv care monitorizează corespondența:
+
+| Pas | În Lumea Reală | În Rețelistică |
+|-----|----------------|----------------|
+| 1 | Detectivul se așază la oficiul poștal | Wireshark ascultă pe interfață |
+| 2 | Notează expeditorul și destinatarul fiecărei scrisori | Înregistrează IP sursă, IP destinație |
+| 3 | Notează tipul coletului (plic, pachet, recomandat) | Notează protocolul (TCP, UDP, ICMP) |
+| 4 | Salvează totul într-un dosar | Salvează în fișier .pcap |
+| 5 | Mai târziu caută "toate scrisorile de la Ion" | Aplică filtru: `ip.src == 10.0.7.100` |
+
 ### Instrumente de Captare
 
 **Wireshark** - Analizor grafic de protocoale

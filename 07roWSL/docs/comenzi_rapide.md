@@ -287,4 +287,73 @@ python scripts/porneste_lab.py
 
 ---
 
+## 📝 Verifică-ți Cunoștințele
+
+### Nivel REMEMBER (Reamintire)
+
+Completează fără să te uiți în documentație:
+
+1. Care este portul implicit pentru Portainer? `____`
+2. Ce flag TCP marchează începutul unei conexiuni? `____`
+3. Cum se numește acțiunea iptables care elimină silențios pachetele? `____`
+4. Care este subnetul rețelei Docker week7net? `____/____`
+5. Ce extensie au fișierele de captură Wireshark? `.____`
+
+<details>
+<summary>Răspunsuri</summary>
+
+1. 9000
+2. SYN
+3. DROP
+4. 10.0.7.0/24
+5. .pcap sau .pcapng
+
+</details>
+
+### Nivel UNDERSTAND (Înțelegere)
+
+Explică în propriile tale cuvinte (2-3 propoziții fiecare):
+
+1. Care este diferența fundamentală dintre REJECT și DROP?
+2. De ce handshake-ul TCP are exact 3 pași, nu 2 sau 4?
+3. Ce înseamnă că un port este în starea FILTRAT la sondare?
+
+### Nivel ANALYZE (Analiză)
+
+Analizează următoarea captură Wireshark și răspunde:
+
+```
+Timp       Sursă          Dest           Protocol  Info
+0.000000   192.168.1.10   10.0.7.100     TCP       SYN
+0.000500   192.168.1.10   10.0.7.100     TCP       [TCP Retransmission] SYN
+3.000000   192.168.1.10   10.0.7.100     TCP       [TCP Retransmission] SYN
+9.000000   192.168.1.10   10.0.7.100     TCP       [TCP Retransmission] SYN
+```
+
+1. Ce tip de blocare este activă pe portul destinație? Justifică.
+2. Cum ar arăta diferit captura dacă ar fi REJECT în loc de DROP?
+3. Ce informație obține un atacator din acest comportament?
+
+### Nivel EVALUATE (Evaluare)
+
+Ești administrator de securitate. Alege și justifică:
+
+1. Pentru un server web public, ai folosi DROP sau REJECT pentru porturile ne-HTTP? De ce?
+2. Pentru un serviciu intern de backup, ai folosi DROP sau REJECT? De ce?
+3. Când ar fi mai potrivită filtrarea la nivel aplicație (WAF) în locul iptables?
+
+### Nivel CREATE (Creare)
+
+Proiectează un profil de firewall pentru următorul scenariu:
+
+**Scenariu:** Un server cu:
+- SSH (port 22) - acces doar din rețeaua internă (192.168.0.0/16)
+- HTTP (port 80) - acces public
+- Bază de date (port 5432) - acces doar localhost
+- Toate celelalte porturi blocate
+
+Scrie regulile iptables și justifică alegerea ACCEPT/DROP/REJECT pentru fiecare.
+
+---
+
 *Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix*

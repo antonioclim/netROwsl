@@ -1,365 +1,503 @@
 #!/usr/bin/env python3
 """
-Tema 2: Echilibrator de Încărcare cu Ponderi
-Cursul de REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+TEMA 2: Echilibrator de Încărcare cu Ponderi
+============================================
+Disciplina: Rețele de Calculatoare, Săptămâna 8
+Nivel: Avansat
+Timp estimat: 120-150 minute
+Punctaj: 100 puncte
 
-Implementați un echilibrator de încărcare weighted round-robin
-cu verificare a stării de sănătate și failover automat.
+OBIECTIVE DE ÎNVĂȚARE:
+- Implementarea algoritmului Smooth Weighted Round-Robin
+- Gestionarea health check pentru backend-uri
+- Implementarea failover automat
 
-Cerințe:
-    1. Distribuție proporțională cu ponderile configurate
-    2. Verificare periodică a sănătății backend-urilor
-    3. Failover automat pentru backend-uri indisponibile
-    4. Statistici de distribuție
+CERINȚE:
+1. Algoritm weighted round-robin (35 puncte)
+2. Verificare periodică sănătate (25 puncte)
+3. Failover automat (20 puncte)
+4. Statistici și logging (10 puncte)
+5. Calitatea codului (10 puncte)
 
-Utilizare:
-    # Porniți 3 backend-uri (în terminale separate)
-    python -m http.server 8001 --directory www/
-    python -m http.server 8002 --directory www/
-    python -m http.server 8003 --directory www/
+TESTARE:
+    # Pornește 3 backend-uri simple
+    python3 -m http.server 8001 --directory ../www/ &
+    python3 -m http.server 8002 --directory ../www/ &
+    python3 -m http.server 8003 --directory ../www/ &
     
-    # Porniți echilibratorul
-    python tema_8_02_echilibrator_ponderat.py
+    # Pornește echilibratorul
+    python3 tema_8_02_echilibrator_ponderat.py
+    
+    # Testează distribuția
+    for i in {1..18}; do curl -s http://localhost:8000/; done
 
-Testare:
-    for i in {1..18}; do curl -s http://localhost:8000/ >/dev/null; done
+© Revolvix & ASE-CSIE București
 """
 
 import socket
 import threading
 import time
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass, field
-from urllib.request import urlopen
-from urllib.error import URLError
+from typing import List, Dict, Optional, Tuple
 
-# Configurație
-PORT_ECHILIBRATOR = 8000
-GAZDA_ECHILIBRATOR = "127.0.0.1"
-DIMENSIUNE_BUFFER = 8192
+# =============================================================================
+# CONFIGURAȚIE
+# =============================================================================
 
-# Interval verificare sănătate (secunde)
-INTERVAL_VERIFICARE = 10
-TIMEOUT_VERIFICARE = 2
-
-# Configurație backend-uri cu ponderi
-# Formatul: (gazda, port): {"pondere": N, "nume": "Nume"}
-CONFIGURARE_BACKEND = {
-    ("127.0.0.1", 8001): {"pondere": 5, "nume": "Primar"},
-    ("127.0.0.1", 8002): {"pondere": 3, "nume": "Secundar"},
-    ("127.0.0.1", 8003): {"pondere": 1, "nume": "Backup"},
+CONFIGURATIE_BACKEND = {
+    ("127.0.0.1", 8001): {"weight": 5, "name": "Primary"},
+    ("127.0.0.1", 8002): {"weight": 3, "name": "Secondary"},
+    ("127.0.0.1", 8003): {"weight": 1, "name": "Backup"},
 }
 
+PORT_ECHILIBRATOR = 8000
+GAZDA = "0.0.0.0"
+DIMENSIUNE_BUFFER = 4096
+TIMEOUT_CONEXIUNE = 5.0
+INTERVAL_HEALTH_CHECK = 10  # secunde
+
+
+# =============================================================================
+# STRUCTURI DE DATE
+# =============================================================================
 
 @dataclass
-class InfoBackend:
-    """Informații despre un backend."""
-    gazda: str
+class Backend:
+    """
+    Reprezentarea unui server backend cu statistici.
+    
+    🔮 PREDICȚIE: De ce avem nevoie de `current_weight` separat de `weight`?
+       Hint: gândește-te la Smooth Weighted Round-Robin.
+    """
+    host: str
     port: int
-    pondere: int
-    nume: str
-    sanatos: bool = True
-    cereri_servite: int = 0
-    erori: int = 0
-    pondere_curenta: int = 0
+    weight: int = 1                    # Ponderea configurată (nu se schimbă)
+    name: str = "unnamed"
+    
+    # Stare dinamică
+    healthy: bool = True
+    current_weight: int = 0            # Ponderea curentă (se modifică la fiecare selecție)
+    
+    # Statistici
+    cereri_totale: int = 0
+    cereri_reușite: int = 0
+    cereri_eșuate: int = 0
+    timp_total_răspuns: float = 0.0
+    ultima_verificare: float = field(default_factory=time.time)
+    
+    @property
+    def address(self) -> Tuple[str, int]:
+        return (self.host, self.port)
+    
+    @property
+    def timp_mediu_răspuns(self) -> float:
+        if self.cereri_reușite == 0:
+            return 0.0
+        return self.timp_total_răspuns / self.cereri_reușite
+    
+    @property
+    def rată_succes(self) -> float:
+        if self.cereri_totale == 0:
+            return 100.0
+        return (self.cereri_reușite / self.cereri_totale) * 100
+    
+    def __str__(self):
+        status = "✓" if self.healthy else "✗"
+        return f"{self.name}({self.host}:{self.port}) [{status}] w={self.weight}"
 
 
-class EchilibratorPonderat:
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ CLASĂ (35 puncte)
+# =============================================================================
+
+class SmoothWeightedRoundRobin:
     """
-    Echilibrator de încărcare cu algoritm weighted round-robin.
+    Implementare Smooth Weighted Round-Robin.
     
-    Folosește algoritmul smooth weighted round-robin pentru
-    distribuție mai uniformă.
+    ALGORITMUL:
+    ───────────
+    La fiecare selecție:
+    1. Pentru fiecare backend sănătos: current_weight += weight
+    2. Selectează backend-ul cu current_weight maxim
+    3. Scade total_weight din current_weight al backend-ului selectat
+    
+    EXEMPLU (ponderi 5:3:1, total=9):
+    ─────────────────────────────────
+    
+    | Pas | Înainte (+weight)    | Selectat | După (-total)        |
+    |-----|----------------------|----------|----------------------|
+    |  1  | A=5, B=3, C=1        | A (max)  | A=-4, B=3, C=1       |
+    |  2  | A=1, B=6, C=2        | B (max)  | A=1, B=-3, C=2       |
+    |  3  | A=6, B=0, C=3        | A (max)  | A=-3, B=0, C=3       |
+    |  4  | A=2, B=3, C=4        | C (max)  | A=2, B=3, C=-5       |
+    |  5  | A=7, B=6, C=-4       | A (max)  | A=-2, B=6, C=-4      |
+    |  6  | A=3, B=9, C=-3       | B (max)  | A=3, B=0, C=-3       |
+    |  ...| ...                  | ...      | ...                  |
+    
+    Secvența pentru 9 cereri: A,B,A,C,A,B,A,B,A (5×A, 3×B, 1×C)
+    
+    🔮 PREDICȚIE: De ce acest algoritm e "smooth"? 
+       Compară cu round-robin simplu: A,A,A,A,A,B,B,B,C
+       Care distribuie mai uniform în timp?
     """
     
-    def __init__(self, configurare: Dict):
+    def __init__(self, backends: List[Backend]):
         """
-        Inițializează echilibratorul.
+        Inițializează balancer-ul.
         
-        Args:
-            configurare: Dicționar cu configurația backend-urilor
+        PAȘI:
+        1. Stochează lista de backend-uri
+        2. Creează Lock pentru thread safety
+        3. Inițializează current_weight la 0 pentru toate
         """
-        self.backend_uri: List[InfoBackend] = []
-        self.blocare = threading.Lock()
-        self.oprire = threading.Event()
+        # TODO: Implementează inițializarea
+        # Scrie codul tău aici...
         
-        for (gazda, port), config in configurare.items():
-            backend = InfoBackend(
-                gazda=gazda,
-                port=port,
-                pondere=config["pondere"],
-                nume=config["nume"],
-                pondere_curenta=0
-            )
-            self.backend_uri.append(backend)
+        raise NotImplementedError("TODO: Implementează __init__")
     
-    def selecteaza_backend(self) -> Optional[InfoBackend]:
+    @property
+    def total_weight(self) -> int:
+        """Calculează suma ponderilor backend-urilor sănătoase."""
+        # TODO: Implementează
+        raise NotImplementedError("TODO: Implementează total_weight")
+    
+    def next_backend(self) -> Optional[Backend]:
         """
-        TODO: Selectează următorul backend folosind smooth weighted round-robin.
-        
-        Algoritmul:
-            1. Pentru fiecare backend sănătos:
-               - pondere_curenta += pondere
-            2. Selectează backend-ul cu pondere_curenta maximă
-            3. Pentru backend-ul selectat:
-               - pondere_curenta -= suma_ponderilor_sanatoase
-            4. Returnează backend-ul selectat
+        Selectează următorul backend folosind Smooth Weighted Round-Robin.
         
         Returns:
-            Backend-ul selectat sau None dacă niciunul nu e disponibil
+            Backend-ul selectat sau None dacă niciunul nu e sănătos
         
-        Indicii:
-        - Folosiți blocarea pentru thread-safety
-        - Ignorați backend-urile nesănătoase
-        - Returnați None dacă nu există backend-uri sănătoase
+        🔮 PREDICȚIE: Dacă toate backend-urile au aceeași pondere,
+           algoritmul se comportă exact ca round-robin simplu?
+        
+        PAȘI DE IMPLEMENTARE:
+        ─────────────────────
+        1. Obține lock-ul
+           with self.lock:
+        
+        2. Filtrează backend-urile sănătoase
+           healthy = [b for b in self.backends if b.healthy]
+           if not healthy:
+               return None
+        
+        3. Crește current_weight pentru toate
+           for backend in healthy:
+               backend.current_weight += backend.weight
+        
+        4. Găsește backend-ul cu current_weight maxim
+           selected = max(healthy, key=lambda b: b.current_weight)
+        
+        5. Scade total_weight din selected.current_weight
+           selected.current_weight -= total_weight
+        
+        6. Returnează backend-ul selectat
         """
-        # CODUL DUMNEAVOASTRĂ AICI
-        with self.blocare:
-            # Filtrează backend-urile sănătoase
-            sanatoase = [b for b in self.backend_uri if b.sanatos]
-            
-            if not sanatoase:
-                return None
-            
-            # Calculează suma ponderilor
-            suma_ponderi = sum(b.pondere for b in sanatoase)
-            
-            # Adaugă ponderile la pondere_curenta
-            for backend in sanatoase:
-                backend.pondere_curenta += backend.pondere
-            
-            # Selectează backend-ul cu pondere_curenta maximă
-            selectat = max(sanatoase, key=lambda b: b.pondere_curenta)
-            
-            # Scade suma ponderilor din backend-ul selectat
-            selectat.pondere_curenta -= suma_ponderi
-            
-            # Actualizează statisticile
-            selectat.cereri_servite += 1
-            
-            return selectat
+        # TODO: Implementează selecția SWRR
+        # Scrie codul tău aici...
+        
+        raise NotImplementedError("TODO: Implementează next_backend")
     
-    def verifica_sanatate(self, backend: InfoBackend) -> bool:
+    def get_stats(self) -> Dict:
         """
-        TODO: Verifică sănătatea unui backend.
-        
-        Args:
-            backend: Backend-ul de verificat
+        Returnează statistici complete despre backend-uri.
         
         Returns:
-            True dacă backend-ul este sănătos
-        
-        Indicii:
-        - Încercați să deschideți o conexiune TCP
-        - Sau trimiteți o cerere HTTP GET /
-        - Folosiți timeout-ul TIMEOUT_VERIFICARE
+            Dict cu: total, healthy, unhealthy, backends details
         """
-        # CODUL DUMNEAVOASTRĂ AICI
-        try:
-            url = f"http://{backend.gazda}:{backend.port}/"
-            with urlopen(url, timeout=TIMEOUT_VERIFICARE):
-                return True
-        except (URLError, socket.timeout, ConnectionRefusedError):
-            return False
-        except Exception:
-            return False
+        # TODO: Implementează
+        raise NotImplementedError("TODO: Implementează get_stats")
+
+
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE (25 puncte)
+# =============================================================================
+
+def verifica_sanatate(backend: Backend) -> bool:
+    """
+    Verifică dacă un backend răspunde la cereri.
     
-    def bucla_verificare_sanatate(self):
-        """Verifică periodic sănătatea backend-urilor."""
-        while not self.oprire.is_set():
-            for backend in self.backend_uri:
-                stare_veche = backend.sanatos
-                backend.sanatos = self.verifica_sanatate(backend)
+    Args:
+        backend: Backend-ul de verificat
+    
+    Returns:
+        True dacă răspunde, False altfel
+    
+    🔮 PREDICȚIE: De ce folosim HEAD în loc de GET pentru health check?
+       Hint: gândește-te la bandwidth și overhead.
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Creează socket TCP
+       sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+    2. Setează timeout scurt (2 secunde e suficient)
+       sock.settimeout(2.0)
+    
+    3. Încearcă conectarea
+       try:
+           sock.connect(backend.address)
+       except (socket.timeout, ConnectionRefusedError, OSError):
+           return False
+    
+    4. Trimite cererea HEAD
+       cerere = f"HEAD /health HTTP/1.1\\r\\nHost: {backend.host}\\r\\n\\r\\n"
+       sock.sendall(cerere.encode())
+    
+    5. Așteaptă răspuns (orice răspuns = sănătos)
+       try:
+           raspuns = sock.recv(1024)
+           return len(raspuns) > 0
+       except socket.timeout:
+           return False
+    
+    6. Actualizează timestamp-ul verificării
+       backend.ultima_verificare = time.time()
+    
+    7. Închide socket-ul în finally
+    
+    GREȘELI COMUNE:
+    ───────────────
+    ✗ Timeout prea lung (blochează alte verificări)
+    ✗ Neînchiderea socket-ului în caz de eroare
+    ✗ Neactualizarea timestamp-ului
+    """
+    
+    # TODO: Implementează health check
+    # Scrie codul tău aici...
+    
+    raise NotImplementedError("TODO: Implementează verifica_sanatate")
+
+
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE (20 puncte parțial)
+# =============================================================================
+
+def trimite_catre_backend(cerere: bytes, backend: Backend) -> Optional[bytes]:
+    """
+    Trimite cererea către un backend și returnează răspunsul.
+    
+    Args:
+        cerere: Cererea HTTP în bytes
+        backend: Backend-ul destinație
+    
+    Returns:
+        Răspunsul de la backend sau None în caz de eroare
+    
+    🔮 PREDICȚIE: Ce se întâmplă dacă backend-ul răspunde foarte lent
+       (peste timeout)? Cum afectează asta statisticile?
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Înregistrează timpul de start
+       timp_start = time.time()
+    
+    2. Creează socket și setează timeout
+       sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+       sock.settimeout(TIMEOUT_CONEXIUNE)
+    
+    3. Conectează-te la backend
+    
+    4. Trimite cererea
+       sock.sendall(cerere)
+    
+    5. Citește răspunsul complet
+       raspuns = b""
+       while True:
+           chunk = sock.recv(DIMENSIUNE_BUFFER)
+           if not chunk:
+               break
+           raspuns += chunk
+    
+    6. Actualizează statisticile backend-ului
+       backend.cereri_totale += 1
+       if raspuns:
+           backend.cereri_reușite += 1
+           backend.timp_total_răspuns += time.time() - timp_start
+       else:
+           backend.cereri_eșuate += 1
+    
+    7. Returnează răspunsul
+    
+    GREȘELI COMUNE:
+    ───────────────
+    ✗ Neactualizarea statisticilor în cazul erorilor
+    ✗ Citirea unui singur chunk în loc de tot răspunsul
+    ✗ Timeout prea scurt pentru răspunsuri mari
+    """
+    
+    # TODO: Implementează forwarding-ul
+    # Scrie codul tău aici...
+    
+    raise NotImplementedError("TODO: Implementează trimite_catre_backend")
+
+
+# =============================================================================
+# COD FURNIZAT - POȚI MODIFICA
+# =============================================================================
+
+class EchilibratorIncărcare:
+    """
+    Server principal de echilibrare a încărcării.
+    
+    Cod parțial furnizat.
+    """
+    
+    def __init__(self, host: str, port: int, backends: List[Backend]):
+        self.host = host
+        self.port = port
+        self.balancer = SmoothWeightedRoundRobin(backends)
+        self.running = False
+        self.socket_server = None
+    
+    def porneste_verificari_sanatate(self):
+        """Pornește thread-ul de health check."""
+        def bucla_verificare():
+            while self.running:
+                for backend in self.balancer.backends:
+                    era_sanatos = backend.healthy
+                    backend.healthy = verifica_sanatate(backend)
+                    
+                    # Loghează schimbările de stare
+                    if era_sanatos and not backend.healthy:
+                        print(f"[HEALTH] ⚠️  {backend.name} a devenit NESĂNĂTOS")
+                    elif not era_sanatos and backend.healthy:
+                        print(f"[HEALTH] ✅ {backend.name} a revenit SĂNĂTOS")
                 
-                if stare_veche != backend.sanatos:
-                    stare = "SĂNĂTOS" if backend.sanatos else "NESĂNĂTOS"
-                    print(f"[SĂNĂTATE] {backend.nume} ({backend.gazda}:{backend.port}): {stare}")
-            
-            self.oprire.wait(INTERVAL_VERIFICARE)
+                time.sleep(INTERVAL_HEALTH_CHECK)
+        
+        thread = threading.Thread(target=bucla_verificare, daemon=True)
+        thread.start()
     
-    def porneste_verificare_sanatate(self):
-        """Pornește firul de verificare a sănătății."""
-        fir = threading.Thread(target=self.bucla_verificare_sanatate, daemon=True)
-        fir.start()
-        return fir
-    
-    def redirectioneaza_cerere(
-        self,
-        cerere: bytes,
-        backend: InfoBackend,
-        ip_client: str
-    ) -> bytes:
-        """
-        TODO: Redirecționează cererea către backend.
-        
-        Args:
-            cerere: Cererea HTTP de la client
-            backend: Backend-ul țintă
-            ip_client: IP-ul clientului original
-        
-        Returns:
-            Răspunsul de la backend
-        
-        Indicii:
-        - Creați conexiune socket către backend
-        - Adăugați antetul X-Forwarded-For
-        - Gestionați erorile și returnați 502/503
-        """
-        # CODUL DUMNEAVOASTRĂ AICI
+    def gestioneaza_client(self, socket_client: socket.socket, adresa: Tuple[str, int]):
+        """Procesează o conexiune client."""
         try:
-            # Creează socket
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(10)
+            cerere = socket_client.recv(DIMENSIUNE_BUFFER)
+            if not cerere:
+                return
             
-            # Conectează
-            sock.connect((backend.gazda, backend.port))
+            # Selectează backend
+            backend = self.balancer.next_backend()
             
-            # Adaugă antetul X-Forwarded-For
-            cerere_str = cerere.decode('utf-8', errors='replace')
-            linii = cerere_str.split('\r\n')
-            linii.insert(1, f"X-Forwarded-For: {ip_client}")
-            cerere_modificata = '\r\n'.join(linii).encode('utf-8')
+            if backend is None:
+                raspuns = (
+                    b"HTTP/1.1 503 Service Unavailable\r\n"
+                    b"Content-Type: text/plain\r\n"
+                    b"Content-Length: 26\r\n\r\n"
+                    b"Nu sunt backend-uri active"
+                )
+                socket_client.sendall(raspuns)
+                return
             
-            # Trimite cererea
-            sock.sendall(cerere_modificata)
+            print(f"[PROXY] {adresa[0]} → {backend.name}")
             
-            # Primește răspunsul
-            raspuns = b""
-            while True:
-                try:
-                    bucata = sock.recv(DIMENSIUNE_BUFFER)
-                    if not bucata:
-                        break
-                    raspuns += bucata
-                except socket.timeout:
-                    break
+            # Trimite către backend
+            raspuns = trimite_catre_backend(cerere, backend)
             
-            sock.close()
-            return raspuns
-            
-        except ConnectionRefusedError:
-            backend.sanatos = False
-            backend.erori += 1
-            return self._raspuns_eroare(503, "Serviciu Indisponibil")
-            
+            if raspuns:
+                socket_client.sendall(raspuns)
+            else:
+                # Backend a eșuat - marchează ca nesănătos
+                backend.healthy = False
+                print(f"[EROARE] {backend.name} a eșuat, marcat ca nesănătos")
+                
+                raspuns = (
+                    b"HTTP/1.1 502 Bad Gateway\r\n"
+                    b"Content-Type: text/plain\r\n"
+                    b"Content-Length: 15\r\n\r\n"
+                    b"Backend eșuat"
+                )
+                socket_client.sendall(raspuns)
+                
         except Exception as e:
-            backend.erori += 1
-            return self._raspuns_eroare(502, f"Bad Gateway: {e}")
-    
-    def _raspuns_eroare(self, cod: int, mesaj: str) -> bytes:
-        """Construiește un răspuns de eroare."""
-        corp = f"Eroare {cod}: {mesaj}"
-        return (
-            f"HTTP/1.1 {cod} {mesaj}\r\n"
-            f"Content-Type: text/plain; charset=utf-8\r\n"
-            f"Content-Length: {len(corp)}\r\n"
-            f"Connection: close\r\n"
-            f"\r\n"
-            f"{corp}"
-        ).encode('utf-8')
+            print(f"[EROARE] {e}")
+        finally:
+            socket_client.close()
     
     def afiseaza_statistici(self):
-        """Afișează statisticile de distribuție."""
-        print("\n" + "=" * 50)
-        print("Statistici Echilibrare")
-        print("=" * 50)
+        """Afișează statistici periodic."""
+        def bucla_statistici():
+            while self.running:
+                time.sleep(30)
+                print("\n" + "=" * 50)
+                print("STATISTICI BACKEND-URI")
+                print("=" * 50)
+                for backend in self.balancer.backends:
+                    status = "✓" if backend.healthy else "✗"
+                    print(f"  {backend.name} [{status}]")
+                    print(f"    Cereri: {backend.cereri_totale}")
+                    print(f"    Succes: {backend.rată_succes:.1f}%")
+                    print(f"    Timp mediu: {backend.timp_mediu_răspuns*1000:.1f}ms")
+                print("=" * 50 + "\n")
         
-        total = sum(b.cereri_servite for b in self.backend_uri)
+        thread = threading.Thread(target=bucla_statistici, daemon=True)
+        thread.start()
+    
+    def run(self):
+        """Pornește echilibratorul."""
+        self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
-        for backend in self.backend_uri:
-            stare = "✓" if backend.sanatos else "✗"
-            procent = (backend.cereri_servite / total * 100) if total > 0 else 0
-            print(f"  {stare} {backend.nume} (:{backend.port})")
-            print(f"    Pondere: {backend.pondere}")
-            print(f"    Cereri:  {backend.cereri_servite} ({procent:.1f}%)")
-            print(f"    Erori:   {backend.erori}")
-        
-        print("=" * 50)
+        try:
+            self.socket_server.bind((self.host, self.port))
+            self.socket_server.listen(100)
+            self.running = True
+            
+            print("=" * 60)
+            print("Echilibrator de Încărcare - Tema 2")
+            print("=" * 60)
+            print(f"Ascultă pe http://{self.host}:{self.port}/")
+            print("Backend-uri configurate:")
+            for backend in self.balancer.backends:
+                print(f"  - {backend}")
+            print("-" * 60)
+            print("Apăsați Ctrl+C pentru oprire")
+            print()
+            
+            # Pornește thread-urile auxiliare
+            self.porneste_verificari_sanatate()
+            self.afiseaza_statistici()
+            
+            while self.running:
+                try:
+                    socket_client, adresa = self.socket_server.accept()
+                    thread = threading.Thread(
+                        target=self.gestioneaza_client,
+                        args=(socket_client, adresa),
+                        daemon=True
+                    )
+                    thread.start()
+                except socket.error:
+                    break
+                    
+        except KeyboardInterrupt:
+            print("\n[INFO] Oprire echilibrator...")
+        finally:
+            self.running = False
+            if self.socket_server:
+                self.socket_server.close()
 
 
-def gestioneaza_client(
-    socket_client: socket.socket,
-    adresa: tuple,
-    echilibrator: EchilibratorPonderat
-):
-    """Gestionează conexiunea unui client."""
-    try:
-        cerere = socket_client.recv(DIMENSIUNE_BUFFER)
-        
-        if not cerere:
-            return
-        
-        # Selectează backend
-        backend = echilibrator.selecteaza_backend()
-        
-        if backend is None:
-            # Niciun backend disponibil
-            raspuns = echilibrator._raspuns_eroare(503, "Toate backend-urile sunt indisponibile")
-            socket_client.sendall(raspuns)
-            print(f"[PROXY] {adresa[0]}:{adresa[1]} -> Niciun backend disponibil")
-            return
-        
-        print(f"[PROXY] {adresa[0]}:{adresa[1]} -> {backend.nume} (:{backend.port})")
-        
-        # Redirecționează cererea
-        raspuns = echilibrator.redirectioneaza_cerere(cerere, backend, adresa[0])
-        socket_client.sendall(raspuns)
-        
-    except Exception as e:
-        print(f"[EROARE] {adresa[0]}:{adresa[1]} - {e}")
-    finally:
-        socket_client.close()
-
+# =============================================================================
+# FUNCȚIA PRINCIPALĂ
+# =============================================================================
 
 def main():
     """Funcția principală."""
-    print("=" * 60)
-    print("Echilibrator de Încărcare cu Ponderi - Tema 2")
-    print("Cursul de REȚELE DE CALCULATOARE - ASE, Informatică Economică")
-    print("=" * 60)
-    print()
+    # Creează lista de backend-uri din configurație
+    backends = []
+    for (host, port), config in CONFIGURATIE_BACKEND.items():
+        backend = Backend(
+            host=host,
+            port=port,
+            weight=config.get("weight", 1),
+            name=config.get("name", f"{host}:{port}")
+        )
+        backends.append(backend)
     
-    # Creează echilibratorul
-    echilibrator = EchilibratorPonderat(CONFIGURARE_BACKEND)
-    
-    print("Backend-uri configurate:")
-    for backend in echilibrator.backend_uri:
-        print(f"  - {backend.nume}: {backend.gazda}:{backend.port} (pondere: {backend.pondere})")
-    print()
-    
-    # Pornește verificarea sănătății
-    echilibrator.porneste_verificare_sanatate()
-    print(f"[INFO] Verificare sănătate pornită (interval: {INTERVAL_VERIFICARE}s)")
-    
-    # Creează socket-ul
-    socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    
-    try:
-        socket_server.bind((GAZDA_ECHILIBRATOR, PORT_ECHILIBRATOR))
-        socket_server.listen(100)
-        
-        print(f"[INFO] Echilibrator pornit pe http://{GAZDA_ECHILIBRATOR}:{PORT_ECHILIBRATOR}/")
-        print()
-        print("Apăsați Ctrl+C pentru a opri și a vedea statisticile")
-        print("-" * 60)
-        
-        while True:
-            socket_client, adresa = socket_server.accept()
-            
-            fir = threading.Thread(
-                target=gestioneaza_client,
-                args=(socket_client, adresa, echilibrator)
-            )
-            fir.start()
-            
-    except KeyboardInterrupt:
-        print("\n[INFO] Oprire echilibrator...")
-        echilibrator.oprire.set()
-        echilibrator.afiseaza_statistici()
-    finally:
-        socket_server.close()
-        print("[INFO] Echilibrator oprit")
+    # Pornește echilibratorul
+    echilibrator = EchilibratorIncărcare(GAZDA, PORT_ECHILIBRATOR, backends)
+    echilibrator.run()
 
 
 if __name__ == "__main__":

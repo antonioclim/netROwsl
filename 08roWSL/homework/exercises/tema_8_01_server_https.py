@@ -1,29 +1,37 @@
 #!/usr/bin/env python3
 """
-Tema 1: Server HTTPS cu TLS
-Cursul de REȚELE DE CALCULATOARE - ASE, Informatică Economică | de Revolvix
+TEMA 1: Server HTTPS cu TLS
+===========================
+Disciplina: Rețele de Calculatoare, Săptămâna 8
+Nivel: Avansat
+Timp estimat: 90-120 minute
+Punctaj: 100 puncte
 
-Implementați un server care suportă atât HTTP cât și HTTPS.
+OBIECTIVE DE ÎNVĂȚARE:
+- Înțelegerea protocolului TLS și a certificatelor
+- Implementarea unui server HTTPS securizat
+- Gestionarea erorilor de conexiune TLS
 
-Cerințe:
-    1. Generați un certificat auto-semnat
-    2. Implementați context SSL/TLS
-    3. Rulați server dual-port (HTTP și HTTPS)
-    4. Gestionați erorile de conexiune
+CERINȚE:
+1. Generați un certificat auto-semnat (20 puncte)
+2. Implementați context SSL/TLS (30 puncte)
+3. Rulați server dual-port HTTP + HTTPS (20 puncte)
+4. Gestionați corect erorile (15 puncte)
+5. Calitatea codului și documentație (15 puncte)
 
-Generare certificat:
+GENERARE CERTIFICAT:
+    mkdir -p certs
     openssl req -x509 -newkey rsa:4096 \\
         -keyout certs/key.pem \\
         -out certs/cert.pem \\
         -days 365 -nodes \\
         -subj "/CN=localhost"
 
-Utilizare:
-    python tema_8_01_server_https.py
-
-Testare:
+TESTARE:
     curl http://localhost:8080/
-    curl -k https://localhost:8443/
+    curl -k https://localhost:8443/  # -k ignoră verificarea certificatului
+
+© Revolvix & ASE-CSIE București
 """
 
 import socket
@@ -31,9 +39,12 @@ import ssl
 import threading
 import mimetypes
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict
 
-# Configurație
+# =============================================================================
+# CONFIGURAȚIE
+# =============================================================================
+
 PORT_HTTP = 8080
 PORT_HTTPS = 8443
 GAZDA = "127.0.0.1"
@@ -46,123 +57,137 @@ FISIER_CERTIFICAT = RADACINA_PROIECT / "certs" / "cert.pem"
 FISIER_CHEIE = RADACINA_PROIECT / "certs" / "key.pem"
 
 
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE (30 puncte)
+# =============================================================================
+
 def creeaza_context_ssl() -> Optional[ssl.SSLContext]:
     """
-    TODO: Creează și configurează contextul SSL.
+    Creează și configurează contextul SSL pentru server.
     
     Returns:
-        Contextul SSL configurat sau None dacă nu se poate crea
+        Contextul SSL configurat sau None dacă certificatele nu există
     
-    Indicii:
-    - Folosiți ssl.SSLContext cu ssl.PROTOCOL_TLS_SERVER
-    - Setați versiunea minimă la TLS 1.2
-    - Încărcați certificatul și cheia
-    - Gestionați FileNotFoundError dacă certificatele nu există
+    🔮 PREDICȚIE: Ce se întâmplă dacă încerci să încarci un certificat
+       care nu corespunde cu cheia privată? Ce eroare aștepți?
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Creează un SSLContext pentru server TLS
+       context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    
+    2. Setează versiunea minimă TLS (securitate!)
+       context.minimum_version = ssl.TLSVersion.TLSv1_2
+       
+       De ce TLS 1.2? Versiunile mai vechi (SSLv3, TLS 1.0, TLS 1.1) au 
+       vulnerabilități cunoscute (POODLE, BEAST, etc.)
+    
+    3. Încarcă certificatul și cheia privată
+       context.load_cert_chain(
+           certfile=str(FISIER_CERTIFICAT),
+           keyfile=str(FISIER_CHEIE)
+       )
+    
+    4. Tratează FileNotFoundError (certificatele nu există)
+       - Afișează instrucțiuni pentru generare
+       - Returnează None
+    
+    5. Tratează ssl.SSLError (certificat/cheie invalide)
+       - Loghează eroarea
+       - Returnează None
+    
+    EXEMPLU RETURN:
+        >>> ctx = creeaza_context_ssl()
+        >>> ctx is not None  # dacă certificatele există
+        True
+        >>> ctx.minimum_version
+        <TLSVersion.TLSv1_2: 771>
+    
+    GREȘELI COMUNE:
+    ───────────────
+    ✗ Folosirea PROTOCOL_TLS în loc de PROTOCOL_TLS_SERVER
+    ✗ Uitarea să convertești Path la str pentru load_cert_chain
+    ✗ Nesetarea versiunii minime (permite versiuni nesigure)
     """
-    # CODUL DUMNEAVOASTRĂ AICI
-    try:
-        # Creează context pentru server TLS
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        
-        # Setează versiunea minimă
-        context.minimum_version = ssl.TLSVersion.TLSv1_2
-        
-        # Încarcă certificatul și cheia
-        context.load_cert_chain(
-            certfile=str(FISIER_CERTIFICAT),
-            keyfile=str(FISIER_CHEIE)
-        )
-        
-        return context
-        
-    except FileNotFoundError:
-        print("[EROARE] Fișierele de certificat nu au fost găsite!")
-        print(f"         Așteptate: {FISIER_CERTIFICAT}")
-        print(f"                    {FISIER_CHEIE}")
-        print()
-        print("Generați certificatul cu comanda:")
-        print("  mkdir -p certs")
-        print("  openssl req -x509 -newkey rsa:4096 \\")
-        print("    -keyout certs/key.pem \\")
-        print("    -out certs/cert.pem \\")
-        print("    -days 365 -nodes \\")
-        print('    -subj "/CN=localhost"')
-        return None
-    except ssl.SSLError as e:
-        print(f"[EROARE] Eroare SSL: {e}")
-        return None
+    
+    # TODO: Implementează crearea contextului SSL
+    # Scrie codul tău aici...
+    
+    raise NotImplementedError("TODO: Implementează creeaza_context_ssl()")
 
 
-def gestioneaza_cerere(date_cerere: bytes) -> Tuple[int, dict, bytes]:
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE (20 puncte parțial)
+# =============================================================================
+
+def gestioneaza_cerere(date_cerere: bytes) -> Tuple[int, Dict[str, str], bytes]:
     """
-    TODO: Procesează cererea HTTP și returnează răspunsul.
+    Procesează cererea HTTP și returnează răspunsul.
     
     Args:
-        date_cerere: Cererea HTTP brută
+        date_cerere: Cererea HTTP brută în bytes
     
     Returns:
         Tuplu (cod_stare, antete, corp)
     
-    Indicii:
-    - Parsați linia de cerere pentru a extrage calea
-    - Verificați dacă fișierul există
-    - Returnați codul de stare și conținutul corespunzător
+    🔮 PREDICȚIE: Ce cod de stare ar trebui să returneze serverul pentru:
+       - GET /index.html (fișier există)
+       - GET /inexistent.txt (fișier nu există)
+       - GET /../../../etc/passwd (path traversal)
+       - POST /index.html (metodă nepermisă)
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Decodifică cererea din bytes în string
+       text_cerere = date_cerere.decode('utf-8', errors='replace')
+    
+    2. Extrage prima linie (request line)
+       prima_linie = text_cerere.split('\\r\\n')[0]
+       parti = prima_linie.split(' ')  # ['GET', '/path', 'HTTP/1.1']
+    
+    3. Validează cererea
+       - Verifică că are cel puțin 2 părți
+       - Verifică metoda (doar GET și HEAD permise)
+    
+    4. Previne path traversal (SECURITATE!)
+       - Verifică dacă '..' apare în cale
+       - Returnează 403 Forbidden dacă da
+    
+    5. Rezolvă calea fișierului
+       - '/' → 'index.html'
+       - Construiește calea completă
+    
+    6. Verifică existența și citește fișierul
+       - 404 dacă nu există
+       - 403 dacă e director
+       - 200 + conținut dacă e fișier valid
+    
+    7. Determină Content-Type
+       tip_mime, _ = mimetypes.guess_type(str(cale_fisier))
+    
+    GREȘELI COMUNE:
+    ───────────────
+    ✗ Uitarea să tratezi cazul când calea e doar '/'
+    ✗ Verificarea path traversal după rezolvarea căii (prea târziu!)
+    ✗ Citirea fișierului în mod text în loc de binar
     """
-    # CODUL DUMNEAVOASTRĂ AICI
-    try:
-        # Decodifică cererea
-        text_cerere = date_cerere.decode('utf-8', errors='replace')
-        prima_linie = text_cerere.split('\r\n')[0]
-        parti = prima_linie.split(' ')
-        
-        if len(parti) < 2:
-            return 400, {}, b"Cerere invalida"
-        
-        metoda = parti[0]
-        cale = parti[1]
-        
-        if metoda not in ["GET", "HEAD"]:
-            return 405, {"Allow": "GET, HEAD"}, b"Metoda nepermisa"
-        
-        # Rezolvă calea fișierului
-        cale_relativa = cale.lstrip('/')
-        if not cale_relativa:
-            cale_relativa = "index.html"
-        
-        # Previne traversarea directoarelor
-        if '..' in cale_relativa:
-            return 403, {}, b"Interzis"
-        
-        cale_fisier = RADACINA_DOCUMENTE / cale_relativa
-        
-        if not cale_fisier.exists():
-            return 404, {}, b"Nu a fost gasit"
-        
-        if not cale_fisier.is_file():
-            return 403, {}, b"Interzis"
-        
-        # Citește fișierul
-        continut = cale_fisier.read_bytes()
-        tip_mime, _ = mimetypes.guess_type(str(cale_fisier))
-        if tip_mime is None:
-            tip_mime = "application/octet-stream"
-        
-        antete = {
-            "Content-Type": tip_mime,
-            "Content-Length": str(len(continut))
-        }
-        
-        if metoda == "HEAD":
-            return 200, antete, b""
-        
-        return 200, antete, continut
-        
-    except Exception as e:
-        return 500, {}, f"Eroare server: {e}".encode()
+    
+    # TODO: Implementează procesarea cererii
+    # Scrie codul tău aici...
+    
+    raise NotImplementedError("TODO: Implementează gestioneaza_cerere()")
 
 
-def construieste_raspuns(cod_stare: int, antete: dict, corp: bytes) -> bytes:
-    """Construiește răspunsul HTTP."""
+# =============================================================================
+# COD FURNIZAT - POȚI MODIFICA DACĂ DOREȘTI
+# =============================================================================
+
+def construieste_raspuns(cod_stare: int, antete: Dict[str, str], corp: bytes) -> bytes:
+    """
+    Construiește răspunsul HTTP complet.
+    
+    Cod furnizat - poți modifica dacă dorești să adaugi headers suplimentare.
+    """
     motive = {
         200: "OK",
         400: "Bad Request",
@@ -186,7 +211,7 @@ def construieste_raspuns(cod_stare: int, antete: dict, corp: bytes) -> bytes:
 
 
 def gestioneaza_client(socket_client: socket.socket, adresa: tuple, protocol: str):
-    """Gestionează conexiunea unui client."""
+    """Gestionează conexiunea unui client. Cod furnizat."""
     try:
         date_cerere = socket_client.recv(DIMENSIUNE_BUFFER)
         
@@ -208,82 +233,96 @@ def gestioneaza_client(socket_client: socket.socket, adresa: tuple, protocol: st
         socket_client.close()
 
 
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE (10 puncte)
+# =============================================================================
+
 def porneste_server_http() -> None:
     """
-    TODO: Pornește serverul HTTP pe PORT_HTTP.
+    Pornește serverul HTTP pe PORT_HTTP.
     
-    Indicii:
-    - Creați un socket TCP
-    - Legați la (GAZDA, PORT_HTTP)
-    - Acceptați conexiuni într-o buclă
-    - Gestionați fiecare client într-un fir separat
+    🔮 PREDICȚIE: De ce setăm SO_REUSEADDR pe socket? Ce se întâmplă
+       dacă nu-l setăm și repornim serverul rapid?
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Creează socket TCP
+       socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+    2. Setează opțiunea SO_REUSEADDR (permite refolosirea portului)
+       socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
+    3. Leagă socket-ul la adresă și port
+       socket_server.bind((GAZDA, PORT_HTTP))
+    
+    4. Începe să asculte (queue de 100 conexiuni)
+       socket_server.listen(100)
+    
+    5. Bucla principală: acceptă conexiuni
+       while True:
+           socket_client, adresa = socket_server.accept()
+           fir = threading.Thread(target=gestioneaza_client, args=(...))
+           fir.start()
     """
-    # CODUL DUMNEAVOASTRĂ AICI
-    socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
-    socket_server.bind((GAZDA, PORT_HTTP))
-    socket_server.listen(100)
+    # TODO: Implementează serverul HTTP
+    # Scrie codul tău aici...
     
-    print(f"[HTTP] Server pornit pe http://{GAZDA}:{PORT_HTTP}/")
-    
-    while True:
-        try:
-            socket_client, adresa = socket_server.accept()
-            fir = threading.Thread(
-                target=gestioneaza_client,
-                args=(socket_client, adresa, "HTTP")
-            )
-            fir.start()
-        except Exception as e:
-            print(f"[EROARE HTTP] {e}")
+    raise NotImplementedError("TODO: Implementează porneste_server_http()")
 
+
+# =============================================================================
+# TODO: IMPLEMENTEAZĂ ACEASTĂ FUNCȚIE (20 puncte)
+# =============================================================================
 
 def porneste_server_https(context: ssl.SSLContext) -> None:
     """
-    TODO: Pornește serverul HTTPS pe PORT_HTTPS.
+    Pornește serverul HTTPS pe PORT_HTTPS.
     
     Args:
         context: Contextul SSL configurat
     
-    Indicii:
-    - Similar cu serverul HTTP
-    - Folosiți context.wrap_socket() pentru a împacheta socket-ul
-    - Setați server_side=True
+    🔮 PREDICȚIE: Ce se întâmplă dacă un client încearcă să se conecteze
+       cu HTTP simplu (nu HTTPS) la portul 8443? Ce eroare va apărea?
+    
+    PAȘI DE IMPLEMENTARE:
+    ─────────────────────
+    1. Similar cu porneste_server_http() - creează și leagă socket-ul
+    
+    2. În bucla de accept, împachetează socket-ul cu TLS:
+       try:
+           socket_ssl = context.wrap_socket(
+               socket_client,
+               server_side=True  # IMPORTANT: suntem server, nu client!
+           )
+       except ssl.SSLError as e:
+           print(f"Handshake eșuat: {e}")
+           socket_client.close()
+           continue
+    
+    3. Gestionează clientul cu socket_ssl (nu socket_client!)
+    
+    DIFERENȚA CHEIE:
+    ────────────────
+    HTTP:  accept() → gestionează direct
+    HTTPS: accept() → wrap_socket() → gestionează socket-ul TLS
+    
+    GREȘELI COMUNE:
+    ───────────────
+    ✗ Uitarea server_side=True (wrap_socket presupune client implicit)
+    ✗ Trimiterea socket-ului ne-împachetat la handler
+    ✗ Neprinderea ssl.SSLError din wrap_socket
     """
-    # CODUL DUMNEAVOASTRĂ AICI
-    socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
-    socket_server.bind((GAZDA, PORT_HTTPS))
-    socket_server.listen(100)
+    # TODO: Implementează serverul HTTPS
+    # Scrie codul tău aici...
     
-    print(f"[HTTPS] Server pornit pe https://{GAZDA}:{PORT_HTTPS}/")
-    
-    while True:
-        try:
-            socket_client, adresa = socket_server.accept()
-            
-            # Împachetează socket-ul cu TLS
-            try:
-                socket_ssl = context.wrap_socket(
-                    socket_client,
-                    server_side=True
-                )
-                
-                fir = threading.Thread(
-                    target=gestioneaza_client,
-                    args=(socket_ssl, adresa, "HTTPS")
-                )
-                fir.start()
-                
-            except ssl.SSLError as e:
-                print(f"[EROARE SSL] Handshake eșuat: {e}")
-                socket_client.close()
-                
-        except Exception as e:
-            print(f"[EROARE HTTPS] {e}")
+    raise NotImplementedError("TODO: Implementează porneste_server_https()")
 
+
+# =============================================================================
+# FUNCȚIA PRINCIPALĂ - NU MODIFICA
+# =============================================================================
 
 def main():
     """Funcția principală."""
@@ -293,15 +332,14 @@ def main():
     print("=" * 60)
     print()
     
-    # Creează directorul pentru certificate dacă nu există
     (RADACINA_PROIECT / "certs").mkdir(exist_ok=True)
     
-    # Creează contextul SSL
     context = creeaza_context_ssl()
     
     if context is None:
         print()
         print("[INFO] Serverul va rula doar în mod HTTP.")
+        print("[INFO] Generează certificatul pentru a activa HTTPS.")
         print()
     
     print(f"Rădăcina documentelor: {RADACINA_DOCUMENTE}")
@@ -310,11 +348,9 @@ def main():
     print("-" * 60)
     
     try:
-        # Pornește serverul HTTP într-un fir separat
         fir_http = threading.Thread(target=porneste_server_http, daemon=True)
         fir_http.start()
         
-        # Pornește serverul HTTPS dacă avem context valid
         if context:
             fir_https = threading.Thread(
                 target=porneste_server_https, 
@@ -323,7 +359,6 @@ def main():
             )
             fir_https.start()
         
-        # Menține programul activ
         while True:
             threading.Event().wait(1)
             

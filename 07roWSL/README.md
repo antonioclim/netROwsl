@@ -913,6 +913,98 @@ Capturile de pachete servesc drept evidență obiectivă a comportamentului reț
 - Documentația oficială Netfilter/iptables: https://netfilter.org/documentation/
 - Ghidul utilizatorului Wireshark: https://www.wireshark.org/docs/
 
+---
+
+## 👥 Exerciții în Perechi (Pair Programming)
+
+Aceste exerciții sunt proiectate pentru lucrul în echipe de doi studenți, cu roluri alternante de **Driver** (operează tastatura) și **Navigator** (ghidează și verifică).
+
+### Exercițiul P1: Detectiv de Pachete (20 minute)
+
+**Obiectiv:** Identificarea și interpretarea handshake-ului TCP în Wireshark.
+
+**Roluri:**
+- **Driver:** Operează Wireshark și generează trafic
+- **Navigator:** Ghidează analiza și explică pachetele
+
+**Pași:**
+1. Driver-ul pornește captura Wireshark pe interfața `vEthernet (WSL)`
+2. Driver-ul rulează: `python src/apps/client_tcp.py --host localhost --port 9090 --mesaj "Test perechi"`
+3. Driver-ul oprește captura
+4. Navigator-ul identifică și explică fiecare pachet din handshake:
+   - "Acesta este SYN-ul de la client..."
+   - "Serverul răspunde cu SYN-ACK..."
+   - "Clientul confirmă cu ACK..."
+5. **Schimbare roluri:** Repetați pentru trafic UDP
+
+**Criterii de succes:**
+- Navigator-ul poate explica diferența dintre SYN și SYN-ACK fără ajutor
+- Driver-ul poate aplica filtrul corect (`tcp.port == 9090`) independent
+
+### Exercițiul P2: Firewall Challenge (15 minute)
+
+**Obiectiv:** Identificarea tipului de blocare (REJECT vs DROP) doar din evidența de rețea.
+
+**Pași:**
+1. Navigator-ul iese din cameră sau întoarce privirea
+2. Driver-ul aplică **secret** unul din profile:
+   - `python src/apps/firewallctl.py aplica blocare_tcp_9090` (REJECT)
+   - `python src/apps/firewallctl.py aplica blocare_tcp_drop` (DROP)
+3. Navigator-ul revine și analizează captura Wireshark
+4. Navigator-ul trebuie să determine care profil a fost aplicat
+5. Navigator-ul explică evidența: "Văd RST, deci e REJECT" sau "Văd doar SYN-uri repetate, deci e DROP"
+
+**Schimbare roluri:** Driver-ul devine Navigator și ghicește alt profil.
+
+### Exercițiul P3: Niveluri de Filtrare (15 minute)
+
+**Obiectiv:** Diferențierea filtrării L3-L4 (iptables) de filtrarea L7 (aplicație).
+
+**Pași:**
+1. Driver-ul pornește filtrul de pachete la nivel aplicație:
+   `docker compose --profile proxy up -d`
+2. Navigator-ul ghidează testele:
+   - "Trimite o cerere normală la portul 8888"
+   - "Acum trimite o cerere cu cuvântul blocat"
+3. Driver-ul execută și capturează ambele scenarii
+4. Navigator-ul explică diferența în captură:
+   - "În ambele cazuri handshake-ul TCP reușește..."
+   - "Blocarea e la nivel aplicație - vedem HTTP 403..."
+
+---
+
+## 📚 Resurse Suplimentare
+
+### Documentație Oficială
+
+| Resursă | Link | Descriere |
+|---------|------|-----------|
+| Wireshark User's Guide | https://www.wireshark.org/docs/wsug_html_chunked/ | Ghid complet Wireshark |
+| iptables Tutorial | https://www.frozentux.net/iptables-tutorial/iptables-tutorial.html | Tutorial detaliat iptables |
+| Docker Networking | https://docs.docker.com/network/ | Rețele Docker oficiale |
+| tcpdump Manual | https://www.tcpdump.org/manpages/tcpdump.1.html | Referință tcpdump |
+
+### RFC-uri Fundamentale
+
+| RFC | Titlu | Relevanță |
+|-----|-------|-----------|
+| RFC 793 | Transmission Control Protocol | Handshake TCP, RST, FIN |
+| RFC 768 | User Datagram Protocol | Comportament UDP |
+| RFC 792 | Internet Control Message Protocol | Mesaje ICMP (REJECT) |
+
+### Cărți Recomandate
+
+- **Kurose & Ross** - "Computer Networking: A Top-Down Approach" (Capitolele 3-4)
+- **Sanders, C.** - "Practical Packet Analysis" (pentru Wireshark)
+- **Purdy, G.** - "Linux iptables Pocket Reference"
+
+### Video Tutorials
+
+- Wireshark 101 - Chris Greer (YouTube playlist)
+- NetworkChuck - iptables Crash Course
+
+---
+
 ## Diagrama Arhitecturii
 
 ```
