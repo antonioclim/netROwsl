@@ -6,6 +6,11 @@ Laborator Rețele de Calculatoare — ASE, Informatică Economică | de Revolvix
 Acest script rulează demonstrații automate pentru prezentare.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -14,6 +19,11 @@ from pathlib import Path
 from datetime import datetime
 
 # Adaugă rădăcina proiectului în path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -26,6 +36,11 @@ from scripts.utils.network_utils import (
 
 logger = configureaza_logger("run_demo")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def demo_echilibrare_sarcina():
     """Demonstrează distribuția cererilor pe backend-uri."""
@@ -229,6 +244,11 @@ def ruleaza_demo_complet():
     logger.info("=" * 60)
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     parser = argparse.ArgumentParser(
         description="Rulează demonstrații pentru Săptămâna 11"
@@ -283,6 +303,11 @@ def main():
         logger.error(f"Eroare la rularea demonstrației: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

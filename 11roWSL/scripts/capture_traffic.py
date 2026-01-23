@@ -6,6 +6,11 @@ Laborator Rețele de Calculatoare — ASE, Informatică Economică | de Revolvix
 Acest script ajută la capturarea traficului de rețea pentru analiză.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -15,6 +20,11 @@ from pathlib import Path
 from datetime import datetime
 
 # Adaugă rădăcina proiectului în path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -25,6 +35,11 @@ logger = configureaza_logger("capture_traffic")
 # Variabilă globală pentru procesul de captură
 proces_captura = None
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def handler_semnal(signum, frame):
     """Handler pentru oprirea grațioasă a capturii."""
@@ -171,6 +186,11 @@ def analizeaza_captura(fisier_pcap: Path):
     logger.info(f"Pachete DNS: {pachete_dns}")
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     global proces_captura
     
@@ -282,6 +302,11 @@ def main():
         logger.error(f"Eroare la captură: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())
