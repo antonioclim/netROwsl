@@ -12,6 +12,11 @@ Utilizare:
     python scripts/ruleaza_demo.py --demo toate
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -20,6 +25,11 @@ import threading
 from pathlib import Path
 
 # Adaugă rădăcina proiectului în PATH
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -27,6 +37,11 @@ from scripts.utils.logger import configureaza_logger
 
 logger = configureaza_logger("ruleaza_demo")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def ruleaza_in_container(container: str, comanda: str, timeout: int = 30) -> tuple:
     """
@@ -274,6 +289,11 @@ def demo_toate():
     demo_tunel()
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Punctul principal de intrare."""
     parser = argparse.ArgumentParser(
@@ -324,6 +344,11 @@ def main():
     
     return 0
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

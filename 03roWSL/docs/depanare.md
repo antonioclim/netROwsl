@@ -436,3 +436,76 @@ docker exec week3_client tcpdump -i eth0
 ---
 
 *Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix*
+
+---
+
+## Probleme Suplimentare
+
+### Receiver primește mesaje duplicate
+
+**Cauză:** Loopback multicast este activat (implicit pe majoritatea sistemelor).
+
+**Soluție:**
+```python
+# Dezactivează primirea propriilor mesaje
+sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
+```
+
+---
+
+### Container nu poate accesa fișierele din volume
+
+**Cauză:** Permisiuni sau line endings Windows (CRLF).
+
+**Verificare:**
+```bash
+docker exec week3_client ls -la /app/src/
+docker exec week3_client file /app/src/exercises/*.py
+```
+
+**Soluție:**
+```bash
+# Fix permisiuni
+chmod +x scripts/*.py
+
+# Fix line endings (în WSL)
+find . -name "*.py" -exec sed -i 's/\r$//' {} \;
+```
+
+---
+
+### Codul funcționează pe Linux dar nu pe Windows
+
+**Cauză probabilă:** Diferențe de implementare socket între OS-uri.
+
+**Verificări comune:**
+1. Bind la adresa multicast - funcționează pe Linux, NU pe Windows
+2. Permisiuni broadcast - necesită Administrator pe Windows
+3. Calea fișierelor - `\` vs `/`
+
+**Soluție pentru bind multicast portabil:**
+```python
+# NU așa (doar Linux):
+sock.bind(('239.0.0.1', 5008))
+
+# CI așa (toate platformele):
+sock.bind(('', 5008))
+```
+
+---
+
+### Wireshark nu capturează trafic din containere
+
+**Cauză:** Interfața greșită selectată.
+
+**Soluție:**
+1. În Wireshark, selectează **vEthernet (WSL)** sau **vEthernet (WSL) (Hyper-V Firewall)**
+2. NU selecta Ethernet sau Wi-Fi - acestea sunt pentru traficul extern
+3. Dacă tot nu vezi trafic, verifică că generezi trafic ÎN TIMPUL capturii
+
+**Verificare alternativă cu tcpdump:**
+```bash
+docker exec week3_client tcpdump -i eth0 -c 10
+# Dacă vezi pachete aici dar nu în Wireshark, problema e la interfața selectată
+```
+

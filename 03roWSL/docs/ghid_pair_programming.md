@@ -1,0 +1,47 @@
+# 👥 Ghid Pair Programming — Săptămâna 3
+## Rețele de Calculatoare — ASE, CSIE | by Revolvix
+
+---
+
+## Ce este Pair Programming?
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         PAIR PROGRAMMING                                     │
+├───────────────────────────────────┬─────────────────────────────────────────┤
+│           DRIVER 🚗               │           NAVIGATOR 🗺️                 │
+│  (la tastatură)                   │  (observă și ghidează)                  │
+├───────────────────────────────────┼─────────────────────────────────────────┤
+│  • Scrie codul                    │  • Verifică sintaxa                     │
+│  • Explică ce face                │  • Gândește la pasul următor            │
+│  • Implementează ideile           │  • Propune îmbunătățiri                 │
+└───────────────────────────────────┴─────────────────────────────────────────┘
+```
+
+**Reguli:** Schimbați rolurile la fiecare **10 minute**!
+
+---
+
+## Exerciții Pair Programming — Săptămâna 3
+
+
+### PP1: Implementare Select() (25 min)
+
+**Obiectiv:** Server care gestionează multiple conexiuni cu select().
+
+**Cerințe:**
+1. Server TCP care acceptă 3 clienți simultan
+2. Folosește select() pentru multiplexare
+3. Echo înapoi mesajele primite
+
+**Driver începe:** Structura select() și socket setup
+**Navigator:** Logica de gestionare a listei de clienți
+
+
+---
+
+## Reflecție post-exercițiu
+
+1. Ce ai învățat de la partenerul tău?
+2. Care rol a fost mai dificil?
+3. Ce greșeală ați evitat datorită pair programming?

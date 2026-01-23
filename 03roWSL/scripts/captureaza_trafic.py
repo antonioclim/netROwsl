@@ -10,6 +10,11 @@ Utilizare:
     python scripts/captureaza_trafic.py --container client --filtru "port 5007" --output captura.pcap
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -19,6 +24,11 @@ from pathlib import Path
 from datetime import datetime
 
 # Adaugă rădăcina proiectului în PATH
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -26,6 +36,11 @@ from scripts.utils.logger import configureaza_logger
 
 logger = configureaza_logger("captureaza_trafic")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifica_container(nume: str) -> bool:
     """Verifică dacă containerul există și rulează."""
@@ -140,6 +155,11 @@ def porneste_captura(container: str, interfata: str, filtru: str,
         return False
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Punctul principal de intrare."""
     parser = argparse.ArgumentParser(
@@ -217,6 +237,11 @@ def main():
     else:
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

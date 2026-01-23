@@ -12,6 +12,11 @@ Utilizare:
     python3 scripts/porneste_lab.py [--status] [--rebuild] [--broadcast]
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -20,6 +25,11 @@ import socket
 from pathlib import Path
 
 # Adaugă rădăcina proiectului în PATH
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -71,6 +81,11 @@ PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
 PORTAINER_USER = "stud"
 PORTAINER_PASS = "studstudstud"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifica_docker_activ() -> bool:
     """Verifică dacă Docker este activ și funcțional."""
@@ -231,6 +246,11 @@ def afiseaza_status(profiluri: list = None):
     print("\n" + "=" * 60)
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Punctul principal de intrare."""
     parser = argparse.ArgumentParser(
@@ -383,6 +403,11 @@ NOTĂ: Portainer rulează global pe portul 9000 și nu este gestionat de acest s
             traceback.print_exc()
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

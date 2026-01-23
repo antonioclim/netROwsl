@@ -255,7 +255,7 @@ docker exec -it week3_client python3 /app/homework/exercises/tema_3_01.py
 
 ---
 
-## 🤝 Exerciții pentru Perechi (Pair Programming)
+##  Exerciții pentru Perechi (Pair Programming)
 
 Aceste exerciții sunt concepute pentru lucru în echipă de 2 persoane.
 

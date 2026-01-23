@@ -11,6 +11,7 @@
 5. [Tunelarea TCP](#tunelarea-tcp)
 6. [Opțiuni Socket Relevante](#opțiuni-socket-relevante)
 7. [Protocolul IGMP](#protocolul-igmp)
+8. [Diagrame de Referință](#diagrame-de-referință)
 
 ---
 
@@ -18,31 +19,40 @@
 
 Comunicarea în rețele de calculatoare se poate clasifica în trei moduri fundamentale bazate pe relația dintre emițător și receptor(i):
 
+### Comparație Vizuală
+
+```
+UNICAST (1:1)              BROADCAST (1:ALL)          MULTICAST (1:MANY)
+┌───┐                      ┌───┐                      ┌───┐
+│ S │──────►┌───┐          │ S │──┬──►┌───┐          │ S │──┬──►┌───┐ ✓ membru
+└───┘       │ R │          └───┘  │   │R1 │          └───┘  │   │R1 │
+            └───┘                 │   └───┘                 │   └───┘
+                                  ├──►┌───┐                 └──►┌───┐ ✓ membru
+                                  │   │R2 │                     │R2 │
+                                  │   └───┘                     └───┘
+                                  └──►┌───┐                     ┌───┐ ✗ nu e membru
+                                      │R3 │                     │R3 │
+                                      └───┘                     └───┘
+                            Toți primesc              Doar membrii primesc
+```
+
 ### Unicast (Unul-la-Unul)
+
 Comunicarea punct-la-punct între un singur emițător și un singur receptor. Aceasta este forma cea mai comună de comunicare în Internet, folosită de protocoale precum HTTP, SSH și majoritatea aplicațiilor client-server.
 
-**Caracteristici:**
-- Eficient pentru comunicare individualizată
-- Scalabilitate limitată pentru distribuția conținutului către mulți receptori
-- Fiecare destinatar necesită o copie separată a datelor
+Caracteristici: eficient pentru comunicare individualizată, scalabilitate limitată pentru distribuția conținutului către mulți receptori, fiecare destinatar necesită o copie separată a datelor.
 
 ### Broadcast (Unul-la-Toți)
+
 Un emițător transmite către toate dispozitivele dintr-un segment de rețea, indiferent dacă acestea doresc sau nu să primească datele.
 
-**Caracteristici:**
-- Simplu de implementat
-- Nu necesită cunoașterea prealabilă a receptorilor
-- Limitat la rețeaua locală (nu traversează routere)
-- Poate genera trafic inutil dacă majoritatea dispozitivelor nu sunt interesate
+Caracteristici: simplu de implementat, nu necesită cunoașterea prealabilă a receptorilor, limitat la rețeaua locală (nu traversează routere), poate genera trafic inutil dacă majoritatea dispozitivelor nu sunt interesate.
 
 ### Multicast (Unul-la-Mulți)
+
 Un emițător transmite către un grup selectat de receptori care s-au înscris pentru a primi datele.
 
-**Caracteristici:**
-- Eficient pentru distribuție unul-la-mulți
-- Scalabil - emițătorul trimite o singură copie
-- Poate traversa routere (cu configurare corespunzătoare)
-- Receptorii se înscriu/dezabonează dinamic
+Caracteristici: eficient pentru distribuție unul-la-mulți, scalabil (emițătorul trimite o singură copie), poate traversa routere (cu configurare corespunzătoare), receptorii se înscriu/dezabonează dinamic.
 
 ---
 
@@ -60,6 +70,7 @@ Un emițător transmite către un grup selectat de receptori care s-au înscris 
 | **TTL** | Bilet de metrou valabil N stații | La fiecare router, "o stație" se consumă |
 | **SO_BROADCAST** | Permis de megafon | Fără el, sistemul refuză să "strige" |
 | **Port UDP** | Cutia poștală a apartamentului | Adresa IP e clădirea, portul e apartamentul |
+| **Tunel TCP** | Poștaș care redirecționează | Primește scrisori și le trimite mai departe |
 
 Revino la aceste analogii când întâmpini dificultăți cu conceptele tehnice.
 
@@ -73,8 +84,8 @@ Există două tipuri de adrese broadcast în IPv4:
 
 **Broadcast Limitat (255.255.255.255)**
 - Nu traversează niciodată routerele
-- Utilizat când expeditorul nu cunoaște configurația rețelei locale
-- Procesează de stratul de legătură de date prin adresa MAC ff:ff:ff:ff:ff:ff
+- Folosit când expeditorul nu cunoaște configurația rețelei locale
+- Procesat de stratul de legătură de date prin adresa MAC ff:ff:ff:ff:ff:ff
 
 **Broadcast Direcționat**
 - Format: adresa de rețea cu toți biții de host setați la 1
@@ -96,15 +107,33 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 sock.sendto(b"Mesaj broadcast", ('255.255.255.255', 5007))
 ```
 
+### Receptor Broadcast
+
+```python
+import socket
+
+# Creează socket UDP
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+# IMPORTANT: Bind la 0.0.0.0, NU la IP specific!
+sock.bind(('0.0.0.0', 5007))
+
+# Primește mesaje
+data, addr = sock.recvfrom(1024)
+```
+
+⚠️ **Atenție:** Dacă faci bind la IP-ul specific al mașinii (ex: 192.168.1.5), NU vei primi mesajele broadcast!
+
 ### Când să Folosești Broadcast
 
-✓ Descoperirea serviciilor în rețeaua locală (ex: DHCP)
-✓ Anunțuri către toate dispozitivele
-✓ Protocoale de sincronizare simplă
+✓ Descoperirea serviciilor în rețeaua locală (ex: DHCP)  
+✓ Anunțuri către toate dispozitivele  
+✓ Protocoale de sincronizare simplă  
 
-✗ Nu pentru comunicare regulată cu destinatari cunoscuți
-✗ Nu pentru date sensibile (toată lumea le poate vedea)
-✗ Nu când scalabilitatea este importantă
+✗ Nu pentru comunicare regulată cu destinatari cunoscuți  
+✗ Nu pentru date sensibile (toată lumea le poate vedea)  
+✗ Nu când scalabilitatea este importantă  
 
 ---
 
@@ -123,7 +152,7 @@ Multicast-ul folosește intervalul de adrese 224.0.0.0 - 239.255.255.255:
 | 233.0.0.0 - 233.255.255.255 | GLOP Block |
 | 239.0.0.0 - 239.255.255.255 | Administratively Scoped |
 
-**Pentru teste și aplicații locale, folosiți intervalul 239.x.x.x**
+**Pentru teste și aplicații locale, folosește intervalul 239.x.x.x**
 
 ### Adresa MAC Multicast
 
@@ -132,7 +161,7 @@ Adresele IP multicast se mapează la adrese MAC speciale:
 - Ultimii 23 de biți: ultimii 23 de biți ai adresei IP multicast
 - Exemplu: 239.0.0.1 → 01:00:5E:00:00:01
 
-### Implementare în Python
+### Implementare în Python - Receptor
 
 ```python
 import socket
@@ -141,6 +170,8 @@ import struct
 # Creează socket UDP
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+# Bind la toate interfețele (portabil!)
 sock.bind(('', 5008))
 
 # Construiește cererea de membership
@@ -152,20 +183,37 @@ mreq = struct.pack(
 
 # Înscrie în grup - trimite IGMP Membership Report
 sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+# Primește mesaje
+data, addr = sock.recvfrom(1024)
+```
+
+### Implementare în Python - Emițător
+
+```python
+import socket
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+# Setează TTL (1 = doar rețea locală)
+sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
+
+# Trimite la grupul multicast
+sock.sendto(b"Mesaj multicast", ('239.0.0.1', 5008))
 ```
 
 ### TTL (Time To Live) pentru Multicast
 
 TTL-ul controlează propagarea pachetelor multicast:
 
-| TTL | Scop |
-|-----|------|
-| 0 | Doar localhost |
-| 1 | Doar rețeaua locală |
-| 32 | Organizație |
-| 64 | Regiune |
-| 128 | Continent |
-| 255 | Nelimitat |
+| TTL | Scop | Descriere |
+|-----|------|-----------|
+| 0 | Doar localhost | Pachetul nu părăsește mașina |
+| 1 | Doar rețeaua locală | Nu traversează routere |
+| 32 | Organizație | Traversează routere locale |
+| 64 | Regiune | Traversează routere regionale |
+| 128 | Continent | Propagare continentală |
+| 255 | Nelimitat | Propagare globală (teoretic) |
 
 ---
 
@@ -173,13 +221,7 @@ TTL-ul controlează propagarea pachetelor multicast:
 
 ### Concept
 
-Tunelarea TCP implică acceptarea conexiunilor pe un port și redirecționarea transparentă a traficului către o altă destinație. Aceasta este fundamentală pentru:
-
-- **Proxy-uri**: Intermediari pentru acces la Internet
-- **Load Balancere**: Distribuția sarcinii între servere
-- **Bastion Hosts**: Puncte de acces securizate
-- **VPN-uri**: Rețele private virtuale
-- **Port Forwarding**: SSH tunneling, NAT traversal
+Tunelarea TCP implică acceptarea conexiunilor pe un port și redirecționarea transparentă a traficului către o altă destinație. Aceasta este fundamentală pentru proxy-uri, load balancere, bastion hosts, VPN-uri, și port forwarding (SSH tunneling, NAT traversal).
 
 ### Arhitectura unui Tunel
 
@@ -194,29 +236,41 @@ Conn 2: Tunelul se conectează la server
 Datele sunt relayate bidirecțional între cele două conexiuni
 ```
 
+**Important:** Serverul vede IP-ul tunelului ca sursă, NU IP-ul clientului original.
+
 ### Implementare Simplificată
 
 ```python
-def relay_date(sursa, destinatie):
-    """Relay date între două socket-uri."""
-    while True:
-        date = sursa.recv(4096)
-        if not date:
-            break
-        destinatie.sendall(date)
+import threading
 
-# Pentru relay bidirecțional, folosiți două thread-uri:
-# Thread 1: relay_date(client, server)
-# Thread 2: relay_date(server, client)
+def relay_date(sursa, destinatie, nume):
+    """Relay date între două socket-uri."""
+    try:
+        while True:
+            date = sursa.recv(4096)
+            if not date:
+                break
+            destinatie.sendall(date)
+    except Exception as e:
+        pass
+    finally:
+        sursa.close()
+        destinatie.close()
+
+# Pentru relay bidirecțional, folosește două thread-uri:
+t1 = threading.Thread(target=relay_date, args=(client, server, "C→S"))
+t2 = threading.Thread(target=relay_date, args=(server, client, "S→C"))
+t1.start()
+t2.start()
 ```
 
 ### Considerații de Implementare
 
-1. **Bidirecționalitate**: Datele circulă în ambele direcții
-2. **Gestionarea Deconectărilor**: Când o parte închide conexiunea
-3. **Buffering**: Gestionarea diferențelor de viteză
-4. **Concurență**: Un thread per direcție sau I/O asincron
-5. **Timeout-uri**: Pentru conexiuni blocate
+1. **Bidirecționalitate**: Datele circulă în ambele direcții simultan
+2. **Gestionarea Deconectărilor**: Când o parte închide conexiunea, trebuie închisă și cealaltă
+3. **Buffering**: Gestionarea diferențelor de viteză între conexiuni
+4. **Concurență**: Un thread per direcție sau I/O asincron (select/poll/asyncio)
+5. **Timeout-uri**: Pentru conexiuni blocate sau abandonate
 
 ---
 
@@ -273,18 +327,22 @@ Internet Group Management Protocol (IGMP) gestionează apartenența la grupuri m
 2. **Membership Report (0x16)**: Stația anunță apartenența la grup
 3. **Leave Group (0x17)**: Stația anunță părăsirea grupului
 
-### Flux de Operații
+### Flux de Operații IGMP
 
 ```
-Înscriere în grup:
-Stație → Router: IGMP Membership Report
-
-Verificare periodică:
-Router → Rețea: IGMP Membership Query (la fiecare ~60s)
-Stații → Router: IGMP Membership Report (pentru grupurile active)
-
-Părăsire grup:
-Stație → Router: IGMP Leave Group
+┌─────────┐                    ┌─────────┐
+│  Host   │  IGMP Join (0x16)  │ Router  │
+│         │ ─────────────────► │         │
+│         │                    │         │
+│         │  IGMP Query (0x11) │         │
+│         │ ◄───────────────── │ (~60s)  │
+│         │                    │         │
+│         │  IGMP Report       │         │
+│         │ ─────────────────► │         │
+│         │                    │         │
+│         │  IGMP Leave (0x17) │         │
+│         │ ─────────────────► │         │
+└─────────┘                    └─────────┘
 ```
 
 ### Verificare IGMP pe Linux
@@ -298,6 +356,62 @@ ip maddr show
 
 # În containere Docker
 docker exec container_name cat /proc/net/igmp
+```
+
+---
+
+## Diagrame de Referință
+
+### Flux TTL la Traversarea Routerelor
+
+```
+┌─────────┐    TTL=3    ┌─────────┐    TTL=2    ┌─────────┐    TTL=1    ┌─────────┐
+│ Sender  │ ──────────► │Router 1 │ ──────────► │Router 2 │ ──────────► │Receiver │
+│         │             │  -1     │             │  -1     │             │ PRIMIT! │
+└─────────┘             └─────────┘             └─────────┘             └─────────┘
+
+                        Dacă TTL devine 0 înainte de destinație:
+┌─────────┐    TTL=1    ┌─────────┐    TTL=0    
+│ Sender  │ ──────────► │Router 1 │ ──────────► ❌ DROPPED (Time Exceeded)
+│         │             │  -1     │             
+└─────────┘             └─────────┘             
+
+ANALOGIE: TTL este ca un bilet de metrou valabil pentru N stații.
+          La fiecare router traversat, se "perforează" o stație.
+          Când nu mai ai stații, ești dat jos din tren.
+```
+
+### Structura Header IGMP
+
+```
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Type (8)     | Max Resp (8)  |        Checksum (16)          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                      Group Address (32)                       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+Type:
+  0x11 = Membership Query
+  0x16 = Membership Report (v2)
+  0x17 = Leave Group
+```
+
+### Maparea IP Multicast → MAC
+
+```
+IP Multicast:  239.  0.  0.  1
+               ─────────────────
+               1110 1111.0000 0000.0000 0000.0000 0001
+                        └──────────────────────────┘
+                              Ultimii 23 biți
+                                    │
+                                    ▼
+MAC Multicast: 01:00:5E:  00:  00:  01
+               ───────── ─────────────
+               Prefix    Ultimii 23 biți din IP
+               fix
 ```
 
 ---

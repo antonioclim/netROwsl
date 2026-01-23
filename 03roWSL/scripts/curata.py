@@ -10,12 +10,22 @@ Utilizare:
     python scripts/curata.py [--complet] [--prune] [--dry-run]
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
 from pathlib import Path
 
 # Adaugă rădăcina proiectului în PATH
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -26,6 +36,11 @@ logger = configureaza_logger("curata")
 
 PREFIX_WEEK = "week3"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def curata_artefacte(dry_run: bool = False) -> None:
     """Curăță fișierele generate din directoarele artifacts și pcap."""
@@ -115,6 +130,11 @@ def curata_resurse_docker(prefix: str, dry_run: bool = False) -> None:
         logger.warning(f"Eroare la curățarea volumelor: {e}")
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     """Punctul principal de intrare."""
     parser = argparse.ArgumentParser(
@@ -182,6 +202,11 @@ def main():
         logger.error(f"Eroare la curățare: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())
