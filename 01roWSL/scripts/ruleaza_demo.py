@@ -6,6 +6,11 @@ Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 Acest script rulează demonstrații interactive pentru prezentări în clasă.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 from __future__ import annotations
 
 import subprocess
@@ -16,6 +21,11 @@ from pathlib import Path
 from typing import Optional
 
 # Adaugă directorul rădăcină al proiectului la path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -30,6 +40,11 @@ GALBEN = "\033[93m"
 RESET = "\033[0m"
 BOLD = "\033[1m"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afiseaza_titlu(titlu: str) -> None:
     """Afișează un titlu formatat pentru demonstrație."""
@@ -256,6 +271,11 @@ def lista_demonstratii() -> None:
     print()
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -337,6 +357,11 @@ Exemple:
         logger.error(f"Eroare în timpul demonstrației: {e}")
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

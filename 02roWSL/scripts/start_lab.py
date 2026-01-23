@@ -9,6 +9,11 @@ NOTĂ: Portainer rulează global pe portul 9000 și NU este gestionat de acest s
 Accesați Portainer la: http://localhost:9000 (credențiale: stud / studstudstud)
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -18,6 +23,11 @@ from pathlib import Path
 from typing import Dict, Any
 
 # Adăugare rădăcină proiect la cale
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RĂDĂCINĂ_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RĂDĂCINĂ_PROIECT))
 
@@ -45,6 +55,11 @@ PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
 PORTAINER_USER = "stud"
 PORTAINER_PASS = "studstudstud"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifică_docker_activ() -> bool:
     """Verifică dacă Docker este activ și funcțional."""
@@ -184,6 +199,11 @@ def verifică_servicii(manager: ManagerDocker) -> bool:
     return toate_sănătoase
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -319,6 +339,11 @@ NOTĂ: Portainer rulează global pe portul 9000 și nu este gestionat de acest s
             traceback.print_exc()
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

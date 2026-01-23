@@ -8,6 +8,11 @@ Acest script oprește toate containerele Docker de laborator păstrând datele.
 IMPORTANT: Portainer NU este oprit - rulează global pe portul 9000!
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -15,6 +20,11 @@ import socket
 from pathlib import Path
 
 # Adăugare rădăcină proiect la cale
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RĂDĂCINĂ_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RĂDĂCINĂ_PROIECT))
 
@@ -30,6 +40,11 @@ PORTAINER_URL = f"http://localhost:{PORTAINER_PORT}"
 # Containere care NU trebuie oprite (rulează global)
 CONTAINERE_EXCLUSE = ["portainer"]
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def verifică_portainer_status() -> bool:
     """Verifică dacă Portainer rulează pe portul 9000."""
@@ -60,6 +75,11 @@ def este_container_exclus(nume_container: str) -> bool:
     """Verifică dacă un container este în lista de excluderi."""
     return any(exclus in nume_container.lower() for exclus in CONTAINERE_EXCLUSE)
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main() -> int:
     """Funcția principală."""
@@ -152,6 +172,11 @@ NOTĂ: Portainer NU este oprit - rulează global pe portul 9000.
             traceback.print_exc()
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -6,6 +6,11 @@ Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
 Wrapper pentru tcpdump/tshark cu opțiuni simplificate.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -16,6 +21,11 @@ from datetime import datetime
 from typing import Optional, List
 
 # Adăugare rădăcină proiect la cale
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RĂDĂCINĂ_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RĂDĂCINĂ_PROIECT))
 
@@ -26,6 +36,11 @@ logger = configurează_logger("captura")
 # Proces global pentru oprire grațioasă
 proces_captură: Optional[subprocess.Popen] = None
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def handler_semnal(sig, frame):
     """Handler pentru semnale de întrerupere."""
@@ -213,6 +228,11 @@ def captură_tshark(
         return 1
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -331,6 +351,11 @@ Filtre BPF utile:
             args.verbose
         )
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

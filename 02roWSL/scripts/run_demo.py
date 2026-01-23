@@ -6,6 +6,11 @@ Laborator Rețele de Calculatoare - ASE, Informatică Economică | by Revolvix
 Demonstrații automate pentru prezentări la curs/laborator.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
@@ -17,6 +22,11 @@ from typing import List, Tuple
 from dataclasses import dataclass
 
 # Adăugare rădăcină proiect la cale
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RĂDĂCINĂ_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RĂDĂCINĂ_PROIECT))
 
@@ -34,6 +44,11 @@ class RezultatTest:
     răspuns: str = ""
     eroare: str = ""
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def afișează_antet(titlu: str) -> None:
     """Afișează un antet formatat pentru demonstrație."""
@@ -360,6 +375,11 @@ def listează_demonstrații() -> None:
     print()
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -412,6 +432,11 @@ Exemple de utilizare:
         listează_demonstrații()
         return 0
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

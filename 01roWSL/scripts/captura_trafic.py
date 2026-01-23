@@ -6,6 +6,11 @@ Curs REȚELE DE CALCULATOARE - ASE, Informatică | by Revolvix
 Acest script facilitează captura de pachete folosind tcpdump în containerul Docker.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 from __future__ import annotations
 
 import subprocess
@@ -17,6 +22,11 @@ from datetime import datetime
 from typing import Optional, List
 
 # Adaugă directorul rădăcină al proiectului la path
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
 
@@ -27,6 +37,11 @@ logger = configureaza_logger("captura_trafic")
 # Procesul de captură global pentru gestionarea semnalelor
 proces_captura: Optional[subprocess.Popen] = None
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def handler_semnal(sig: int, frame) -> None:
     """Gestionează întreruperea pentru oprire grațioasă."""
@@ -180,6 +195,11 @@ def porneste_captura(
         return 1
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     """Funcția principală."""
     parser = argparse.ArgumentParser(
@@ -275,6 +295,11 @@ Filtre BPF comune:
         container=args.container
     )
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

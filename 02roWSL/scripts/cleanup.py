@@ -7,12 +7,22 @@ Acest script elimină toate containerele, rețelele și opțional volumele
 pentru a pregăti sistemul pentru următoarea sesiune de laborator.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
 from pathlib import Path
 
 # Adăugare rădăcină proiect la cale
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
 RĂDĂCINĂ_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RĂDĂCINĂ_PROIECT))
 
@@ -23,6 +33,11 @@ logger = configurează_logger("cleanup")
 
 PREFIX_SĂPTĂMÂNĂ = "week2"
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def curăță_fișiere_locale(dry_run: bool = False) -> None:
     """
@@ -58,6 +73,11 @@ def curăță_fișiere_locale(dry_run: bool = False) -> None:
                 except Exception as e:
                     logger.warning(f"  Nu s-a putut șterge {fișier.name}: {e}")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main() -> int:
     """Funcția principală."""
@@ -180,6 +200,11 @@ Exemple de utilizare:
             traceback.print_exc()
         return 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())
