@@ -511,7 +511,7 @@ python3 tests/test_exercitii.py --exercitiu 1
 **Durată:** 30-35 minute
 
 **Context Teoretic:**
-MQTT (Message Queuing Telemetry Transport) este protocolul dominant în ecosistemul IoT datorită:
+MQTT (Message Queuing Telemetry Transport) este protocolul dominant în domeniul IoT datorită:
 - **Amprentă minimă:** Header de doar 2 bytes, ideal pentru dispozitive constrânse
 - **Model publish/subscribe:** Decuplare completă între producători și consumatori
 - **Niveluri QoS:** Garanții de livrare configurabile (0=cel mult o dată, 1=cel puțin o dată, 2=exact o dată)

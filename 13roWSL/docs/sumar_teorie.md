@@ -324,3 +324,156 @@ OWASP (Open Web Application Security Project) menține o listă cu cele mai frec
 ---
 
 *Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix*
+
+---
+
+## Anexă: Diagrame CPA (Concret-Pictorial-Abstract)
+
+Această secțiune prezintă conceptele cheie prin metoda Concret-Pictorial-Abstract pentru facilitarea înțelegerii.
+
+### MQTT Publish/Subscribe
+
+**CONCRET (analogie din viața reală):**
+```
+Imaginează-ți un birou de poștă modern:
+- Senzorul = cineva care trimite o scrisoare
+- Broker-ul = oficiul poștal care sortează
+- Subscriber-ul = destinatarul care așteaptă corespondența
+- Topic-ul = adresa/categoria scrisorii
+
+Poșta nu știe cine va citi scrisoarea, doar o sortează
+după adresă și o livrează tuturor abonaților la acea adresă.
+```
+
+**PICTORIAL (diagramă vizuală):**
+```
+   PUBLISHER                    BROKER                    SUBSCRIBER
+   (Senzor)                   (Mosquitto)                 (Dashboard)
+      │                           │                           │
+      │    "Am măsurat 23°C"      │                           │
+      │─────── PUBLISH ──────────▶│                           │
+      │    topic: senzori/temp    │                           │
+      │                           │     "Nou mesaj pentru     │
+      │                           │      voi, abonații!"      │
+      │                           │─────── DELIVER ──────────▶│
+      │                           │                           │
+      │                           │                    "Am primit: 23°C"
+```
+
+**ABSTRACT (cod Python):**
+```python
+# Publisher
+client.publish("senzori/temp", "23.5", qos=1)
+
+# Subscriber (deja conectat și abonat)
+# callback on_message primește automat mesajul
+```
+
+---
+
+### Diferența între Scanare Connect și SYN
+
+**CONCRET (analogie):**
+```
+Connect Scan = Suni la ușă, aștepți să deschidă, intri, apoi pleci
+             → Vecinii te văd intrând (logged)
+
+SYN Scan = Suni la ușă, vezi că e cineva acasă, fugi înainte să deschidă
+         → Vecinii văd doar că ai sunat (mai discret)
+```
+
+**PICTORIAL (fluxuri TCP):**
+```
+Connect Scan (complet):         SYN Scan (half-open):
+─────────────────────           ──────────────────────
+
+Client         Server           Client         Server
+   │              │                │              │
+   │──── SYN ────▶│                │──── SYN ────▶│
+   │              │                │              │
+   │◀─ SYN/ACK ──│                │◀─ SYN/ACK ──│
+   │              │                │              │
+   │──── ACK ────▶│ ◀─ LOGGED     │──── RST ────▶│ ◀─ NOT LOGGED
+   │              │                │              │
+   │──── RST ────▶│                │              │
+   │              │                │              │
+
+✗ Apare în loguri              ✓ Nu apare în loguri
+✓ Nu necesită root             ✗ Necesită root
+```
+
+**ABSTRACT (comportament):**
+```python
+# Connect scan - socket standard
+sock.connect((host, port))  # Finalizează handshake complet
+
+# SYN scan - necesită raw sockets (Scapy)
+sr1(IP(dst=host)/TCP(dport=port, flags="S"))  # Trimite doar SYN
+```
+
+---
+
+### Structura Pachetului de Rețea
+
+**CONCRET (analogie):**
+```
+Un pachet de rețea este ca un plic poștal cu mai multe plicuri înăuntru:
+
+┌─────────────────────────────────────────┐
+│ PLIC EXTERIOR (Ethernet)                │
+│ "Către: MAC destinație"                 │
+│ "De la: MAC sursă"                      │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │ PLIC INTERIOR (IP)              │   │
+│  │ "Către: IP destinație"          │   │
+│  │ "De la: IP sursă"               │   │
+│  │                                 │   │
+│  │  ┌─────────────────────────┐   │   │
+│  │  │ SCRISOAREA (TCP/UDP)    │   │   │
+│  │  │ "Port destinație: 1883" │   │   │
+│  │  │                         │   │   │
+│  │  │ ┌─────────────────────┐│   │   │
+│  │  │ │ CONȚINUT (Payload)  ││   │   │
+│  │  │ │ {"temp": 23.5}      ││   │   │
+│  │  │ └─────────────────────┘│   │   │
+│  │  └─────────────────────────┘   │   │
+│  └─────────────────────────────────┘   │
+└─────────────────────────────────────────┘
+```
+
+**PICTORIAL (structura reală):**
+```
+Octeți:  0        6       12    14        34         54
+         │        │        │     │         │          │
+         ▼        ▼        ▼     ▼         ▼          ▼
+        ┌────────┬────────┬────┬──────────┬──────────┬─────────┐
+        │MAC Dst │MAC Src │Type│ IP Header│TCP Header│ Payload │
+        │6 bytes │6 bytes │ 2  │ 20 bytes │ 20 bytes │ variabil│
+        └────────┴────────┴────┴──────────┴──────────┴─────────┘
+        │←── Ethernet ────│    │←─ Layer 3 ─│←Layer 4─│←Layer 7│
+              Header            │           │         │
+                                └───────────┴─────────┴─────────┘
+                                         IP Payload
+```
+
+**ABSTRACT (acces în Scapy):**
+```python
+packet = sniff(count=1)[0]
+
+# Layer 2 - Ethernet
+packet[Ether].src   # MAC sursă
+packet[Ether].dst   # MAC destinație
+
+# Layer 3 - IP
+packet[IP].src      # IP sursă
+packet[IP].ttl      # Time To Live
+
+# Layer 4 - TCP
+packet[TCP].sport   # Port sursă
+packet[TCP].flags   # SYN, ACK, etc.
+```
+
+---
+
+*Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix*

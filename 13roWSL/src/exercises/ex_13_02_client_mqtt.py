@@ -42,6 +42,37 @@ except ImportError:
 
 
 # ==============================================================================
+# ==============================================================================
+# 🔮 PREDICȚIE - RĂSPUNDE ÎNAINTE DE A RULA CODUL
+# ==============================================================================
+#
+# Înainte de a executa acest client MQTT, răspunde la următoarele întrebări:
+#
+# 1. COD CONECTARE: Ce cod de retur (rc) vei primi la conectare reușită?
+#    A) 0 - Conexiune acceptată
+#    B) 1 - Protocol incorect
+#    C) 4 - Credențiale invalide
+#    Răspuns corect: A (rc=0)
+#
+# 2. WILDCARDS: Dacă te abonezi la "senzori/#", vei primi mesaje de pe:
+#    A) Doar "senzori/"
+#    B) "senzori/temp", "senzori/umiditate", "senzori/camera1/temp"
+#    C) Toate topicurile din sistem
+#    Răspuns corect: B (# înlocuiește oricâte niveluri SUB "senzori/")
+#
+# 3. TLS: Ce diferență vei observa în Wireshark între portul 1883 și 8883?
+#    Pe 1883: _______________
+#    Pe 8883: _______________
+#
+# 4. QoS: Dacă publici cu QoS 2 și conexiunea cade, mesajul:
+#    A) Se pierde
+#    B) Ajunge exact o dată când conexiunea revine
+#    C) Poate ajunge de mai multe ori
+#    Răspuns corect: B
+#
+# După rulare, verifică predicțiile și notează diferențele!
+# ==============================================================================
+
 # CONSTANTE ȘI CONFIGURARE
 # ==============================================================================
 
@@ -279,7 +310,7 @@ def mod_publish(client: mqtt.Client, broker: str, port: int,
 # FUNCȚIA PRINCIPALĂ
 # ==============================================================================
 
-def main():
+def main() -> int:
     """Funcția principală."""
     parser = argparse.ArgumentParser(
         description="Client MQTT cu Suport TLS - Laborator IoT și Securitate",

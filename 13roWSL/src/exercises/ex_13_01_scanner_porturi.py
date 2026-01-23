@@ -41,17 +41,17 @@ import json
 import socket
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from dataclasses import dataclass, asdict
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set
 
 # ==============================================================================
 # CONSTANTE ȘI CONFIGURARE
 # ==============================================================================
 
 # Porturi cunoscute și serviciile asociate (subset relevant)
-PORTURI_CUNOSCUTE = {
+PORTURI_CUNOSCUTE: Dict[int, str] = {
     20: "FTP-Date",
     21: "FTP",
     22: "SSH",
@@ -78,15 +78,16 @@ PORTURI_CUNOSCUTE = {
     27017: "MongoDB",
 }
 
-# Culori ANSI pentru output
+
 class Culori:
-    ROSU = "\033[91m"
-    VERDE = "\033[92m"
-    GALBEN = "\033[93m"
-    ALBASTRU = "\033[94m"
-    CYAN = "\033[96m"
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
+    """Coduri de culoare ANSI pentru output în terminal."""
+    ROSU: str = "\033[91m"
+    VERDE: str = "\033[92m"
+    GALBEN: str = "\033[93m"
+    ALBASTRU: str = "\033[94m"
+    CYAN: str = "\033[96m"
+    RESET: str = "\033[0m"
+    BOLD: str = "\033[1m"
 
 
 # Dezactivează culorile când output-ul nu este TTY
@@ -128,7 +129,37 @@ class RezultatScanare:
     porturi_deschise: int
     porturi_inchise: int
     porturi_filtrate: int
-    rezultate: List[Dict]
+    rezultate: List[Dict[str, Any]]
+
+
+# ==============================================================================
+# 🔮 PREDICȚIE - RĂSPUNDE ÎNAINTE DE A RULA CODUL
+# ==============================================================================
+#
+# Înainte de a executa acest scanner, răspunde la următoarele întrebări:
+#
+# 1. PORTURI DESCHISE: Dacă scanezi localhost cu serviciile laboratorului
+#    pornite, câte porturi vor fi raportate ca DESCHISE?
+#    Hint: Gândește-te la serviciile din docker-compose.yml
+#    Răspuns așteptat: ____
+#
+# 2. TIMP DE RĂSPUNS: Care port crezi că va avea cel mai mic timp de răspuns?
+#    A) 1883 (MQTT)
+#    B) 8080 (HTTP/DVWA)
+#    C) 6200 (Backdoor)
+#    Răspuns: ____
+#
+# 3. PORTURI FILTRATE: Când vei vedea starea "FILTRAT" în loc de "ÎNCHIS"?
+#    A) Când firewall-ul blochează traficul silențios (drop)
+#    B) Când serviciul răspunde cu eroare
+#    C) Când portul este ocupat de alt proces
+#    Răspuns corect: A
+#
+# 4. BANNER GRABBING: Pentru care servicii te aștepți să obții un banner?
+#    Lista ta: ____________________
+#
+# După rulare, verifică predicțiile și notează diferențele!
+# ==============================================================================
 
 
 # ==============================================================================
@@ -154,9 +185,9 @@ def scaneaza_port(host: str, port: int, timeout: float = 1.0) -> RezultatPort:
     Returns:
         RezultatPort cu informațiile colectate
     """
-    serviciu = PORTURI_CUNOSCUTE.get(port, "necunoscut")
-    banner = None
-    timp_inceput = time.time()
+    serviciu: str = PORTURI_CUNOSCUTE.get(port, "necunoscut")
+    banner: Optional[str] = None
+    timp_inceput: float = time.time()
     
     try:
         # Creează socket TCP
@@ -164,8 +195,8 @@ def scaneaza_port(host: str, port: int, timeout: float = 1.0) -> RezultatPort:
         sock.settimeout(timeout)
         
         # Încearcă conexiunea
-        rezultat = sock.connect_ex((host, port))
-        timp_raspuns = (time.time() - timp_inceput) * 1000  # în ms
+        rezultat: int = sock.connect_ex((host, port))
+        timp_raspuns: float = (time.time() - timp_inceput) * 1000  # în ms
         
         if rezultat == 0:
             # Port DESCHIS - încearcă să obții banner
@@ -203,7 +234,7 @@ def scaneaza_port(host: str, port: int, timeout: float = 1.0) -> RezultatPort:
             stare="filtrat",
             serviciu=serviciu
         )
-    except socket.error as e:
+    except socket.error:
         # Eroare de conexiune - considerăm filtrat
         return RezultatPort(
             port=port,
@@ -231,9 +262,9 @@ def parseaza_porturi(spec_porturi: str) -> List[int]:
         spec_porturi: Șir cu specificația porturilor
     
     Returns:
-        Listă de numere de porturi
+        Listă de numere de porturi, sortată
     """
-    porturi = set()
+    porturi: Set[int] = set()
     
     for parte in spec_porturi.split(','):
         parte = parte.strip()
@@ -251,7 +282,8 @@ def parseaza_porturi(spec_porturi: str) -> List[int]:
                 if 1 <= p <= 65535:
                     porturi.add(p)
             except ValueError:
-                print(f"[ATENȚIE] Port invalid: {parte}")
+                if parte:  # Ignoră șiruri goale
+                    print(f"[ATENȚIE] Port invalid: {parte}")
     
     return sorted(porturi)
 
@@ -269,9 +301,9 @@ def parseaza_tinte(spec_tinta: str) -> List[str]:
         spec_tinta: Șir cu specificația țintei
     
     Returns:
-        Listă de adrese IP
+        Listă de adrese IP sau hostname-uri
     """
-    tinte = []
+    tinte: List[str] = []
     
     try:
         # Încearcă ca subnet CIDR
@@ -298,8 +330,13 @@ def parseaza_tinte(spec_tinta: str) -> List[str]:
     return tinte
 
 
-def scaneaza_tinta(host: str, porturi: List[int], workeri: int = 50, 
-                   timeout: float = 1.0, verbose: bool = True) -> RezultatScanare:
+def scaneaza_tinta(
+    host: str,
+    porturi: List[int],
+    workeri: int = 50,
+    timeout: float = 1.0,
+    verbose: bool = True
+) -> RezultatScanare:
     """
     Scanează o țintă pe mai multe porturi concurent.
     
@@ -313,12 +350,12 @@ def scaneaza_tinta(host: str, porturi: List[int], workeri: int = 50,
     Returns:
         RezultatScanare cu toate informațiile
     """
-    data_inceput = datetime.now()
-    rezultate = []
+    data_inceput: datetime = datetime.now()
+    rezultate: List[Dict[str, Any]] = []
     
-    deschise = 0
-    inchise = 0
-    filtrate = 0
+    deschise: int = 0
+    inchise: int = 0
+    filtrate: int = 0
     
     if verbose:
         print(f"\n{Culori.CYAN}[SCANARE]{Culori.RESET} Țintă: {host}")
@@ -328,20 +365,20 @@ def scaneaza_tinta(host: str, porturi: List[int], workeri: int = 50,
     
     with ThreadPoolExecutor(max_workers=workeri) as executor:
         # Trimite toate task-urile
-        futures = {
+        futures: Dict[Future[RezultatPort], int] = {
             executor.submit(scaneaza_port, host, port, timeout): port
             for port in porturi
         }
         
         # Colectează rezultatele
         for future in as_completed(futures):
-            rezultat = future.result()
+            rezultat: RezultatPort = future.result()
             rezultate.append(asdict(rezultat))
             
             if rezultat.stare == "deschis":
                 deschise += 1
                 if verbose:
-                    banner_info = f" - {rezultat.banner[:40]}..." if rezultat.banner else ""
+                    banner_info: str = f" - {rezultat.banner[:40]}..." if rezultat.banner else ""
                     print(f"{Culori.VERDE}[DESCHIS]{Culori.RESET} Port {rezultat.port:5} "
                           f"({rezultat.serviciu}){banner_info}")
             elif rezultat.stare == "inchis":
@@ -349,8 +386,8 @@ def scaneaza_tinta(host: str, porturi: List[int], workeri: int = 50,
             else:
                 filtrate += 1
     
-    data_sfarsit = datetime.now()
-    durata = (data_sfarsit - data_inceput).total_seconds()
+    data_sfarsit: datetime = datetime.now()
+    durata: float = (data_sfarsit - data_inceput).total_seconds()
     
     return RezultatScanare(
         tinta=host,
@@ -365,8 +402,13 @@ def scaneaza_tinta(host: str, porturi: List[int], workeri: int = 50,
     )
 
 
-def afiseaza_sumar(rezultat: RezultatScanare):
-    """Afișează sumarul scanării."""
+def afiseaza_sumar(rezultat: RezultatScanare) -> None:
+    """
+    Afișează sumarul scanării în format tabelar.
+    
+    Args:
+        rezultat: Obiectul RezultatScanare de afișat
+    """
     print("\n" + "=" * 50)
     print(f"{Culori.BOLD}SUMAR SCANARE{Culori.RESET}")
     print("=" * 50)
@@ -379,8 +421,14 @@ def afiseaza_sumar(rezultat: RezultatScanare):
     print("=" * 50)
 
 
-def salveaza_json(rezultat: RezultatScanare, fisier: str):
-    """Salvează rezultatele în format JSON."""
+def salveaza_json(rezultat: RezultatScanare, fisier: str) -> None:
+    """
+    Salvează rezultatele în format JSON.
+    
+    Args:
+        rezultat: Obiectul RezultatScanare de salvat
+        fisier: Calea către fișierul de output
+    """
     with open(fisier, 'w', encoding='utf-8') as f:
         json.dump(asdict(rezultat), f, indent=2, ensure_ascii=False)
     print(f"\n{Culori.CYAN}[INFO]{Culori.RESET} Rezultate salvate în: {fisier}")
@@ -390,8 +438,13 @@ def salveaza_json(rezultat: RezultatScanare, fisier: str):
 # FUNCȚIA PRINCIPALĂ
 # ==============================================================================
 
-def main():
-    """Funcția principală."""
+def main() -> int:
+    """
+    Funcția principală - punct de intrare în aplicație.
+    
+    Returns:
+        Cod de ieșire: 0 pentru succes, >0 pentru eroare
+    """
     parser = argparse.ArgumentParser(
         description="Scanner TCP Avansat - Laborator IoT și Securitate",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -432,9 +485,16 @@ Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix
     print("IoT și Securitate în Rețelele de Calculatoare")
     print("=" * 60)
     
+    # ==============================================================================
+    # 🔮 CHECKPOINT PREDICȚIE
+    # ==============================================================================
+    # OPREȘTE-TE AICI și răspunde la întrebările de predicție de mai sus!
+    # Apoi continuă execuția și verifică-ți răspunsurile.
+    # ==============================================================================
+    
     # Parsează țintele și porturile
-    tinte = parseaza_tinte(args.tinta)
-    porturi = parseaza_porturi(args.porturi)
+    tinte: List[str] = parseaza_tinte(args.tinta)
+    porturi: List[int] = parseaza_porturi(args.porturi)
     
     if not porturi:
         print(f"{Culori.ROSU}[EROARE]{Culori.RESET} Niciun port valid specificat!")
@@ -442,10 +502,10 @@ Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix
     
     print(f"\n{Culori.GALBEN}⚠️  AVERTISMENT: Utilizați doar pe sisteme autorizate!{Culori.RESET}\n")
     
-    toate_rezultatele = []
+    toate_rezultatele: List[RezultatScanare] = []
     
     for tinta in tinte:
-        rezultat = scaneaza_tinta(
+        rezultat: RezultatScanare = scaneaza_tinta(
             host=tinta,
             porturi=porturi,
             workeri=args.workeri,
@@ -462,7 +522,7 @@ Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix
             salveaza_json(toate_rezultatele[0], args.output)
         else:
             # Salvează toate rezultatele
-            toate_dict = [asdict(r) for r in toate_rezultatele]
+            toate_dict: List[Dict[str, Any]] = [asdict(r) for r in toate_rezultatele]
             with open(args.output, 'w', encoding='utf-8') as f:
                 json.dump(toate_dict, f, indent=2, ensure_ascii=False)
             print(f"\n{Culori.CYAN}[INFO]{Culori.RESET} Rezultate salvate în: {args.output}")

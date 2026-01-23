@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """
 Script de Curățare a Laboratorului Săptămânii 12
+================================================
 Laborator de Rețele de Calculatoare - ASE, Informatică Economică | de Revolvix
-
-Elimină toate containerele, rețelele și opțional volumele
-pentru a pregăti sistemul pentru următoarea sesiune de laborator.
 """
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTURI_SI_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 import subprocess
 import sys
 import argparse
 from pathlib import Path
+from typing import List, Tuple
 
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
@@ -20,127 +22,100 @@ from scripts.utils.logger import configureaza_logger
 
 logger = configureaza_logger("curata")
 
-PREFIX_SAPTAMANA = "week12"
+PREFIX_LABORATOR = "week12_"
+RESURSE_PROTEJATE = ["portainer", "portainer_data"]
 
-
-def curata_director(cale: Path, extensii: list = None, pastreaza_gitkeep: bool = True):
-    """Curăță un director de fișiere specifice."""
-    if not cale.exists():
-        return 0
-    
-    numar_sters = 0
-    for fisier in cale.iterdir():
-        if fisier.name == ".gitkeep" and pastreaza_gitkeep:
-            continue
-        
-        if extensii:
-            if fisier.suffix in extensii:
-                fisier.unlink()
-                numar_sters += 1
-        else:
-            if fisier.is_file():
-                fisier.unlink()
-                numar_sters += 1
-    
-    return numar_sters
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="Curățare Laborator Săptămâna 12"
-    )
-    parser.add_argument(
-        "--complet",
-        action="store_true",
-        help="Elimină volumele și toate datele (folosiți înainte de săptămâna următoare)"
-    )
-    parser.add_argument(
-        "--prune",
-        action="store_true",
-        help="Curăță și resursele Docker neutilizate"
-    )
-    parser.add_argument(
-        "--simulare",
-        action="store_true",
-        help="Afișează ce ar fi șters fără a șterge efectiv"
-    )
-    args = parser.parse_args()
-
-    docker = ManagerDocker(RADACINA_PROIECT / "docker")
-
-    logger.info("=" * 60)
-    logger.info("Curățare Mediu de Laborator - Săptămâna 12")
-    logger.info("=" * 60)
-
-    if args.simulare:
-        logger.info("[SIMULARE] Nu se vor face modificări efective")
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# LISTARE_RESURSE
+# ═══════════════════════════════════════════════════════════════════════════════
+def listeaza_containere_laborator() -> List[str]:
     try:
-        # Oprire containere
-        logger.info("Oprire containere...")
-        if not args.simulare:
-            docker.compune_down(volume=args.complet)
-        else:
-            logger.info("  [SIMULARE] docker compose down" + 
-                       (" --volumes" if args.complet else ""))
+        result = subprocess.run(
+            ["docker", "ps", "-a", "--filter", f"name={PREFIX_LABORATOR}", "--format", "{{.Names}}"],
+            capture_output=True, text=True, timeout=10)
+        containere = result.stdout.strip().split('\n')
+        return [c for c in containere if c and c not in RESURSE_PROTEJATE]
+    except Exception:
+        return []
 
-        # Eliminare resurse specifice săptămânii
-        logger.info(f"Eliminare resurse {PREFIX_SAPTAMANA}_*...")
-        if not args.simulare:
-            docker.elimina_dupa_prefix(PREFIX_SAPTAMANA)
-        else:
-            logger.info(f"  [SIMULARE] Eliminare containere/rețele/volume cu prefix '{PREFIX_SAPTAMANA}'")
+def listeaza_volume_laborator() -> List[str]:
+    try:
+        result = subprocess.run(
+            ["docker", "volume", "ls", "--filter", f"name={PREFIX_LABORATOR}", "--format", "{{.Name}}"],
+            capture_output=True, text=True, timeout=10)
+        volume = result.stdout.strip().split('\n')
+        return [v for v in volume if v and v not in RESURSE_PROTEJATE]
+    except Exception:
+        return []
 
-        # Curățare artefacte
-        if args.complet:
-            logger.info("Curățare directoare de lucru...")
-            
-            # Curățare pcap
-            dir_pcap = RADACINA_PROIECT / "pcap"
-            if not args.simulare:
-                nr = curata_director(dir_pcap, extensii=[".pcap", ".pcapng"])
-                logger.info(f"  Șterse {nr} fișiere de captură")
+# ═══════════════════════════════════════════════════════════════════════════════
+# STERGERE_RESURSE
+# ═══════════════════════════════════════════════════════════════════════════════
+def sterge_containere(containere: List[str]) -> Tuple[int, int]:
+    succes, esec = 0, 0
+    for container in containere:
+        try:
+            result = subprocess.run(["docker", "rm", "-f", container], capture_output=True, timeout=30)
+            if result.returncode == 0:
+                logger.info(f"  ✓ Șters container: {container}")
+                succes += 1
             else:
-                logger.info(f"  [SIMULARE] Ștergere fișiere din {dir_pcap}")
-            
-            # Curățare artefacte
-            dir_artefacte = RADACINA_PROIECT / "artifacts"
-            if not args.simulare:
-                nr = curata_director(dir_artefacte)
-                logger.info(f"  Șterse {nr} artefacte")
-            else:
-                logger.info(f"  [SIMULARE] Ștergere fișiere din {dir_artefacte}")
-            
-            # Curățare spool
-            dir_spool = RADACINA_PROIECT / "docker" / "volumes" / "spool"
-            if not args.simulare:
-                nr = curata_director(dir_spool, extensii=[".eml", ".json"])
-                logger.info(f"  Șterse {nr} mesaje email")
-            else:
-                logger.info(f"  [SIMULARE] Ștergere mesaje din {dir_spool}")
+                esec += 1
+        except Exception:
+            esec += 1
+    return succes, esec
 
-        # Prune opțional
-        if args.prune and not args.simulare:
-            logger.info("Curățare resurse Docker neutilizate...")
-            docker.prune_sistem()
-
-        # Mesaj final
-        logger.info("")
-        logger.info("=" * 60)
-        logger.info("✓ Curățare completă!")
-        
-        if args.complet:
-            logger.info("  Sistemul este pregătit pentru următoarea sesiune.")
-        else:
-            logger.info("  Pentru curățare completă: python scripts/curata.py --complet")
-        
-        logger.info("=" * 60)
-        return 0
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# CURATARE_COMPLETA
+# ═══════════════════════════════════════════════════════════════════════════════
+def curata_complet(docker: ManagerDocker) -> bool:
+    logger.info("Curățare completă...")
+    try:
+        docker.compune_down(volumes=True)
     except Exception as e:
-        logger.error(f"Eroare la curățare: {e}")
-        return 1
+        logger.warning(f"Eroare la compose down: {e}")
+    
+    containere = listeaza_containere_laborator()
+    if containere:
+        sterge_containere(containere)
+    
+    logger.info("Curățare finalizată")
+    return True
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARSEAZA_ARGUMENTE
+# ═══════════════════════════════════════════════════════════════════════════════
+def parseaza_argumente() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Curățare Laborator Săptămâna 12")
+    parser.add_argument("--complet", action="store_true", help="Curățare completă")
+    parser.add_argument("--lista", action="store_true", help="Doar listează resursele")
+    parser.add_argument("--forta", action="store_true", help="Nu cere confirmare")
+    return parser.parse_args()
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════════════════════════════════════════════
+def main() -> int:
+    args = parseaza_argumente()
+    logger.info("Curățare Laborator - Săptămâna 12")
+    
+    if args.lista:
+        containere = listeaza_containere_laborator()
+        print(f"Containere: {containere}")
+        return 0
+    
+    if not args.forta and args.complet:
+        print("\n⚠️  ATENȚIE: Aceasta va șterge toate resursele laboratorului!")
+        confirmare = input("Continuați? [y/N]: ").strip().lower()
+        if confirmare != 'y':
+            logger.info("Anulat.")
+            return 0
+    
+    docker = ManagerDocker(RADACINA_PROIECT / "docker")
+    curata_complet(docker)
+    
+    print("\nNOTĂ: Portainer NU a fost afectat.")
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())

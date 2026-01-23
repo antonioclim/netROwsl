@@ -44,6 +44,39 @@ except ImportError:
 
 
 # ==============================================================================
+# ==============================================================================
+# 🔮 PREDICȚIE - RĂSPUNDE ÎNAINTE DE A RULA CODUL
+# ==============================================================================
+#
+# Înainte de a executa acest sniffer, răspunde la următoarele întrebări:
+#
+# 1. PROTOCOALE: Ce procent din pachetele capturate vor fi TCP vs UDP?
+#    Estimarea ta: TCP ___% / UDP ___%
+#    Hint: Gândește-te la serviciile laboratorului (MQTT, HTTP, FTP)
+#
+# 2. TTL: Ce valoare TTL te aștepți să vezi în pachetele locale?
+#    A) 64 (Linux implicit)
+#    B) 128 (Windows implicit)
+#    C) 255 (maxim teoretic)
+#    Răspuns probabil: A sau B, depinde de sursă
+#
+# 3. PERMISIUNI: De ce sniffer-ul necesită sudo/root?
+#    A) Pentru a citi fișiere de configurare
+#    B) Pentru a accesa interfețele de rețea în mod promiscuous
+#    C) Pentru a scrie în directorul de output
+#    Răspuns corect: B
+#
+# 4. HEADER IP: Câți bytes are cel mai mic header IP valid?
+#    Răspuns: ___ bytes (Hint: IHL minim = 5, IHL × 4 = ?)
+#
+# 5. FLAGS TCP: În handshake-ul TCP, ce flags vei vedea în ordine?
+#    Pachet 1: ___
+#    Pachet 2: ___
+#    Pachet 3: ___
+#
+# După rulare, verifică predicțiile în output-ul capturat!
+# ==============================================================================
+
 # CONSTANTE ȘI CONFIGURARE
 # ==============================================================================
 
@@ -357,7 +390,7 @@ def listeaza_interfete():
 # FUNCȚIA PRINCIPALĂ
 # ==============================================================================
 
-def main():
+def main() -> int:
     """Funcția principală."""
     parser = argparse.ArgumentParser(
         description="Analizor de Pachete - Laborator IoT și Securitate",

@@ -45,6 +45,42 @@ except ImportError:
 
 
 # ==============================================================================
+# ==============================================================================
+# 🔮 PREDICȚIE - RĂSPUNDE ÎNAINTE DE A RULA CODUL
+# ==============================================================================
+#
+# Înainte de a executa acest verificator, răspunde la următoarele întrebări:
+#
+# 1. SEVERITATE: Câte vulnerabilități de severitate CRITIC vei găsi?
+#    Estimarea ta: ___
+#    Hint: Gândește-te la backdoor-ul FTP simulat
+#
+# 2. SERVICII: Care serviciu crezi că va avea cele mai multe probleme?
+#    A) MQTT (Mosquitto)
+#    B) HTTP (DVWA)
+#    C) FTP (vsftpd)
+#    Răspunsul tău: ___
+#
+# 3. TLS: Verificatorul va raporta lipsa TLS pe portul 1883 ca:
+#    A) CRITIC
+#    B) RIDICAT
+#    C) MEDIU
+#    D) SCĂZUT
+#    Răspuns probabil: B sau C
+#
+# 4. BACKDOOR: Cum detectează verificatorul backdoor-ul FTP?
+#    A) Verifică versiunea software
+#    B) Încearcă să se conecteze pe portul 6200
+#    C) Analizează codul sursă
+#    Răspuns corect: B
+#
+# 5. REMEDIERE: Pentru fiecare vulnerabilitate găsită, notează:
+#    - Cum ai remedia-o într-un mediu de producție?
+#    - Cât timp ar dura remedierea?
+#
+# După rulare, compară predicțiile cu raportul generat!
+# ==============================================================================
+
 # CONSTANTE ȘI CONFIGURARE
 # ==============================================================================
 
@@ -481,7 +517,7 @@ class VerificatorVulnerabilitati:
 # FUNCȚIA PRINCIPALĂ
 # ==============================================================================
 
-def main():
+def main() -> int:
     """Funcția principală."""
     parser = argparse.ArgumentParser(
         description="Verificator de Vulnerabilități - Laborator IoT și Securitate",

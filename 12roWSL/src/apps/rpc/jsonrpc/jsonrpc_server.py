@@ -1,321 +1,162 @@
 #!/usr/bin/env python3
 """
-Server JSON-RPC 2.0 (Săptămâna 12)
+Server JSON-RPC 2.0 - Săptămâna 12
+==================================
 Laborator de Rețele de Calculatoare - ASE, Informatică Economică | de Revolvix
-
-Serverul expune un API 'calculator' simplu prin HTTP POST. Este conceput pentru
-scopuri didactice și include:
-
-- tratare clară a erorilor (obiecte de eroare JSON-RPC)
-- cereri în lot opționale (funcționalitate JSON-RPC 2.0)
-- câteva metode utilitare pentru a ilustra parametri non-numerici
-
-Metode suportate:
-  - add(a, b)         Adunare
-  - subtract(a, b)    Scădere
-  - multiply(a, b)    Înmulțire
-  - divide(a, b)      Împărțire
-  - echo(value)       Ecou
-  - sort_list(items, reverse=False)  Sortare listă
-  - get_time()        Obține ora curentă
-  - get_server_info() Informații server
-  - get_stats()       Statistici server
-
-Protocol: JSON-RPC 2.0 peste HTTP
 """
 
 from __future__ import annotations
 
-import argparse
-import json
-import logging
-import threading
-import time
-from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Dict, List, Tuple
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPORTURI
+# ═══════════════════════════════════════════════════════════════════════════════
+import argparse, datetime, hashlib, json, logging, sys, threading
+from collections import defaultdict
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from typing import Any, Dict, List, Optional
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
 
-LOG = logging.getLogger("week12.jsonrpc")
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_PROTOCOL
+# ═══════════════════════════════════════════════════════════════════════════════
 JSONRPC_VERSION = "2.0"
-SERVER_VERSION = "Week12-JSONRPC/1.1"
+ERROR_PARSE, ERROR_INVALID_REQUEST = -32700, -32600
+ERROR_METHOD_NOT_FOUND, ERROR_INVALID_PARAMS, ERROR_INTERNAL = -32601, -32602, -32603
 
-_START_TIME = time.time()
-_CALL_COUNTS: Dict[str, int] = {}
-_CALL_LOCK = threading.Lock()
-
-
-class JSONRPCError(Exception):
-    def __init__(self, code: int, message: str, data: Any | None = None):
-        super().__init__(message)
-        self.code = code
-        self.message = message
-        self.data = data
-
+_stats_lock = threading.Lock()
+_call_counts: Dict[str, int] = defaultdict(int)
+_start_time = datetime.datetime.now()
 
 def _count(method: str) -> None:
-    with _CALL_LOCK:
-        _CALL_COUNTS[method] = _CALL_COUNTS.get(method, 0) + 1
+    with _stats_lock:
+        _call_counts[method] += 1
 
-
-def _ok(result: Any, req_id: Any) -> Dict[str, Any]:
-    return {"jsonrpc": JSONRPC_VERSION, "id": req_id, "result": result}
-
-
-def _err(err: JSONRPCError, req_id: Any) -> Dict[str, Any]:
-    obj: Dict[str, Any] = {"code": err.code, "message": err.message}
-    if err.data is not None:
-        obj["data"] = err.data
-    return {"jsonrpc": JSONRPC_VERSION, "id": req_id, "error": obj}
-
-
-def _parse_json(raw: bytes) -> Any:
-    try:
-        return json.loads(raw.decode("utf-8"))
-    except Exception as exc:
-        raise JSONRPCError(-32700, "Parse error", data=str(exc))
-
-
-def _validate_request(obj: Any) -> Dict[str, Any]:
-    if not isinstance(obj, dict):
-        raise JSONRPCError(-32600, "Invalid Request", data="Request must be a JSON object")
-    if obj.get("jsonrpc") != JSONRPC_VERSION:
-        raise JSONRPCError(-32600, "Invalid Request", data="jsonrpc must be '2.0'")
-    if "method" not in obj:
-        raise JSONRPCError(-32600, "Invalid Request", data="Missing 'method'")
-    return obj
-
-
-def _get_params(obj: Dict[str, Any]) -> Tuple[list, dict]:
-    params = obj.get("params", [])
-    if params is None:
-        return [], {}
-    if isinstance(params, list):
-        return params, {}
-    if isinstance(params, dict):
-        return [], params
-    raise JSONRPCError(-32602, "Invalid params", data="params must be a list or object")
-
-
-def _need2(pos: list, named: dict) -> Tuple[float, float]:
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARSARE_PARAMETRI
+# ═══════════════════════════════════════════════════════════════════════════════
+def _need2(pos: List[Any], named: Dict[str, Any]) -> tuple:
     if pos and len(pos) >= 2:
-        return float(pos[0]), float(pos[1])
+        return pos[0], pos[1]
     if "a" in named and "b" in named:
-        return float(named["a"]), float(named["b"])
-    raise JSONRPCError(-32602, "Invalid params", data="Expected parameters a and b")
+        return named["a"], named["b"]
+    raise ValueError("Necesari doi parametri: a și b")
 
-
-def _dispatch(method: str, pos: list, named: dict) -> Any:
+# ═══════════════════════════════════════════════════════════════════════════════
+# DISPATCH_METODE
+# ═══════════════════════════════════════════════════════════════════════════════
+def _dispatch(method: str, pos: List[Any], named: Dict[str, Any]) -> Any:
     method = method.strip()
-
     if method == "add":
-        _count("add")
-        a, b = _need2(pos, named)
-        return a + b
-
+        _count("add"); a, b = _need2(pos, named); return a + b
     if method == "subtract":
-        _count("subtract")
-        a, b = _need2(pos, named)
-        return a - b
-
+        _count("subtract"); a, b = _need2(pos, named); return a - b
     if method == "multiply":
-        _count("multiply")
-        a, b = _need2(pos, named)
-        return a * b
-
+        _count("multiply"); a, b = _need2(pos, named); return a * b
     if method == "divide":
-        _count("divide")
-        a, b = _need2(pos, named)
-        if b == 0:
-            raise JSONRPCError(-32000, "Division by zero")
+        _count("divide"); a, b = _need2(pos, named)
+        if b == 0: raise ZeroDivisionError("Împărțire la zero")
         return a / b
-
     if method == "echo":
-        _count("echo")
-        if pos:
-            return pos[0]
-        if "value" in named:
-            return named["value"]
-        return None
-
-    if method == "sort_list":
-        _count("sort_list")
-        items = None
-        reverse = False
-        if pos:
-            items = pos[0]
-            if len(pos) > 1:
-                reverse = bool(pos[1])
-        else:
-            items = named.get("items")
-            reverse = bool(named.get("reverse", False))
-        if not isinstance(items, list):
-            raise JSONRPCError(-32602, "Invalid params", data="items must be a list")
-        return sorted(items, reverse=reverse)
-
+        _count("echo"); return str(pos[0]) if pos else str(named.get("message", ""))
     if method == "get_time":
-        _count("get_time")
-        return time.strftime("%Y-%m-%d %H:%M:%S %Z")
-
-    if method == "get_server_info":
-        _count("get_server_info")
-        return {
-            "name": "Week 12 JSON-RPC server",
-            "version": "1.1",
-            "protocol": "JSON-RPC 2.0 over HTTP",
-        }
-
+        _count("get_time"); return datetime.datetime.now().isoformat()
+    if method == "sha256":
+        _count("sha256"); s = str(pos[0]) if pos else str(named.get("data", ""))
+        return hashlib.sha256(s.encode()).hexdigest()
     if method == "get_stats":
         _count("get_stats")
-        with _CALL_LOCK:
-            total = sum(_CALL_COUNTS.values())
-            counts = dict(_CALL_COUNTS)
-        uptime = int(time.time() - _START_TIME)
-        return {"total_calls": total, "uptime_seconds": uptime, "call_counts": counts}
+        with _stats_lock:
+            return {"uptime": (datetime.datetime.now() - _start_time).total_seconds(),
+                    "calls": dict(_call_counts)}
+    raise KeyError(f"Metodă necunoscută: {method}")
 
-    raise JSONRPCError(-32601, "Method not found", data=method)
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROCESARE_CERERE
+# ═══════════════════════════════════════════════════════════════════════════════
+def _make_error(code: int, message: str, req_id: Any = None) -> Dict:
+    return {"jsonrpc": JSONRPC_VERSION, "error": {"code": code, "message": message}, "id": req_id}
 
+def _make_result(result: Any, req_id: Any) -> Dict:
+    return {"jsonrpc": JSONRPC_VERSION, "result": result, "id": req_id}
 
-def _handle_one(raw_req: Any) -> Tuple[bool, Dict[str, Any] | None]:
-    """Handle one request object. Returns (has_response, response_obj)."""
-    req_id: Any = None
+def _process_single(obj: Dict) -> Optional[Dict]:
+    if not isinstance(obj, dict):
+        return _make_error(ERROR_INVALID_REQUEST, "Cerere invalidă")
+    req_id = obj.get("id")
+    if obj.get("jsonrpc") != JSONRPC_VERSION:
+        return _make_error(ERROR_INVALID_REQUEST, "jsonrpc trebuie să fie '2.0'", req_id)
+    method = obj.get("method")
+    if not method or not isinstance(method, str):
+        return _make_error(ERROR_INVALID_REQUEST, "method invalid", req_id)
+    
+    params = obj.get("params", [])
+    pos, named = (params, {}) if isinstance(params, list) else ([], params if isinstance(params, dict) else [])
+    
     try:
-        req = _validate_request(raw_req)
-        req_id = req.get("id", None)
-        method = str(req.get("method"))
-        pos, named = _get_params(req)
         result = _dispatch(method, pos, named)
+        return None if req_id is None else _make_result(result, req_id)
+    except KeyError as e:
+        return _make_error(ERROR_METHOD_NOT_FOUND, str(e), req_id)
+    except (ValueError, TypeError, ZeroDivisionError) as e:
+        return _make_error(ERROR_INVALID_PARAMS, str(e), req_id)
+    except Exception as e:
+        return _make_error(ERROR_INTERNAL, str(e), req_id)
 
-        # Notification (id is absent): do not reply
-        if "id" not in req:
-            return False, None
-
-        return True, _ok(result, req_id)
-    except JSONRPCError as e:
-        if raw_req and isinstance(raw_req, dict) and "id" not in raw_req:
-            return False, None
-        return True, _err(e, req_id)
-    except Exception as exc:
-        LOG.exception("Unhandled server error")
-        if raw_req and isinstance(raw_req, dict) and "id" not in raw_req:
-            return False, None
-        return True, _err(JSONRPCError(-32603, "Internal error", data=str(exc)), req_id)
-
-
-class Handler(BaseHTTPRequestHandler):
-    server_version = SERVER_VERSION
-
-    def log_message(self, fmt: str, *args: Any) -> None:
-        LOG.info("%s - %s", self.address_string(), fmt % args)
-
-    def do_GET(self) -> None:
-        body = (
-            "Week 12 JSON-RPC server\n"
-            "Send JSON-RPC 2.0 requests via HTTP POST.\n"
-            "Example: {\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"add\",\"params\":[2,3]}\n"
-        ).encode("utf-8")
-        self.send_response(HTTPStatus.OK)
-        self.send_header("Content-Type", "text/plain; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
-
-    def do_POST(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        raw = self.rfile.read(length)
-
-        try:
-            parsed = _parse_json(raw)
-        except JSONRPCError as e:
-            out = json.dumps(_err(e, None)).encode("utf-8")
-            self.send_response(HTTPStatus.OK)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Content-Length", str(len(out)))
-            self.end_headers()
-            self.wfile.write(out)
-            return
-
-        # Single request
-        if isinstance(parsed, dict):
-            has_resp, resp_obj = _handle_one(parsed)
-            if not has_resp:
-                self.send_response(HTTPStatus.NO_CONTENT)
-                self.end_headers()
-                return
-            out = json.dumps(resp_obj).encode("utf-8")
-            self.send_response(HTTPStatus.OK)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Content-Length", str(len(out)))
-            self.end_headers()
-            self.wfile.write(out)
-            return
-
-        # Batch request
-        if isinstance(parsed, list):
-            if len(parsed) == 0:
-                out = json.dumps(_err(JSONRPCError(-32600, "Invalid Request", data="Empty batch"), None)).encode("utf-8")
-                self.send_response(HTTPStatus.OK)
-                self.send_header("Content-Type", "application/json; charset=utf-8")
-                self.send_header("Content-Length", str(len(out)))
-                self.end_headers()
-                self.wfile.write(out)
-                return
-
-            responses: List[Dict[str, Any]] = []
-            for item in parsed:
-                has_resp, resp_obj = _handle_one(item)
-                if has_resp and resp_obj is not None:
-                    responses.append(resp_obj)
-
-            if not responses:
-                self.send_response(HTTPStatus.NO_CONTENT)
-                self.end_headers()
-                return
-
-            out = json.dumps(responses).encode("utf-8")
-            self.send_response(HTTPStatus.OK)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Content-Length", str(len(out)))
-            self.end_headers()
-            self.wfile.write(out)
-            return
-
-        # Anything else is invalid
-        out = json.dumps(_err(JSONRPCError(-32600, "Invalid Request", data="Expected object or array"), None)).encode("utf-8")
-        self.send_response(HTTPStatus.OK)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(out)))
-        self.end_headers()
-        self.wfile.write(out)
-
-
-def parse_args() -> argparse.Namespace:
-    ap = argparse.ArgumentParser(description="Week 12 JSON-RPC server")
-    ap.add_argument("--host", default="127.0.0.1", help="Bind address")
-    ap.add_argument("--port", type=int, default=6200, help="TCP port (default: 6200)")
-    ap.add_argument("--verbose", action="store_true", help="Verbose logging")
-    return ap.parse_args()
-
-
-def main() -> int:
-    args = parse_args()
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(level=level, format="[%(asctime)s] %(levelname)s %(name)s: %(message)s")
-
-    host = args.host
-    port = int(args.port)
-
-    LOG.info("Starting JSON-RPC server on http://%s:%s", host, port)
-    httpd = ThreadingHTTPServer((host, port), Handler)
+def process_request(raw_body: bytes) -> bytes:
     try:
-        httpd.serve_forever(poll_interval=0.2)
+        payload = json.loads(raw_body.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        return json.dumps(_make_error(ERROR_PARSE, f"Parse error: {e}")).encode()
+    
+    if isinstance(payload, list):
+        responses = [r for r in (_process_single(item) for item in payload) if r]
+        return json.dumps(responses).encode() if responses else b""
+    else:
+        resp = _process_single(payload)
+        return json.dumps(resp).encode() if resp else b""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# HANDLER_HTTP
+# ═══════════════════════════════════════════════════════════════════════════════
+class JSONRPCHandler(BaseHTTPRequestHandler):
+    def log_message(self, format: str, *args) -> None:
+        logger.debug(f"{self.address_string()} - {format % args}")
+    
+    def do_POST(self) -> None:
+        content_length = int(self.headers.get("Content-Length", 0))
+        raw_body = self.rfile.read(content_length) if content_length else b""
+        response_body = process_request(raw_body)
+        
+        self.send_response(200 if response_body else 204)
+        if response_body:
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(response_body)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        if response_body:
+            self.wfile.write(response_body)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════════════════════════════════════════════
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Server JSON-RPC 2.0")
+    ap.add_argument("--host", default="0.0.0.0")
+    ap.add_argument("--port", type=int, default=6200)
+    args = ap.parse_args()
+    
+    httpd = HTTPServer((args.host, args.port), JSONRPCHandler)
+    logger.info(f"Server JSON-RPC pe http://{args.host}:{args.port}")
+    
+    try:
+        httpd.serve_forever()
     except KeyboardInterrupt:
-        LOG.info("Stopping (Ctrl+C)")
+        logger.info("Oprire...")
     finally:
         httpd.server_close()
     return 0
 
-
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())

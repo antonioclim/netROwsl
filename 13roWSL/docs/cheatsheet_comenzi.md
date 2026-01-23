@@ -153,3 +153,116 @@ git status
 ---
 
 *Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix*
+
+---
+
+## Verificare Rapidă Stare
+
+```bash
+# One-liner: verifică toate serviciile laboratorului
+for p in 1883 8883 8080 2121 6200; do 
+  nc -zv localhost $p 2>&1 | grep -q succeeded && echo "Port $p: OK" || echo "Port $p: FAIL"
+done
+
+# Sau cu Python
+python3 -c "
+import socket
+ports = [1883, 8883, 8080, 2121, 6200]
+for p in ports:
+    try:
+        s = socket.socket()
+        s.settimeout(1)
+        s.connect(('localhost', p))
+        print(f'Port {p}: OK')
+        s.close()
+    except:
+        print(f'Port {p}: FAIL')
+"
+```
+
+---
+
+## Comenzi de Urgență
+
+```bash
+# Totul s-a blocat? Reset complet (păstrează Portainer):
+docker compose -f docker/docker-compose.yml down -v
+docker compose -f docker/docker-compose.yml up -d
+
+# Doar un container problematic:
+docker restart week13_mosquitto
+
+# Forțează rebuild imaginilor:
+docker compose -f docker/docker-compose.yml build --no-cache
+docker compose -f docker/docker-compose.yml up -d
+
+# Verifică ce ocupă un port:
+sudo ss -tlnp | grep :1883
+# sau în Windows PowerShell:
+netstat -ano | findstr :1883
+```
+
+---
+
+## Alias-uri Recomandate (opțional)
+
+Adaugă în `~/.bashrc` pentru acces rapid:
+
+```bash
+# Navigare rapidă
+alias lab13='cd /mnt/d/RETELE/SAPT13/13roWSL'
+
+# Comenzi laborator
+alias lab13-start='python3 scripts/porneste_lab.py'
+alias lab13-stop='python3 scripts/opreste_lab.py'
+alias lab13-status='docker ps --filter "name=week13" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
+alias lab13-logs='docker compose -f docker/docker-compose.yml logs -f'
+
+# Exerciții
+alias lab13-scan='python3 src/exercises/ex_13_01_scanner_porturi.py'
+alias lab13-mqtt='python3 src/exercises/ex_13_02_client_mqtt.py'
+alias lab13-sniff='sudo python3 src/exercises/ex_13_03_sniffer_pachete.py'
+alias lab13-vuln='python3 src/exercises/ex_13_04_verificator_vulnerabilitati.py'
+
+# Aplicare: source ~/.bashrc
+```
+
+---
+
+## Combinații Utile
+
+```bash
+# Scanează și salvează rezultatul cu timestamp
+python3 src/exercises/ex_13_01_scanner_porturi.py \
+  --tinta localhost \
+  --porturi 1-10000 \
+  --output "scan_$(date +%Y%m%d_%H%M%S).json"
+
+# Subscribe MQTT cu logging în fișier
+python3 src/exercises/ex_13_02_client_mqtt.py \
+  --mod subscribe \
+  --topic "#" \
+  2>&1 | tee mqtt_log_$(date +%Y%m%d).txt
+
+# Captură pachete și deschide automat în Wireshark
+sudo python3 src/exercises/ex_13_03_sniffer_pachete.py \
+  --numar 100 \
+  --output captura.pcap && \
+  wireshark captura.pcap &
+```
+
+---
+
+## Troubleshooting Rapid
+
+| Simptom | Comandă de diagnostic | Soluție probabilă |
+|---------|----------------------|-------------------|
+| Docker nu răspunde | `sudo service docker status` | `sudo service docker start` |
+| Port ocupat | `sudo ss -tlnp \| grep :PORT` | Oprește procesul sau schimbă portul |
+| Container crash loop | `docker logs week13_X` | Verifică configurația/dependențele |
+| Wireshark gol | Verifică interfața selectată | Selectează `vEthernet (WSL)` |
+| TLS error | `openssl s_client -connect localhost:8883` | Regenerează certificatele |
+
+---
+
+*Curs REȚELE DE CALCULATOARE - ASE, Informatică | de Revolvix*

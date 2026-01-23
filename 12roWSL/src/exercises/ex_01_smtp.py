@@ -1,70 +1,74 @@
 #!/usr/bin/env python3
 """
 Exercițiul 1: Dialog SMTP Manual
+================================
 Laborator de Rețele de Calculatoare - ASE, Informatică Economică | de Revolvix
 
-INSTRUCȚIUNI:
-=============
-
-1. Deschideți un terminal și conectați-vă la serverul SMTP:
-   
-   nc localhost 1025
-   
-   Sau pe Windows:
-   
-   telnet localhost 1025
-
-2. Observați banner-ul de salut al serverului (răspuns 220)
-
-3. Trimiteți comanda HELO pentru a vă identifica:
-   
-   HELO client.local
-   
-   Așteptați răspunsul 250
-
-4. Inițiați o tranzacție de email:
-   
-   MAIL FROM:<expeditor@exemplu.ro>
-   RCPT TO:<destinatar@exemplu.ro>
-   DATA
-
-5. Introduceți conținutul mesajului:
-   
-   Subject: Test SMTP din Laborator
-   From: expeditor@exemplu.ro
-   To: destinatar@exemplu.ro
-   
-   Acesta este corpul mesajului de test.
-   .
-
-   (Terminați cu o linie conținând doar un punct)
-
-6. Verificați mesajele stocate:
-   
-   LIST
-
-7. Încheiați sesiunea:
-   
-   QUIT
-
-CAPTURĂ DE TRAFIC:
-==================
-
-Înainte de a începe dialogul, porniți captura în alt terminal:
-
-python scripts/captura_trafic.py --port 1025 --output pcap/smtp_dialog.pcap --durata 120
-
-FILTRE WIRESHARK:
-=================
-
-tcp.port == 1025
-smtp
-smtp.req.command == "MAIL"
-
-VERIFICARE:
-===========
-
-python tests/test_exercitii.py --exercitiu 1
+NIVEL: Începător | TIMP: 30-40 minute
 """
 
-print(__doc__)
+# ═══════════════════════════════════════════════════════════════════════════════
+# PASUL_0_PREDICȚII
+# ═══════════════════════════════════════════════════════════════════════════════
+"""
+🔮 PREDICȚII - Răspunde ÎNAINTE de a te conecta:
+
+1. Ce cod numeric va trimite serverul când te conectezi? [ ] 200 [ ] 220 [ ] 250
+2. Ce se întâmplă dacă trimiți DATA înainte de RCPT TO?  [ ] OK [ ] Eroare 5xx
+3. Cum se termină corpul mesajului în SMTP?             [ ] Ctrl+D [ ] Linie cu "."
+"""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PASUL_1_CONECTARE
+# ═══════════════════════════════════════════════════════════════════════════════
+"""
+Deschide un terminal și conectează-te la serverul SMTP:
+    nc localhost 1025
+
+Ce ar trebui să vezi: 220 Week12 SMTP Server Ready
+"""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PASUL_2_IDENTIFICARE
+# ═══════════════════════════════════════════════════════════════════════════════
+"""
+Trimite HELO pentru a te identifica:
+    HELO client.local
+
+Ce ar trebui să vezi: 250-Week12 SMTP Server... 250 OK
+"""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PASUL_3_TRANZACTIE
+# ═══════════════════════════════════════════════════════════════════════════════
+"""
+    MAIL FROM:<eu@exemplu.ro>       → 250 OK
+    RCPT TO:<destinatar@exemplu.ro> → 250 OK
+    DATA                             → 354 Start mail input
+    Subject: Test
+    
+    Corpul mesajului.
+    .                                → 250 OK: message queued
+    QUIT                             → 221 Bye
+"""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERIFICARE_PREDICȚII
+# ═══════════════════════════════════════════════════════════════════════════════
+"""
+🔍 VERIFICARE: 1. 220 | 2. Eroare 503 | 3. Linie cu "."
+"""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CHECKLIST_FINAL
+# ═══════════════════════════════════════════════════════════════════════════════
+"""
+[ ] Am văzut codul 220 la conectare
+[ ] Am primit 250 la HELO/EHLO
+[ ] Am trimis un mesaj complet
+[ ] Am capturat traficul în Wireshark
+"""
+
+if __name__ == "__main__":
+    print(__doc__)
+    print("Citește instrucțiunile și urmează pașii cu nc localhost 1025")
