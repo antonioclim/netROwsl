@@ -6,6 +6,11 @@ Laborator de Rețele de Calculatoare - ASE, Informatică Economică | de Revolvi
 Wrapper pentru tcpdump/tshark cu suport pentru filtre specifice laboratorului.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import argparse
@@ -13,6 +18,11 @@ import signal
 import time
 from pathlib import Path
 from datetime import datetime
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
@@ -35,6 +45,11 @@ FILTRE_PREDEFINITE = {
 class CaptorTrafic:
     """Clasă pentru gestionarea capturilor de trafic."""
     
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
     def __init__(self, interfata: str = "any"):
         self.interfata = interfata
         self.proces = None
@@ -155,6 +170,11 @@ class CaptorTrafic:
                 print(f"  Eroare: {e}")
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     parser = argparse.ArgumentParser(
         description="Captură trafic de rețea pentru Laboratorul Săptămânii 12"
@@ -232,6 +252,11 @@ def main():
 
     return 0 if succes else 1
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())

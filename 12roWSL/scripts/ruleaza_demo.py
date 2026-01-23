@@ -6,12 +6,22 @@ Laborator de Rețele de Calculatoare - ASE, Informatică Economică | de Revolvi
 Demonstrații automate pentru protocoalele SMTP și RPC.
 """
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SETUP_MEDIU
+# ═══════════════════════════════════════════════════════════════════════════════
+
 import subprocess
 import sys
 import time
 import json
 import argparse
 from pathlib import Path
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTE_CONFIGURARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 RADACINA_PROIECT = Path(__file__).parent.parent
 sys.path.insert(0, str(RADACINA_PROIECT))
@@ -21,6 +31,11 @@ from scripts.utils.network_utils import TesterSMTP, TesterJSONRPC, TesterXMLRPC
 
 logger = configureaza_logger("ruleaza_demo")
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FUNCTII_AJUTATOARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def pauza_interactiva(mesaj: str = "Apăsați Enter pentru a continua..."):
     """Pauză cu mesaj pentru demonstrații."""
@@ -333,6 +348,11 @@ DEMONSTRATII = {
 }
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGICA_PRINCIPALA
+# ═══════════════════════════════════════════════════════════════════════════════
+
 def main():
     parser = argparse.ArgumentParser(
         description="Demonstrații pentru Laboratorul Săptămânii 12"
@@ -381,6 +401,11 @@ def main():
     print("=" * 60)
     return 0
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUNCT_INTRARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     sys.exit(main())
