@@ -172,7 +172,7 @@ Materialele încorporează sau depind de diverse componente software terțe, fie
 | Scapy | GPL-2.0 | https://scapy.net/ |
 | Wireshark | GPL-2.0 | https://www.wireshark.org/about.html |
 
-Utilizarea componente terțe este supusă licențelor lor respective (daca acestea exista).
+Utilizarea dumneavoastră a acestor componente terțe este supusă licențelor lor respective.
 
 ---
 
@@ -192,7 +192,7 @@ Pentru întrebări privind permisiunile, vă rugăm:
 1. Deschideți un issue în repository cu tag-ul `[LICENCE]`
 2. Descrieți clar utilizarea intenționată
 3. Furnizați afilierea instituțională (dacă este cazul)
-4. Alocați 60 zile lucrătoare pentru răspuns
+4. Alocați 10 zile lucrătoare pentru răspuns
 
 ---
 
