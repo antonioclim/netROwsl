@@ -19,7 +19,7 @@
 
 ## Disclaimer și Conflict de Interese
 
-Prezentul raport a fost elaborat de autorii materialelor CLIM&TOMA/ASE-CSIE, ceea ce creează un evident conflict de interese. Recunoaștem cu onestitate că obiectivitatea absolută este un ideal către care tindem, nu o certitudine pe care o deținem. Cititorul este invitat să verifice independent sursele citate și să-și formeze propria opinie.
+Prezentul raport a fost elaborat de autorii materialelor CLIM&TOMA/ASE-CSIE. Recunoaștem cu onestitate că obiectivitatea absolută este un ideal către care tindem, nu o certitudine pe care o deținem. Cititorul este invitat să verifice independent sursele citate și să-și formeze propria opinie.
 
 Cu alte cuvinte: da, ne lăudăm puțin, dar încercăm să fim corecți în acest proces.
 
@@ -31,7 +31,7 @@ Cu alte cuvinte: da, ne lăudăm puțin, dar încercăm să fim corecți în ace
 
 Proiectul **CLIM&TOMA/ASE-CSIE** (denumit în continuare *proiectul de referință*) a luat naștere din colaborarea dintre **ing. dr. Antonio CLIM** și **conf. dr. Andrei TOMA** de la Academia de Studii Economice din București, Facultatea de Cibernetică, Statistică și Informatică Economică (ASE-CSIE).
 
-Ideea inițială, scripturile de bază și numeroase sesiuni de brainstorming (desfășurate preponderent la cafeneaua **The Dose**, București — un loc care merită credit pentru cantitatea de cofeină investită în acest proiect) au condus la dezvoltarea unui kit de laborator pentru disciplina *Rețele de Calculatoare* care încearcă să îmbine:
+Ideea inițială, scripturile de bază și numeroase sesiuni de brainstorming (desfășurate preponderent la cafeneaua **The Dose**, București — un loc care merită credit pentru cantitatea de cofeină investită în noi) au condus la dezvoltarea unui kit de laborator pentru disciplina *Rețele de Calculatoare* care încearcă să îmbine:
 
 - Rigoarea academică cu accesibilitatea practică
 - Tehnologiile moderne (Docker, WSL2) cu pedagogia bazată pe evidență
@@ -300,7 +300,7 @@ Aceasta este dimensiunea unde diferențele devin cele mai vizibile:
 - **KAIST KENSv3**: Generare PCAP pentru analiză Wireshark
 - **Labtainers (NPS)**: Parametri individualizați per student
 
-> *Notă*: Absența aproape totală a metodelor pedagogice explicite în curricula de elită ne-a surprins. Sau poate nu ar fi trebuit să ne surprindă — există o diferență între a fi un cercetător excelent în networking și a fi un pedagog informat de cercetarea educațională.
+> *Notă*: Absența aproape totală a metodelor pedagogice explicite în curricula de elită ne-a surprins. Sau poate nu ar fi trebuit să ne surprindă — există o diferență între a fi un cercetător excelent în networking și a fi un pedagog informat (pe bune) de cercetarea educațională contemporană.
 
 ### 3.4. Dimensiunea C4: Infrastructură Docker
 
@@ -602,13 +602,13 @@ Pentru a nu părea că doar ne lăudăm, iată ce am învățat de la alții:
 
 3. **Absența Prezentărilor Interactive**: Cu excepția proiectului de referință, toate cursurile analizate folosesc formate statice (PDF, PPT, video). Aceasta este o nișă neexplorată surprinzător de mare.
 
-4. **Docker ca Standard Emergent**: Containerizarea devine norma, dar implementarea variază enorm — de la imagini comunitare (Stanford) la orchestrații sofisticate (ETH, Labtainers).
+4. **Docker ca Standard Emergent**: Containerizarea devine deja norma, dar implementarea variază enorm — de la imagini comunitare (Stanford) la orchestrații sofisticate (ETH, Labtainers).
 
 ### 5.3. Limitări ale Acestei Analize
 
-- **Bias al autorilor**: Evident, ne evaluăm propriul proiect.
+- **Bias al autorilor**: Evident, ne (auto)evaluăm propriul proiect.
 - **Materialele private**: Multe universități nu publică toate materialele; am analizat doar ce e disponibil public.
-- **Snapshot temporal**: Curricula evoluează; analiza reflectă starea din ianuarie 2025.
+- **Snapshot temporal**: Curricula evoluează (depinde de și ministru ... cateodată); analiza reflectă starea din ianuarie 2026.
 - **Subiectivitate în scoruri**: Ponderile și scorurile reflectă prioritățile noastre.
 
 ---
@@ -648,7 +648,7 @@ Acest proiect nu ar fi existat fără:
 - **conf. dr. Andrei TOMA** — pentru ideile inițiale, scripturile de bază, și nesfârșitele discuții la The Dose care au transformat concepte vagi în arhitectură concretă
 - **The Dose, București** — pentru cafeaua care a alimentat acest proiect (literal)
 - **Comunitatea Open Source** — pentru toate resursele pe care le-am studiat și din care am învățat
-- **Studenții ASE-CSIE** — pentru răbdarea de a fi cobai pentru versiunile timpurii
+- **Studenții ASE-CSIE** — pentru răbdarea de a fi "cobai" pentru versiunile timpurii
 
 ---
 
