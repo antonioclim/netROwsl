@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [5.0.0] — 2026-01-24
+## [4.3.8] — 2026-01-24
 
 ### Added
 - Initial public release of Complete Laboratory Kits (WSL Edition)
